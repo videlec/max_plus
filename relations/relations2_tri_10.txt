@@ -1,0 +1,2 @@
+xyyx(yx)xyyx = xyyx(xy)xyyx
+xyyx(yx)yxxy = xyyx(xy)yxxy

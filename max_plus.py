@@ -23,8 +23,7 @@ from semigroup_tools import products, is_relation
 
 def relations_tri(dim, num_mat=10, filename=None):
     r"""
-    Find the shortest relations for upper triangular matrices in the max-plus
-    semigroup of matrices.
+    List the relations for the upper triangular matrices in a given dimension.
 
     INPUT:
 
@@ -35,21 +34,17 @@ def relations_tri(dim, num_mat=10, filename=None):
       symbolic check is performed to guarantee that the relation is satisfied by
       any pair of matrices.
 
-    - ``kind`` -- either 'all', 'tri' or 'tri_sym_diag'
-
     EXAMPLES::
 
         sage: relations_tri(2)
-
+        xyyx(yx)xyyx = xyyx(xy)xyyx
+        xyyx(yx)yxxy = xyyx(xy)yxxy
+        xxyyx(yx)xyyxy = xxyyx(xy)xyyxy
+        xxyyx(yx)xyyyx = xxyyx(xy)xyyyx
+        xxyyx(yx)yxxyy = xxyyx(xy)yxxyy
+        xxyyyx(yx)xyyx = xxyyyx(xy)xyyx
+        ...
     """
-    if filename is None:
-        from sys import stdout
-        f = stdout
-    else:
-        f = open(filename, 'w')
-
-    relations = []
-
     # the symbolic max-plus matrices
     a,b = symbolic_max_plus_matrices_tri(dim, 2)
     one = symbolic_max_plus_identity(dim, a.num_variables())
@@ -63,11 +58,19 @@ def relations_tri(dim, num_mat=10, filename=None):
     # i2,m2 : data for the second word
     n = 1
     while True:
+        if filename is None:
+            from sys import stdout
+            f = stdout
+        else:
+            f = open(filename.format(dim,2*n), 'w')
+
         for i1,m1 in products(mats[0], mats[1], n-1, n, one_int):
             m1 = mats[0] * m1
+
+            # look at the relations x* = x*
             for i2,m2 in products(mats[0], mats[1], n-1, n, one_int):
                 if i1 == i2:
-                    continue
+                    break
                 m2 = mats[0] * m2
                 # here we first test equality between m1 and m2
                 # then we test the relations on all matrices in mats
@@ -75,12 +78,35 @@ def relations_tri(dim, num_mat=10, filename=None):
                 if m1 == m2 and \
                    is_relation([0]+i1, [0]+i2, mats) and \
                    a * prod(a if x == 0 else b for x in i1) == a * prod(a if x == 0 else b for x in i2):
-                       f.write('x{} = x{}\n'.format(
-                           ''.join('x' if x == 0 else 'y' for x in i1),
-                           ''.join('x' if x == 0 else 'y' for x in i2)))
+                       p = 0
+                       while i1[p] == i2[p]: p += 1
+                       s = -1
+                       while i1[s] == i2[s]: s -= 1
+                       s += 1
+                       f.write('x{}({}){} = x{}({}){}\n'.format(
+                           ''.join('x' if x == 0 else 'y' for x in i1[:p]),
+                           ''.join('x' if x == 0 else 'y' for x in i1[p:s]),
+                           ''.join('x' if x == 0 else 'y' for x in i1[s:]),
+                           ''.join('x' if x == 0 else 'y' for x in i2[:p]),
+                           ''.join('x' if x == 0 else 'y' for x in i2[p:s]),
+                           ''.join('x' if x == 0 else 'y' for x in i2[s:])))
 
                        f.flush()
-        n += 2
+
+            # look at the relations x* = y*
+            #for i2,m2 in products(mats[0], mats[1], n, n-1, one_int):
+            #    m2 = mats[1] * m2
+            #    if m1 == m2 and \
+            #       is_relation([0]+i1, [1]+i2, mats) and \
+            #       a * prod(a if x == 0 else b for x in i1) == a * prod(a if x == 0 else b for x in i2):
+            #           f.write('x{} = y{}\n'.format(
+            #               ''.join('x' if x == 0 else 'y' for x in i1),
+            #               ''.join('x' if x == 0 else 'y' for x in i2)))
+            #           f.flush()
+
+        if filename is not None:
+            f.close()
+        n += 1
 
 ##############################
 # Symbolic max-plus matrices #
