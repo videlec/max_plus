@@ -39,18 +39,8 @@ def relations_tri(dim, num_mat=10, filename=None):
 
     EXAMPLES::
 
-        sage: r2 = find_shortest_upper_relations(2)
-        test products of length 2
-        test products of length 4
-        test products of length 6
-        test products of length 8
-        test products of length 10
-        new relation: 0110010110 = 0110100110
-        new relation: 0110011001 = 0110101001
-        new relation: 0110100110 = 0110010110
-        new relation: 0110101001 = 0110011001
-        sage: r2[0]
-        ([0, 1, 1, 0, 0, 1, 0, 1, 1, 0], [0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+        sage: relations_tri(2)
+
     """
     if filename is None:
         from sys import stdout
@@ -83,11 +73,11 @@ def relations_tri(dim, num_mat=10, filename=None):
                 # then we test the relations on all matrices in mats
                 # then we check formally using symbolic matrices
                 if m1 == m2 and \
-                   is_relation(i1, i2, mats) and \
+                   is_relation([0]+i1, [0]+i2, mats) and \
                    a * prod(a if x == 0 else b for x in i1) == a * prod(a if x == 0 else b for x in i2):
-                       f.write('{} = {}\n'.format(
-                           ''.join('x' if x == 0 else 'y' for x in [0] + i1),
-                           ''.join('x' if x == 0 else 'y' for x in [0] + i2)))
+                       f.write('x{} = x{}\n'.format(
+                           ''.join('x' if x == 0 else 'y' for x in i1),
+                           ''.join('x' if x == 0 else 'y' for x in i2)))
 
                        f.flush()
         n += 2

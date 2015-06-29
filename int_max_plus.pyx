@@ -33,7 +33,7 @@ def random_integer_max_plus_matrix_tri(dim, min_coeff, max_coeff):
         for j in range(i):
             ans.data[i][j] = LONG_MIN
         for j in range(i, ans.n):
-            ans.data[0][i] = randint(min_coeff, max_coeff)
+            ans.data[i][j] = randint(min_coeff, max_coeff)
     return ans
 
 def random_integer_max_plus_matrix_tri_sym_diag(dim, min_coeff, max_coeff):
