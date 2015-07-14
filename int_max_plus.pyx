@@ -4,7 +4,8 @@ Integer max plus matrices.
 These are integer matrices with *positive* coefficients (-1 is reserved for
 -infinity).
 """
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc, free, rand, RAND_MAX
+# note: on my computer RAND_MAX is 2**31 - 1
 from libc.limits cimport LONG_MIN, LONG_MAX
 
 from cpython.object cimport Py_EQ, Py_NE
@@ -12,7 +13,10 @@ from cpython.object cimport Py_EQ, Py_NE
 def minus_infinity():
     return <long>LONG_MIN
 
-def integer_max_plus_matrix_identity(dim):
+cdef inline long randlong(long min_coeff, long max_coeff):
+    return min_coeff + ((<long>rand()) % (max_coeff - min_coeff + 1))
+
+def integer_max_plus_matrix_identity(size_t dim):
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim)
     cdef size_t i
     for i in range(ans.n * ans.n):
@@ -21,23 +25,56 @@ def integer_max_plus_matrix_identity(dim):
         ans.data[i][i] = 0
     return ans
 
-def random_integer_max_plus_matrix(dim, min_coeff, max_coeff):
-    from random import randint
-    return IntegerMaxPlusMatrix(dim, [randint(min_coeff, max_coeff) for _ in range(dim*dim)])
+def random_integer_max_plus_matrix(size_t dim, long min_coeff, long max_coeff):
+    cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim)
+    cdef size_t i
+    for i in range(dim*dim):
+        ans.data[0][i] = randlong(min_coeff, max_coeff)
+    return ans
 
-def random_integer_max_plus_matrix_tri(dim, min_coeff, max_coeff):
-    from random import randint
+def random_integer_max_plus_matrix_tri(size_t dim, long min_coeff, long max_coeff):
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim)
     cdef size_t i
     for i in range(ans.n):
         for j in range(i):
             ans.data[i][j] = LONG_MIN
         for j in range(i, ans.n):
-            ans.data[i][j] = randint(min_coeff, max_coeff)
+            ans.data[i][j] = randlong(min_coeff, max_coeff)
     return ans
 
-def random_integer_max_plus_matrix_tri_sym_diag(dim, min_coeff, max_coeff):
-    raise NotImplementedError
+def random_integer_max_plus_matrices_tri_sim_diag(size_t dim, long min_coeff, long max_coeff):
+    r"""
+    Return two triangular matrices with the same diagonal.
+    """
+    cdef IntegerMaxPlusMatrix ans1 = new_integer_max_plus_matrix(dim)
+    cdef IntegerMaxPlusMatrix ans2 = new_integer_max_plus_matrix(dim)
+    cdef size_t i
+    for i in range(dim):
+        for j in range(i):
+            ans1.data[i][j] = ans2.data[i][j] = LONG_MIN
+        ans1.data[i][i] = ans2.data[i][i] = randlong(min_coeff, max_coeff)
+        for j in range(i+1, dim):
+            ans1.data[i][j] = randlong(min_coeff, max_coeff)
+            ans2.data[i][j] = randlong(min_coeff, max_coeff)
+    return ans1, ans2
+
+def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long max_coeff):
+    r"""
+    Return two triangular matrices with the same diagonal.
+    """
+    cdef IntegerMaxPlusMatrix ans1 = new_integer_max_plus_matrix(dim)
+    cdef IntegerMaxPlusMatrix ans2 = new_integer_max_plus_matrix(dim)
+    cdef size_t i
+    for i in range(dim):
+        for j in range(i):
+            ans1.data[i][j] = ans2.data[i][j] = LONG_MIN
+        ans1.data[i][i] = ans2.data[i][i] = randlong(min_coeff, max_coeff)
+        if i < dim-1:
+            ans1.data[i][i+1] = randlong(min_coeff, max_coeff)
+            ans2.data[i][i+1] = randlong(min_coeff, max_coeff)
+        for j in range(i+2,dim):
+            ans1.data[i][j] = ans2.data[i][j] = LONG_MIN
+    return ans1, ans2
 
 cdef IntegerMaxPlusMatrix new_integer_max_plus_matrix(size_t dim):
     cdef IntegerMaxPlusMatrix ans = IntegerMaxPlusMatrix.__new__(IntegerMaxPlusMatrix)
