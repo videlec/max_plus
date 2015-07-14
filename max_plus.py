@@ -3,7 +3,7 @@ Some experiments on symbolic max plus matrices
 
 We consider semigroup relations for various max-plus matrix semigroups:
 
- * upper triangular matrices with identical diagonals ('tri_sym_diag')
+ * upper triangular matrices with identical diagonals ('tri_sim_diag')
  * upper triangular matrices ('tri')
  * all matrices ('all')
 
@@ -12,22 +12,56 @@ If u = v is a relation then
 pus = pvs is also a relation...
 
 So we should look for primitive relations.
+
+
+Conjecture:
+
+tri sim diag 2:
+the relations are exactly
+  \(x[xy]*y[xy]*\)\([xy]*\)\(x[xy
 """
 
 from sage.geometry.polyhedron.parent import Polyhedra
-from semigroup_tools import products, is_relation
+from semigroup_tools import products_n, products_p, is_relation
 
 ###################
 # Relation finder #
 ###################
 
-def relations_tri(dim, num_mat=10, filename=None):
+def pretty_relation_string(r1, r2, letters='mn'):
     r"""
-    List the relations for the upper triangular matrices in a given dimension.
+    A nice string to represent a relation
+
+    EXAMPLES::
+
+        sage: pretty_relation_string([0,1,1,0],[1,1,0,0], 'xy')
+        '(xyy)x = (yyx)x'
+        sage: pretty_relation_string([0,0,1,0],[0,1,0,0], 'xy')
+        'x(xy)x = x(yx)x'
+    """
+    p = 0
+    while r1[p] == r2[p]: p += 1
+    s = -1
+    while r1[s] == r2[s]: s -= 1
+    s += 1
+    return '{}({}){} = {}({}){}'.format(
+       ''.join(letters[i] for i in r1[:p]),
+       ''.join(letters[i] for i in r1[p:s]),
+       ''.join(letters[i] for i in r1[s:]),
+       ''.join(letters[i] for i in r2[:p]),
+       ''.join(letters[i] for i in r2[p:s]),
+       ''.join(letters[i] for i in r2[s:]))
+
+def relations_band(dim, start=3, num_mat=20, filename=None):
+    r"""
+    List the relations for the band matrices (with identical diagonals) in a
+    given dimension.
 
     INPUT:
 
     - ``dim`` -- the dimension
+
+    - ``start`` -- the length of product we consider first (default to ``1``)
 
     - ``num_mat`` -- the number of integer matrices used to check the relation.
       Note that if all the integer matrices satisfy the relations, a (costly)
@@ -37,76 +71,350 @@ def relations_tri(dim, num_mat=10, filename=None):
     EXAMPLES::
 
         sage: relations_tri(2)
+        # triangular relations for n = 1
+        # triangular relations for n = 2
+        # triangular relations for n = 3
+        # triangular relations for n = 4
+        # triangular relations for n = 5
+        # triangular relations for n = 6
+        # triangular relations for n = 7
+        # triangular relations for n = 8
+        # triangular relations for n = 9
+        # triangular relations for n = 10
+        #  relations (5,5)
+        xyyx(xy)xyyx = xyyx(yx)xyyx
+        xyyx(xy)yxxy = xyyx(yx)yxxy
         xyyx(yx)xyyx = xyyx(xy)xyyx
         xyyx(yx)yxxy = xyyx(xy)yxxy
-        xxyyx(yx)xyyxy = xxyyx(xy)xyyxy
-        xxyyx(yx)xyyyx = xxyyx(xy)xyyyx
-        xxyyx(yx)yxxyy = xxyyx(xy)yxxyy
-        xxyyyx(yx)xyyx = xxyyyx(xy)xyyx
+        # triangular relations for n = 11
+        #  relations (4,7)
+        xyyyyx(xy)yxy = xyyyyx(yx)yxy
+        xyyyyx(yx)yxy = xyyyyx(xy)yxy
         ...
     """
     # the symbolic max-plus matrices
-    a,b = symbolic_max_plus_matrices_tri(dim, 2)
-    one = symbolic_max_plus_identity(dim, a.num_variables())
+    ab = symbolic_max_plus_matrices_band(dim, 2)
+    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
 
     # the integer max-plus matrices
-    mats = [random_integer_max_plus_matrix_tri(dim, -50*dim*dim, 50*dim*dim) for _ in range(num_mat)]
+    pairs = [random_integer_max_plus_matrices_band(dim, -2**30, 2**30) for _ in range(num_mat)]
+    A,B = pairs[0]
+
     one_int = integer_max_plus_matrix_identity(dim)
 
     # n     : length of the product
-    # i1,m1 : data for the first word
-    # i2,m2 : data for the second word
-    n = 1
+    # i1,m1AA,m1AB : data for the first word
+    # i2,m2AA,m2AB : data for the second word
+    n = start
     while True:
         if filename is None:
             from sys import stdout
             f = stdout
         else:
-            f = open(filename.format(dim,2*n), 'w')
+            f = open(filename.format(dim,n), 'w')
 
-        for i1,m1 in products(mats[0], mats[1], n-1, n, one_int):
-            m1 = mats[0] * m1
+        # we restrict to products that start and ends with the same letters
+        # up to symmetry we can restrict to
+        #   X ... X = X ... X
+        #   X ... Y = X ... Y
 
-            # look at the relations x* = x*
-            for i2,m2 in products(mats[0], mats[1], n-1, n, one_int):
+        f.write("# band similar diagonal relations for n = {}\n".format(n))
+        print "n = {}".format(n)
+        relations = []
+        for i1,m1 in products_n(A, B, n-2, one_int):
+            m1AA = A * m1 * A
+            m1AB = A * m1 * B
+
+            for i2,m2 in products_n(A, B, n-2, one_int):
+                m2AA = A * m2 * A
+                m2AB = A * m2 * B
+
                 if i1 == i2:
                     break
-                m2 = mats[0] * m2
+
+                # we have a combinatorial condition to check (comes from
+                # dimension 2):
+                # the longest common prefix and longest common suffix must
+                # contain the two letters
+                j = 0
+                while i1[j] == i2[j] == 0:
+                    j += 1
+                if i1[j] != i2[j]:
+                    continue
+
                 # here we first test equality between m1 and m2
                 # then we test the relations on all matrices in mats
                 # then we check formally using symbolic matrices
-                if m1 == m2 and \
-                   is_relation([0]+i1, [0]+i2, mats) and \
-                   a * prod(a if x == 0 else b for x in i1) == a * prod(a if x == 0 else b for x in i2):
-                       p = 0
-                       while i1[p] == i2[p]: p += 1
-                       s = -1
-                       while i1[s] == i2[s]: s -= 1
-                       s += 1
-                       f.write('x{}({}){} = x{}({}){}\n'.format(
-                           ''.join('x' if x == 0 else 'y' for x in i1[:p]),
-                           ''.join('x' if x == 0 else 'y' for x in i1[p:s]),
-                           ''.join('x' if x == 0 else 'y' for x in i1[s:]),
-                           ''.join('x' if x == 0 else 'y' for x in i2[:p]),
-                           ''.join('x' if x == 0 else 'y' for x in i2[p:s]),
-                           ''.join('x' if x == 0 else 'y' for x in i2[s:])))
+                ii1 = [0] + i1 + [0]
+                ii2 = [0] + i2 + [0]
+                if m1AA == m2AA and \
+                   is_relation(ii1, ii2, pairs) and \
+                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
+                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
+                ii1 = [0] + i1 + [1]
+                ii2 = [0] + i2 + [1]
+                if m1AB == m2AB and \
+                   is_relation(ii1, ii2, pairs) and \
+                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
+                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
 
-                       f.flush()
-
-            # look at the relations x* = y*
-            #for i2,m2 in products(mats[0], mats[1], n, n-1, one_int):
-            #    m2 = mats[1] * m2
-            #    if m1 == m2 and \
-            #       is_relation([0]+i1, [1]+i2, mats) and \
-            #       a * prod(a if x == 0 else b for x in i1) == a * prod(a if x == 0 else b for x in i2):
-            #           f.write('x{} = y{}\n'.format(
-            #               ''.join('x' if x == 0 else 'y' for x in i1),
-            #               ''.join('x' if x == 0 else 'y' for x in i2)))
-            #           f.flush()
+        for r in relations:
+            f.write(r)
+            f.write('\n')
+        f.flush()
 
         if filename is not None:
             f.close()
         n += 1
+
+def relations_tri_sim_diag(dim, start=3, num_mat=20, filename=None):
+    r"""
+    List the relations for the upper triangular matrices in a given dimension.
+
+    INPUT:
+
+    - ``dim`` -- the dimension
+
+    - ``start`` -- the length of product we consider first (default to ``1``)
+
+    - ``num_mat`` -- the number of integer matrices used to check the relation.
+      Note that if all the integer matrices satisfy the relations, a (costly)
+      symbolic check is performed to guarantee that the relation is satisfied by
+      any pair of matrices.
+
+    EXAMPLES::
+
+        sage: relations_tri(2)
+        # triangular relations for n = 1
+        # triangular relations for n = 2
+        # triangular relations for n = 3
+        # triangular relations for n = 4
+        # triangular relations for n = 5
+        # triangular relations for n = 6
+        # triangular relations for n = 7
+        # triangular relations for n = 8
+        # triangular relations for n = 9
+        # triangular relations for n = 10
+        #  relations (5,5)
+        xyyx(xy)xyyx = xyyx(yx)xyyx
+        xyyx(xy)yxxy = xyyx(yx)yxxy
+        xyyx(yx)xyyx = xyyx(xy)xyyx
+        xyyx(yx)yxxy = xyyx(xy)yxxy
+        # triangular relations for n = 11
+        #  relations (4,7)
+        xyyyyx(xy)yxy = xyyyyx(yx)yxy
+        xyyyyx(yx)yxy = xyyyyx(xy)yxy
+        ...
+    """
+    # the symbolic max-plus matrices
+    ab = symbolic_max_plus_matrices_tri_sim_diag(dim, 2)
+    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
+
+    # the integer max-plus matrices
+    pairs = [random_integer_max_plus_matrices_tri_sim_diag(dim, -2**30, 2**30) for _ in range(num_mat)]
+    A,B = pairs[0]
+
+    one_int = integer_max_plus_matrix_identity(dim)
+
+    # n     : length of the product
+    # i1,m1AA,m1AB : data for the first word
+    # i2,m2AA,m2AB : data for the second word
+    n = start
+    while True:
+        if filename is None:
+            from sys import stdout
+            f = stdout
+        else:
+            f = open(filename.format(dim,n), 'w')
+
+        # we restrict to products that start and ends with the same letters
+        # up to symmetry we can restrict to
+        #   X ... X = X ... X
+        #   X ... Y = X ... Y
+
+        f.write("# triangular similar diagonal relations for n = {}\n".format(n))
+        print "n = {}".format(n)
+        relations = []
+        for i1,m1 in products_n(A, B, n-2, one_int):
+            m1AA = A * m1 * A
+            m1AB = A * m1 * B
+
+            for i2,m2 in products_n(A, B, n-2, one_int):
+                m2AA = A * m2 * A
+                m2AB = A * m2 * B
+
+                if i1 == i2:
+                    break
+
+                # we have a combinatorial condition to check (comes from
+                # dimension 2):
+                # the longest common prefix and longest common suffix must
+                # contain the two letters
+                j = 0
+                while i1[j] == i2[j] == 0:
+                    j += 1
+                if i1[j] != i2[j]:
+                    continue
+
+                # here we first test equality between m1 and m2
+                # then we test the relations on all matrices in mats
+                # then we check formally using symbolic matrices
+                ii1 = [0] + i1 + [0]
+                ii2 = [0] + i2 + [0]
+                if m1AA == m2AA and \
+                   is_relation(ii1, ii2, pairs) and \
+                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
+                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
+                ii1 = [0] + i1 + [1]
+                ii2 = [0] + i2 + [1]
+                if m1AB == m2AB and \
+                   is_relation(ii1, ii2, pairs) and \
+                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
+                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
+
+        for r in relations:
+            f.write(r)
+            f.write('\n')
+        f.flush()
+
+        if filename is not None:
+            f.close()
+        n += 1
+
+def relations_tri(dim, start=1, num_mat=10, filename=None):
+    r"""
+    List the relations for the upper triangular matrices in a given dimension.
+
+    INPUT:
+
+    - ``dim`` -- the dimension
+
+    - ``start`` -- the length of product we consider first (default to ``1``)
+
+    - ``num_mat`` -- the number of integer matrices used to check the relation.
+      Note that if all the integer matrices satisfy the relations, a (costly)
+      symbolic check is performed to guarantee that the relation is satisfied by
+      any pair of matrices.
+
+    EXAMPLES::
+
+        sage: relations_tri(2)
+        # triangular relations for n = 1
+        # triangular relations for n = 2
+        # triangular relations for n = 3
+        # triangular relations for n = 4
+        # triangular relations for n = 5
+        # triangular relations for n = 6
+        # triangular relations for n = 7
+        # triangular relations for n = 8
+        # triangular relations for n = 9
+        # triangular relations for n = 10
+        #  relations (5,5)
+        xyyx(xy)xyyx = xyyx(yx)xyyx
+        xyyx(xy)yxxy = xyyx(yx)yxxy
+        xyyx(yx)xyyx = xyyx(xy)xyyx
+        xyyx(yx)yxxy = xyyx(xy)yxxy
+        # triangular relations for n = 11
+        #  relations (4,7)
+        xyyyyx(xy)yxy = xyyyyx(yx)yxy
+        xyyyyx(yx)yxy = xyyyyx(xy)yxy
+        ...
+    """
+    # the symbolic max-plus matrices
+    ab = symbolic_max_plus_matrices_tri(dim, 2)
+    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
+
+    # the integer max-plus matrices
+    mats = [random_integer_max_plus_matrix_tri(dim, -50*dim*dim, 50*dim*dim) for _ in range(num_mat)]
+    pairs = [(m1,m2) for m1 in mats for m2 in mats if m1 is not m2]
+    one_int = integer_max_plus_matrix_identity(dim)
+
+    # n     : length of the product
+    # i1,m1 : data for the first word
+    # i2,m2 : data for the second word
+    n = start
+    while True:
+        if filename is None:
+            from sys import stdout
+            f = stdout
+        else:
+            f = open(filename.format(dim,n), 'w')
+
+        f.write("# triangular relations for n = {}\n".format(n))
+        for k in range(1,n):
+            relations = []
+            for i1,m1 in products_p(mats[0], mats[1], k-1, n-k, one_int):
+                m1 = mats[0] * m1
+                i1 = [0] + i1
+
+                for i2,m2 in products_p(mats[0], mats[1], k-1, n-k, one_int):
+                    m2 = mats[0] * m2
+                    i2 = [0] + i2
+
+                    if i1 == i2:
+                        break
+
+                    # here we first test equality between m1 and m2
+                    # then we test the relations on all matrices in mats
+                    # then we check formally using symbolic matrices
+                    if m1 == m2 and \
+                       is_relation(i1, i2, pairs) and \
+                       prod(ab[x] for x in i1) == prod(ab[x] for x in i2):
+                           relations.append(pretty_relation_string(i1,i2,'ab'))
+
+#                for i2,m2 in products(mats[0], mats[1], k, n-k-1, one_int):
+#                    m2 = mats[1] * m2
+#                    i2 = [1] + i2
+#
+#                    # here we first test equality between m1 and m2
+#                    # then we test the relations on all matrices in mats
+#                    # then we check formally using symbolic matrices
+#                    if m1 == m2 and \
+#                       is_relation(i1, i2, pairs) and \
+#                       prod(ab[x] for x in i1) == prod(ab[x] for x in i2):
+#                           relations.append(pretty_relation_string(i1,i2))
+
+            if relations:
+                f.write("#  relations ({},{})\n".format(k,n-k))
+                for r in relations:
+                    f.write(r)
+                    f.write('\n')
+                f.flush()
+
+        if filename is not None:
+            f.close()
+        n += 1
+
+def filter_relations(r, mats, ab, one):
+    ans = []
+    for r1,r2 in r:
+        if is_relation(r1, r2, mats) and \
+            prod(ab[x] for x in r1) == prod(ab[x] for x in r2):
+            ans.append(pretty_relation_string(r1,r2))
+    return ans
+
+#####
+#
+####
+
+def brute_force_fibo(dim):
+    dim = int(dim)
+    w = list(words.FibonacciWord([0,1])[:1000])
+    n = 1
+
+    mats = random_integer_max_plus_matrices_tri_sim_diag(dim, -2**20, 2**20)
+
+    while True:
+        u = prod(mats[w[i]] for i in range(n))
+        v = prod(mats[w[i]] for i in range(n-1,-1,-1))
+
+        if v*mats[0]*mats[1]*u != v*mats[1]*mats[0]*u:
+            n += 1
+            print n
+        else:
+            mats = random_integer_max_plus_matrices_tri_sim_diag(dim, -2**20, 2**20)
+
+
 
 ##############################
 # Symbolic max-plus matrices #
@@ -179,7 +487,7 @@ def symbolic_max_plus_matrices_tri(dim, nb):
         matrices.append(BinaryMaxPlusMatrix(dim, mat))
     return matrices
 
-def symbolic_max_plus_matrices_tri_sym_diag(dim, nb):
+def symbolic_max_plus_matrices_tri_sim_diag(dim, nb):
     r"""
     Return a set of ``nb`` symbolic matrices with the same diagonal.
 
@@ -216,6 +524,46 @@ def symbolic_max_plus_matrices_tri_sym_diag(dim, nb):
             mat.append(row)
         matrices.append(BinaryMaxPlusMatrix(dim, mat))
     return matrices
+
+def symbolic_max_plus_matrices_band(dim, nb):
+    r"""
+    Return a set of ``nb`` symbolic matrices with the same diagonal.
+
+    INPUT:
+
+    - ``dim`` -- the dimension
+
+    - ``nb`` -- the number of matrices
+    """
+    N = dim + nb * (dim - 1)
+    P = Polyhedra(ZZ, N)
+    e = P([[],[],[]], None)
+
+    o = 0
+    z = [0]*N
+    diag = []
+    for k in range(dim):
+        z[o] = 1
+        o += 1
+        diag.append(P([[z], [], []], None))
+        z[o-1] = 0
+
+    matrices = []
+    for i in range(nb):
+        mat = []
+        for j in range(dim):
+            row = [e] * j
+            row.append(diag[j])
+            if j < dim-1:
+                z[o] = 1
+                o += 1
+                row.append(P([[z], [], []], None))
+                z[o-1] = 0
+                row.extend([e] * (dim-j-2))
+            mat.append(row)
+        matrices.append(BinaryMaxPlusMatrix(dim, mat))
+    return matrices
+
 
 
 class BinaryMaxPlusMatrix(SageObject):

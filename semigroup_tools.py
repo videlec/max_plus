@@ -1,9 +1,80 @@
 r"""
 Generic semigroup tools
 """
+
+import itertools
 from sage.misc.misc_c import prod
 
-def products(a, b, na, nb, one):
+
+def products_n(a, b, n, one):
+    r"""
+    Run through all products of the elements ``a`` and ``b`` of given length.
+
+    EXAMPLES::
+
+        sage: m1 = matrix([[1,1],[0,1]])
+        sage: m2 = matrix([[1,0],[1,1]])
+        sage: one = matrix([[1,0],[0,1]])
+        sage: g = products_n(m1, m2, 3, one)
+        sage: g.next()
+        (
+                   [1 3]
+        [0, 0, 0], [0 1]
+        )
+        sage: g.next()
+        (
+                   [3 2]
+        [0, 0, 1], [1 1]
+        )
+        sage: g.next()
+        (
+                   [2 3]
+        [0, 1, 0], [1 2]
+        )
+        sage: g.next()
+        (
+                   [3 1]
+        [0, 1, 1], [2 1]
+        )
+        sage: g.next()
+        (
+                   [1 2]
+        [1, 0, 0], [1 3]
+        )
+        sage: g.next()
+        (
+                   [2 1]
+        [1, 0, 1], [3 2]
+        )
+        sage: g.next()
+        (
+                   [1 1]
+        [1, 1, 0], [2 3]
+        )
+        sage: g.next()
+        (
+                   [1 0]
+        [1, 1, 1], [3 1]
+        )
+    """
+    i = []
+    branch = [one]
+
+    while True:
+        while len(i) < n:
+            i.append(0)
+            branch.append(branch[-1] * a)
+        yield i, branch[-1]
+
+        while i and i[-1] == 1:
+            i.pop()
+            branch.pop()
+        if not i:
+            return
+        i[-1] = 1
+        branch[-1] = branch[-2] * b
+
+def products_p(a, b, na, nb, one):
     r"""
     Run through all products of the elements ``a`` and ``b`` containing exactly
     ``na`` times ``a`` and ``nb`` times ``b``.
@@ -63,32 +134,53 @@ def products(a, b, na, nb, one):
         i[-1] = 1
         branch[-1] = branch[-2] * b
 
-def is_relation(i1, i2, elements):
+def products_all_subwords(a, b, n, m, one):
     r"""
-    Test if the relation ``i1 = i2`` is valid on ``elements``.
+    An iterator through all words on a,b of length n that contains all words of
+    length m.
+    """
+    branch = [one]
+    raise NotImplementedError
+
+def is_relation(r1, r2, elements):
+    r"""
+    Test if the relation ``r1 = r2`` is valid on ``pairs``.
 
     INPUT:
 
-    - ``i1``, ``i2`` -- two lists of `0` and `1` that encode a word in the free
-      group on two generators
+    - ``r1``, ``r2`` -- two lists of the non-negative integers `{0,1,2,...}`
+      that encode a word in the free group
 
-    - ``elements`` -- a set of element of a common semigroup
+    - ``elements`` -- a list of elements that will be tested for the relation.
+      If the relation involves number in `{0, ..., n-1}` then each element must
+      be at least a `n`-tuple.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Upper triangular matrices in dimension two commute::
 
         sage: m1 = matrix(2, [1,1,0,1])
         sage: m2 = matrix(2, [1,-1,0,1])
-        sage: is_relation([0,1], [1,0], [m1,m2])
+        sage: is_relation([0,1], [1,0], [(m1,m2)])
+        True
+
+    But not in dimension three::
+
+        sage: m1 = matrix(3, [1,1,1,0,1,1,0,0,1])
+        sage: m2 = matrix(3, [1,2,3,0,1,4,0,0,1])
+        sage: m3 = matrix(3, [1,5,1,0,1,3,0,0,1])
+        sage: is_relation([0,1], [1,0], [(m1,m2), (m1,m3), (m2,m3)])
+        False
+
+    But their commutator do::
+
+        sage: r1 = [0,1,2,3,1,0,3,2]
+        sage: r2 = [1,0,3,2,0,1,2,3]
+        sage: elements = [(m1,m2,~m1,~m2), (m1,m3,~m1,~m3), (m2,m3,~m2,~m3)]
+        sage: is_relation(r1, r2, elements)
         True
     """
-    for a in elements:
-        for b in elements:
-            if a is b:
-                continue
-            p1 = prod(a if x == 0 else b for x in i1)
-            p2 = prod(a if x == 0 else b for x in i2)
-            if p1 != p2:
-                return False
+    for p in elements:
+        if prod(p[x] for x in r1) != prod(p[x] for x in r2):
+            return False
     return True
-
-
