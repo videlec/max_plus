@@ -14,11 +14,34 @@ pus = pvs is also a relation...
 So we should look for primitive relations.
 
 
+1. For band 2x2 matrices same diag (or triangular same diag) the relations are exactly
+
+   p u s = p v s
+
+   where p and s contains both x and y
+
+2. For band 3x3 matrices same diag
+
 Conjecture:
 
-tri sim diag 2:
-the relations are exactly
-  \(x[xy]*y[xy]*\)\([xy]*\)\(x[xy
+1. band matrices
+
+    relations are of the form
+
+    p u s = p v s
+
+    with |p| >= dim and |s| >= dim
+
+    (just use the fact that the first occurrences of factor of length d-1 appear
+    at the same positions)
+
+2. triangular matrices:
+
+    relations are of the form
+
+    p u s = p v s
+
+    with |p| > dim and |s| > dim
 """
 
 from sage.geometry.polyhedron.parent import Polyhedra
@@ -120,11 +143,13 @@ def relations_band(dim, start=3, num_mat=20, filename=None):
 
         f.write("# band similar diagonal relations for n = {}\n".format(n))
         print "n = {}".format(n)
-        relations = []
         for i1,m1 in products_n(A, B, n-2, one_int):
             m1AA = A * m1 * A
             m1AB = A * m1 * B
 
+            # TODO: fill the things that we know
+            # the first and last occurrences of any subword of length d-1 appear
+            # in the same position in the left and right members
             for i2,m2 in products_n(A, B, n-2, one_int):
                 m2AA = A * m2 * A
                 m2AB = A * m2 * B
@@ -150,18 +175,17 @@ def relations_band(dim, start=3, num_mat=20, filename=None):
                 if m1AA == m2AA and \
                    is_relation(ii1, ii2, pairs) and \
                    prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
-                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
+                       f.write(pretty_relation_string(ii1,ii2,'xy'))
+                       f.write('\n')
+                       f.flush()
                 ii1 = [0] + i1 + [1]
                 ii2 = [0] + i2 + [1]
                 if m1AB == m2AB and \
                    is_relation(ii1, ii2, pairs) and \
                    prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
-                       relations.append(pretty_relation_string(ii1,ii2,'xy'))
-
-        for r in relations:
-            f.write(r)
-            f.write('\n')
-        f.flush()
+                       f.write(pretty_relation_string(ii1,ii2,'xy'))
+                       f.write('\n')
+                       f.flush()
 
         if filename is not None:
             f.close()
@@ -340,6 +364,8 @@ def relations_tri(dim, start=1, num_mat=10, filename=None):
         else:
             f = open(filename.format(dim,n), 'w')
 
+        # TODO (see also in band relations): we can look only at the pair of
+        # words
         f.write("# triangular relations for n = {}\n".format(n))
         for k in range(1,n):
             relations = []
