@@ -1,4 +1,4 @@
-# A small Python library to deal with max-plus matrices relations
+# Sage library for max-plus matrix identities
 
 To run the library you need to install Sage (http://sagemath.org). Then
 clone this repository (or download all the files). Go to the directory
@@ -7,7 +7,7 @@ where you downloaded the file. Start Sage and run
     sage: %runfile int_max_plus.pyx
     sage: %runfile max_plus.py
 
-To create symbolic triangular matrices use the function
+Once that done, you can create symbolic triangular matrices using the function
 
     symbolic_max_plus_matrices_band(d, n, diag='v', surdiag='v', ch=None)
 
@@ -96,3 +96,5 @@ For example
 	[ max(x5+x6, x3+x4, x0+x3)   max(x5+x7, 2x4, x1+x3) max(x5+x8, x4+x5, x2+x3) ]
 	[ max(x6+x8, x3+x7, x0+x6) max(x7+x8, x4+x7, x1+x6)   max(2x8, x5+x7, x2+x6) ]
 
+
+Any comment or remark is welcome at vincentDOTdelecroixATlabriDOTfr
