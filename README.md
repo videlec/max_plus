@@ -21,6 +21,8 @@ To create symbolic triangular matrices use the functions
 
 - `ch`: the convex hull engine
 
+For example you can do
+
     sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'c', 'v')
     sage: x
     A 3x3 symbolic max plus matrix on 4 variables
