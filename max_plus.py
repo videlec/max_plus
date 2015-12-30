@@ -268,12 +268,12 @@ def pretty_print_poly(p):
             return '0'
         else:
             v = p[0]
-            return '+'.join('{}x_{}'.format('' if j == 1 else j,i) for i,j in enumerate(v) if j)
+            return '+'.join('{}x{}'.format('' if j == 1 else j,i) for i,j in enumerate(v) if j)
             
     else:
         s = []
         for v in p:
-            s.append('+'.join('{}x_{}'.format('' if j == 1 else j, i) for i,j in enumerate(v) if j))
+            s.append('+'.join('{}x{}'.format('' if j == 1 else j, i) for i,j in enumerate(v) if j))
         return 'max(' + ', '.join(s) + ')'
 
 ##################
