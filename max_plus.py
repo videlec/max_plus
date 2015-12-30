@@ -57,6 +57,7 @@ EXAMPLES::
 """
 
 from itertools import product
+import time
 
 from sage.geometry.polyhedron.parent import Polyhedra
 from sage.modules.free_module import FreeModule
@@ -231,6 +232,98 @@ def symbolic_max_plus_matrices_band(d, n,
         matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
 
     return matrices
+
+def symbolic_max_plus_matrices_upper(d, n, 
+        diag='v', surdiag='v', ch=None):
+    r"""
+    EXAMPLES::
+
+
+    sage: x,y = symbolic_max_plus_matrices_upper(3,2)
+    sage: x
+    A 3x3 symbolic max plus matrix on 12 variables
+    sage: print x
+    [  x0   x3  x4 ]
+    [ -oo   x1  x5 ]
+    [ -oo  -oo  x2 ]
+    sage: print y
+    [  x6   x9  x10 ]
+    [ -oo   x7  x11 ]
+    [ -oo  -oo   x8 ]
+
+    sage: x,y = symbolic_max_plus_matrices_upper(3,2,'c','v')
+    sage: print x
+    [   0   x0  x1 ]
+    [ -oo    0  x2 ]
+    [ -oo  -oo   0 ]
+    sage: print y
+    [   0   x3  x4 ]
+    [ -oo    0  x5 ]
+    [ -oo  -oo   0 ]
+
+    sage: x,y = symbolic_max_plus_matrices_upper(3,2,'v','s')
+    sage: print x
+    [  x3   x0  x1 ]
+    [ -oo   x4  x2 ]
+    [ -oo  -oo  x5 ]
+    sage: print y
+    [  x6   x0  x1 ]
+    [ -oo   x7  x2 ]
+    [ -oo  -oo  x8 ]
+    """
+    d = int(d)
+    n = int(n)
+
+    nvar = 0
+    if diag == 's':
+        nvar += d
+    elif diag == 'v':
+        nvar += n*d
+
+    if surdiag == 's':
+        nvar += d*(d-1)//2
+    elif surdiag == 'v':
+        nvar += n*d*(d-1)//2
+
+    V = FreeModule(ZZ, nvar)
+    B = iter(V.basis())
+    e = ()
+    f = (V.zero(),)
+    mat_init = [[e]*d for _ in range(d)]
+
+    if diag == 'c':
+        for k in range(d):
+            mat_init[k][k] = f
+    elif diag == 's':
+        for k in range(d):
+            mat_init[k][k] = (next(B),)
+
+    if surdiag == 'c':
+        for k1 in range(d):
+            for k2 in range(k1+1,d):
+                mat_init[k1][k2] = f
+    elif surdiag == 's':
+        for k1 in range(d):
+            for k2 in range(k1+1,d):
+                mat_init[k1][k2] = (next(B),)
+
+    matrices = []
+    for i in range(n):
+        mat = [row[:] for row in mat_init]
+
+        if diag == 'v':
+            for k in range(d):
+                mat[k][k] = (next(B),)
+        if surdiag == 'v':
+            for k1 in range(d):
+                for k2 in range(k1+1,d):
+                    mat[k1][k2] = (next(B),)
+
+        matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
+
+    return matrices
+
+
 
 ###########################
 # helper for pretty print #
@@ -418,7 +511,7 @@ class SymbolicMaxPlusMatrix(SageObject):
         col_sizes = [max(len(str_data[i][j]) for i in range(self._n)) for j in range(self._n)]
         for i in range(self._n):
             str_data[i] = '[ ' + \
-                ' '.join('{data:>{width}}'.format(data=data, width=width) for
+                '  '.join('{data:>{width}}'.format(data=data, width=width) for
                          data,width in zip(str_data[i], col_sizes)) + \
                           ' ]'
         return '\n'.join(str_data)
@@ -674,7 +767,6 @@ def prod_symbolic(w, mats):
         mmats.append(mats[w[-1]])
         ww.append(len(mmats)-1)
     return prod_symbolic(ww, mmats)
-
 
 def relations_band(dim, start=3, num_mat=5000, limit_coeff=1073741824, filename=None):
     r"""
@@ -1069,7 +1161,7 @@ def relations_band_vc(dim, start=1, num_mat=500, filename=None):
         for n0 in range(1,n-1):
             eliminated_from_int = 0
             eliminated_from_symb = 0
-            nb_relations = 0
+            nb_identities = 0
 
             relations = []
             n1 = n - n0
@@ -1094,13 +1186,13 @@ def relations_band_vc(dim, start=1, num_mat=500, filename=None):
                     elif prod(ab[x] for x in i1) != prod(ab[x] for x in i2):
                         eliminated_from_symb += 1
                     else:
-                        nb_relations += 1
+                        nb_identities += 1
                         relations.append(pretty_relation_string(i1,i2,'xy'))
 
             print "({},{})".format(n0,n1)
             print "  int elimination  : {}".format(eliminated_from_int)
             print "  symb elimination : {}".format(eliminated_from_symb)
-            print "  relations        : {}".format(nb_relations)
+            print "  identities       : {}".format(nb_identities)
 
             if relations:
                 f.write("#  relations ({},{})\n".format(n0,n1))
@@ -1115,24 +1207,27 @@ def relations_band_vc(dim, start=1, num_mat=500, filename=None):
 
 def conj_min_relations_band_vc(dim, start=1, num_mat=500, filename=None):
     r"""
-    Only look at relations of the form
+    Look at relations of the form
 
     M * x*y * M == M * y*x * M
 
-    where M contains the same number of x and y
+    for matrices in B^vc where M contains the same number of x and y.
     """
     # the symbolic max-plus matrices
     ab = symbolic_max_plus_matrices_band(dim, 2, diag='v', surdiag='c')
     one = symbolic_max_plus_identity(dim, ab[0].num_variables())
+    xy = ab[0]*ab[1]
+    yx = ab[1]*ab[0]
 
     # the integer max-plus matrices
     pairs = [random_integer_max_plus_matrices_band(dim, -50*dim*dim, 50*dim*dim,
         ord('v'), ord('c')) for _ in range(num_mat)]
     one_int = integer_max_plus_matrix_identity(dim)
 
-    # n     : length of the product
-    # i1,m1 : data for the first word
-    # i2,m2 : data for the second word
+    # n  : length of m
+    # i  : word of m
+    # i1 : word of mxym
+    # i2 : word of myxm
     n = 1
     while True:
         if filename is None:
@@ -1141,38 +1236,71 @@ def conj_min_relations_band_vc(dim, start=1, num_mat=500, filename=None):
         else:
             f = open(filename.format(dim,n), 'w')
 
-        f.write("# Band^cv_{} relations of length n = {}\n".format(dim,4*n+2))
+        header = "# Band^vc_{} relations with n = {}".format(dim,n)
+        f.write(header)
+        f.write("\n")
+        if filename:
+            print header
 
         eliminated_from_int = 0
         eliminated_from_symb = 0
-        nb_relations = 0
-        for i,_ in products_p(pairs[0][0], pairs[0][1], n, n, one_int):
-            i = tuple(i)
+        nb_identities = 0
+        for i in product_p(n-1, n):
+            i = (0,) + tuple(i)
             i1 = i + (0,1) + i
             i2 = i + (1,0) + i
 
-            if not is_relation(i1, i2, pairs):
+            if not is_relation(i1, i2, pairs, upper=True):
                 eliminated_from_int += 1
                 continue
 
+            print "  potential relation:", pretty_relation_string(i1,i2,'xy')
+            sys.stdout.flush()
+
+            t0 = time.clock()
             m = prod(ab[x] for x in i)
-            if m * ab[0] * ab[1] * m == m * ab[1] * ab[0] * m:
+            t1 = time.clock()
+            print "    m    computed in {} seconds".format(t1-t0)
+            print "    nb pts in convex hull: {}".format([len(m[i,j]) for i in range(dim) for j in range(i,dim)])
+            t0 = time.clock()
+            mxym = m * xy * m
+            t1 = time.clock()
+            print "    mxym computed in {} seconds".format(t1-t0)
+            print "    nb pts in convex hull: {}".format([len(mxym[i,j]) for i in range(dim) for j in range(i,dim)])
+            t0 = time.clock()
+            myxm = m * yx * m
+            t1 = time.clock()
+            print "    myxm computed in {} seconds".format(t1-t0)
+            print "    nb pts in convex hull: {}".format([len(myxm[i,j]) for i in range(dim) for j in range(i,dim)])
+            if mxym != myxm:
+                print "    ... not a relation\n"
+                sys.stdout.flush()
                 eliminated_from_symb += 1
                 continue
 
-            nb_relations += 1
+            print "    NEW RELATION\n"
+            nb_identities += 1
             f.write(pretty_relation_string(i1,i2,'xy'))
             f.write('\n')
             f.flush()
+            print
 
-        print "{}".format(4*n+2)
         print "  int elimination  : {}".format(eliminated_from_int)
         print "  symb elimination : {}".format(eliminated_from_symb)
-        print "  relations        : {}".format(nb_relations)
+        print "  identities       : {}".format(nb_identities)
+        print
 
         if filename is not None:
             f.close()
+        if nb_identities:
+            return
         n += 1
+        if n == 9:
+            break
+
+# TODO
+#  relations in B^sv?
+#  d-relations for B^cv are {(u,v): Subwords_{d-1}(u) = Subwords_{d-1}(v)}
 
 def filter_relations(r, mats, ab, one):
     ans = []

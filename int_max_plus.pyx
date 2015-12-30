@@ -79,7 +79,7 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
         raise ValueError
     return ans1,ans2
 
-def is_relation(tuple t1, tuple t2, list elements):
+def is_relation(tuple t1, tuple t2, list elements, bint upper=False):
     r"""
     Test if the relation ``r1 = r2`` is valid on the list of pairs ``elements``.
 
@@ -89,6 +89,8 @@ def is_relation(tuple t1, tuple t2, list elements):
       group
 
     - ``elements`` -- a list of pairs of integer max plus matrices
+
+    - ``upper`` -- whether matrices are upper triangular
     """
     cdef int n = len(t1)
     cdef size_t dim = (<IntegerMaxPlusMatrix> elements[0][0]).n
@@ -108,18 +110,32 @@ def is_relation(tuple t1, tuple t2, list elements):
     for e0,e1 in elements:
         int_max_plus_mat_set_identity(dim, m11.data)
         int_max_plus_mat_set_identity(dim, m21.data)
-        for i in range(n):
-            if r1[i] == 0:
-                int_max_plus_mat_prod(dim, m12.data, m11.data, e0.data)
-            else:
-                int_max_plus_mat_prod(dim, m12.data, m11.data, e1.data)
-            if r2[i] == 0:
-                int_max_plus_mat_prod(dim, m22.data, m21.data, e0.data)
-            else:
-                int_max_plus_mat_prod(dim, m22.data, m21.data, e1.data)
 
-            m11,m12 = m12,m11
-            m21,m22 = m22,m21
+        if upper:
+            for i in range(n):
+                if r1[i] == 0:
+                    int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e0.data)
+                else:
+                    int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e1.data)
+                if r2[i] == 0:
+                    int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e0.data)
+                else:
+                    int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e1.data)
+                m11,m12 = m12,m11
+                m21,m22 = m22,m21
+
+        else:
+            for i in range(n):
+                if r1[i] == 0:
+                    int_max_plus_mat_prod(dim, m12.data, m11.data, e0.data)
+                else:
+                    int_max_plus_mat_prod(dim, m12.data, m11.data, e1.data)
+                if r2[i] == 0:
+                    int_max_plus_mat_prod(dim, m22.data, m21.data, e0.data)
+                else:
+                    int_max_plus_mat_prod(dim, m22.data, m21.data, e1.data)
+                m11,m12 = m12,m11
+                m21,m22 = m22,m21
 
         if m11 != m21:
             free(r1)
@@ -264,3 +280,54 @@ cdef class IntegerMaxPlusMatrix:
             int_max_plus_mat_prod(self.n, ans.data, self.data, other.data)
             ans.upper = 0
         return ans
+
+
+
+############################
+# some efficient iterators #
+############################
+ 
+def product_p(int n0, int n1):
+    r"""
+    Run through all tuples with ``n0`` zeros and ``n1`` ones.
+
+    INPUT:
+
+    - ``n0``, ``n1`` -- the number of ``0`` and ``1``
+
+    EXAMPLES::
+
+        sage: for t in product_p(2,3): print t
+        [0, 0, 1, 1, 1]
+        [0, 1, 0, 1, 1]
+        [0, 1, 1, 0, 1]
+        [0, 1, 1, 1, 0]
+        [1, 0, 0, 1, 1]
+        [1, 0, 1, 0, 1]
+        [1, 0, 1, 1, 0]
+        [1, 1, 0, 0, 1]
+        [1, 1, 0, 1, 0]
+        [1, 1, 1, 0, 0]
+    """
+    cdef list i = []
+    cdef int j
+
+    while True:
+        for j in range(n0):
+            i.append(0)
+        for j in range(n1):
+            i.append(1)
+        n0 = 0
+        n1 = 0
+        yield i
+
+        while i and (i[-1] == 1 or n1 == 0):
+            if i.pop() == 0:
+                n0 += 1
+            else:
+                n1 += 1
+        if not i:
+            return
+        n0 += 1
+        n1 -= 1
+        i[-1] = 1
