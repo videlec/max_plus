@@ -7,24 +7,31 @@ where you downloaded the file. Start Sage and run
     sage: %runfile int_max_plus.pyx
     sage: %runfile max_plus.py
 
-Once that done, you can create band and upper triangular matrices
-with the functions
+Once that done, you can create symbolic matrices with the following functions
 
-    symbolic_max_plus_matrices_band(d, n, diag, surdiag)
-	symbolic_max_plus_matrices_upper(d, n, diag, surdiag)
+    symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch)
+	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch)
+    symbolic_max_plus_matrices(d, n, ch, sym)
 
-where
+for respectively band, upper triangular and full matrices. The arguments are
 
-- `d` is the dimension
+- `d` - the dimension
 
-- `n` is the number of matrices
+- `n` - the number of matrices
 
-- `diag` describes whether the diagonal is constant equal to 0 (`'c'`), similar
+- `diag` - describes whether the diagonal is constant equal to 0 (`'c'`), similar
   in each of the `n` matrices (`'s'`) or variable (`'v'`). This is optional and
   default to `'v'`.
 
-- `surdiag` describes whether the surdiagonal is constant, similar or variable.
+- `surdiag` - describes whether the surdiagonal is constant, similar or variable.
   This is also optional.
+
+- `ch` - (optional) set the convex hull engine (could be one of 'ppl', 'cdd'
+  or 'PALP'). It defaults to 'ppl' which seems to be the fastest.
+
+- `sym` - (optional) specifies the implementation: if `sym` is `True` uses matrices that
+  store only two coefficients (and deduce the others by symmetry). If `sym` is
+  `False` uses matrices that store all coefficients.
 
 For example you can do
 
@@ -47,6 +54,8 @@ For example you can do
 	[   0 max(x2, x0) max(x1+x2, x0+x3, x0+x1) ]
 	[ -oo           0              max(x3, x1) ]
 	[ -oo         -oo                        0 ]
+	sage: x*y*x*y == y*x*y*x == x*y*y*x == y*x*x*y
+	True
 
 	sage: x2,y2,z2 = symbolic_max_plus_matrices_upper(3, 3)
     sage: x2.num_variables()
@@ -67,6 +76,7 @@ For example you can do
 From a symbolic matrix you can obtain an integer max plus matrix using the
 method `eval`
 
+    sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'c', 'v')
     sage: xv = x.eval((1,-1,0,3))
     sage: xv
     [   0   1 -oo ]
@@ -85,23 +95,7 @@ method `eval`
     sage: pv == xv*yv*xv
     True
 
-For full matrices you need to use the function
-
-    symbolic_max_plus_matrices(d, n, ch=None, sym=False)
-
-where
-
-- `d` is the dimension
-
-- `n` is the number of matrices
-
-- `ch` is the convex hull engine
-
-- `sym` specifies the implementation: if `sym` is `True` uses matrices that
-  store only two coefficients (and deduce the others by symmetry). If `sym` is
-  `False` uses matrices that store all coefficients.
-
-For example
+And a last example with full 3x3 matrices
 
     sage: x,y,z = symbolic_max_plus_matrices(3, 3)
     sage: print x
