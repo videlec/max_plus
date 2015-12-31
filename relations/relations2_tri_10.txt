@@ -1,4 +1,0 @@
-# triangular relations for n = 10
-#  relations (5,5)
-xyyx(yx)xyyx = xyyx(xy)xyyx
-xyyx(yx)yxxy = xyyx(xy)yxxy

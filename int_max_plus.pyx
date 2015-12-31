@@ -52,7 +52,7 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
             if i != j and j != i+1:
                 m1[i][j] = m2[i][j] = LONG_MIN
 
-    if diag == 'c':
+    if diag == 'z':
         for i in range(dim):
             m1[i][i] = m2[i][i] = 0
     elif diag == 's':
@@ -65,7 +65,7 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
     else:
         raise ValueError
 
-    if surdiag == 'c':
+    if surdiag == 'z':
         for i in range(dim-1):
             m1[i][i+1] = m2[i][i+1] = 0
     elif surdiag == 's':
@@ -77,6 +77,7 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
             m2[i][i+1] = randlong(min_coeff, max_coeff)
     else:
         raise ValueError
+
     return ans1,ans2
 
 def is_relation(tuple t1, tuple t2, list elements, bint upper=False):

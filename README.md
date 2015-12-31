@@ -1,10 +1,9 @@
 # Sage library for max-plus matrix identities
 
-To run the library you need to install Sage (http://sagemath.org). Then
-clone this repository (or download all the files). Go to the directory
+To run the library you need to install Sage (http://sagemath.org). Then clone
+this repository (or download all the file `max_plus.py`). Go to the directory
 where you downloaded the file. Start Sage and run
 
-    sage: %runfile int_max_plus.pyx
     sage: %runfile max_plus.py
 
 Once that done, you can create symbolic matrices with the following functions
@@ -19,11 +18,11 @@ for respectively band, upper triangular and full matrices. The arguments are
 
 - `n` - the number of matrices
 
-- `diag` - describes whether the diagonal is constant equal to 0 (`'c'`), similar
+- `diag` - describes whether the diagonal is zero (`'z'`), same
   in each of the `n` matrices (`'s'`) or variable (`'v'`). This is optional and
   default to `'v'`.
 
-- `surdiag` - describes whether the surdiagonal is constant, similar or variable.
+- `surdiag` - describes whether the surdiagonal is constant, same or variable.
   This is also optional.
 
 - `ch` - (optional) set the convex hull engine (could be one of 'ppl', 'cdd'
@@ -35,7 +34,7 @@ for respectively band, upper triangular and full matrices. The arguments are
 
 For example you can do
 
-    sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'c', 'v')
+    sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'z', 'v')
     sage: x
     A 3x3 symbolic max plus matrix on 4 variables
     sage: print x
@@ -73,10 +72,28 @@ For example you can do
 	[ -oo  x13  x17 ]
 	[ -oo  -oo  x14 ]
 
-From a symbolic matrix you can obtain an integer max plus matrix using the
-method `eval`
+And with full 3x3 matrices
 
-    sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'c', 'v')
+    sage: x,y,z = symbolic_max_plus_matrices(3, 3)
+    sage: print x
+	[ x0 x1 x2 ]
+	[ x3 x4 x5 ]
+	[ x6 x7 x8 ]
+    sage: print y
+	[  x9 x10 x11 ]
+	[ x12 x13 x14 ]
+	[ x15 x16 x17 ]
+	sage: print x*x
+	[   max(x2+x6, x1+x3, 2x0) max(x2+x7, x1+x4, x0+x1) max(x2+x8, x1+x5, x0+x2) ]
+	[ max(x5+x6, x3+x4, x0+x3)   max(x5+x7, 2x4, x1+x3) max(x5+x8, x4+x5, x2+x3) ]
+	[ max(x6+x8, x3+x7, x0+x6) max(x7+x8, x4+x7, x1+x6)   max(2x8, x5+x7, x2+x6) ]
+
+From a symbolic matrix you can obtain an integer max plus matrix using the
+method `eval`. For that you first need to compile `int_max_plus.pyx`
+
+    sage: %runfile int_max_plus.pyx
+    Compiling ./int_max_plus.pyx...
+    sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'z', 'v')
     sage: xv = x.eval((1,-1,0,3))
     sage: xv
     [   0   1 -oo ]
@@ -94,22 +111,5 @@ method `eval`
 	[ -oo -oo 0 ]
     sage: pv == xv*yv*xv
     True
-
-And a last example with full 3x3 matrices
-
-    sage: x,y,z = symbolic_max_plus_matrices(3, 3)
-    sage: print x
-	[ x0 x1 x2 ]
-	[ x3 x4 x5 ]
-	[ x6 x7 x8 ]
-    sage: print y
-	[  x9 x10 x11 ]
-	[ x12 x13 x14 ]
-	[ x15 x16 x17 ]
-	sage: print x*x
-	[   max(x2+x6, x1+x3, 2x0) max(x2+x7, x1+x4, x0+x1) max(x2+x8, x1+x5, x0+x2) ]
-	[ max(x5+x6, x3+x4, x0+x3)   max(x5+x7, 2x4, x1+x3) max(x5+x8, x4+x5, x2+x3) ]
-	[ max(x6+x8, x3+x7, x0+x6) max(x7+x8, x4+x7, x1+x6)   max(2x8, x5+x7, x2+x6) ]
-
 
 Any comment or remark is welcome at vincentDOTdelecroixATlabriDOTfr

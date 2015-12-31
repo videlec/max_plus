@@ -1,4 +1,0 @@
-# triangular similar diagonal relations for n = 6
-#  relations (3,3)
-xy(yx)xy = xy(xy)xy
-xy(yx)yx = xy(xy)yx

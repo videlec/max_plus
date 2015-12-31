@@ -58,22 +58,33 @@ EXAMPLES::
 
 from itertools import product
 import time
+from subprocess import Popen, PIPE
+
+from sage.misc.misc import SAGE_TMP
+from sage.misc.temporary_file import tmp_filename
+from sage.misc.misc import SAGE_TMP
 
 from sage.geometry.polyhedron.parent import Polyhedra
 from sage.modules.free_module import FreeModule
 from sage.rings.integer_ring import ZZ
-
-from semigroup_tools import (products_n, products_p,
-        constraints_from_subwords, minimal_all_subwords_prefix,
-        minimal_all_subwords_suffix)
+from sage.rings.rational_field import QQ
 
 ##########################################
 # Main function helper to build matrices #
 ##########################################
 
-def symbolic_max_plus_identity(d, nvar,ch=None):
+def symbolic_max_plus_identity(d, nvar, ch=None):
     r"""
     Return the ``d x d`` identity matrices on ``nvar`` variables.
+
+    EXAMPLES::
+
+        sage: m = symbolic_max_plus_identity(2, 4)
+        sage: print m
+        [   0  -oo ]
+        [ -oo    0 ]
+        sage: m.num_vars()
+        4
     """
     d = int(d)
     nvar = int(nvar)
@@ -84,7 +95,7 @@ def symbolic_max_plus_identity(d, nvar,ch=None):
     data = [[zero if i == j else e for j in range(d)] for i in range(d)]
     return SymbolicMaxPlusMatrix(d, nvar, data, ch)
 
-def symbolic_max_plus_matrices(d, n, ch=None, sym=False):
+def symbolic_max_plus_matrices(d, n, ch=None, sym=True):
     r"""
     Return ``n`` independent symbolic matrices in dimension ``d``.
 
@@ -97,7 +108,33 @@ def symbolic_max_plus_matrices(d, n, ch=None, sym=False):
     - ``ch`` -- the convex hull engine
 
     - ``sym`` -- if ``False`` use dense matrices (i.e. store all coefficients)
-      and if ``True`` uses matrices that store only two coefficients.
+      and if ``True`` (the default) uses matrices that stores only two coefficients.
+
+    TESTS:
+
+    Test a relation for 2x2 matrices::
+
+        sage: A,B = symbolic_max_plus_matrices(2,2)
+        sage: U = A*B*B*B*B*A*A
+        sage: V = A*A*B*B*B*B*A
+        sage: L = U*A*A*B*B*V
+        sage: R = U*B*B*A*A*V
+        sage: L == R
+        True
+
+    Check the validity of the above computation with dense matrices::
+
+        sage: C,D = symbolic_max_plus_matrices(2,2,sym=False)
+        sage: U2 = C*D*D*D*D*C*C
+        sage: V2 = C*C*D*D*D*D*C
+        sage: U == U2 and V == V2
+        True
+        sage: L2 = U2*C*C*D*D*V2
+        sage: R2 = U2*D*D*C*C*V2
+        sage: L == L2 and R == R2
+        True
+        sage: L2 == R2
+        True
     """
     d = int(d)
     n = int(n)
@@ -142,19 +179,20 @@ def symbolic_max_plus_matrices_band(d, n,
 
     - ``n`` -- number of matrices
 
-    - ``diag`` -- either 'const' (for constant), 'sim' (for similar, i.e. equal
+    - ``diag`` -- either 'zero' (for zero), 'same' (for same, i.e. equal
       in each matrix) or 'var' (i.e. independent in each matrices). Shortcuts
-      'c', 's', 'v' can also be used.
+      'c', 'z', 'v' can also be used.
+
+    - ``surdiag`` -- either ``'zero'`` or ``'same'`` or ``'var'``.
 
     - ``ch`` -- convex hull engine to use
 
     EXAMPLES:
 
-    For 'cv' the relations are the pairs `(u,v)` so that `Subwords_{d-1}(u) =
+    For 'zv' the relations are the pairs `(u,v)` so that `Subwords_{d-1}(u) =
     Subwords_{d-1}(v)`::
 
-
-        sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'c', 'v')
+        sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'z', 'v')
         sage: x*y*x == x*x*x*y*x*x
         True
         sage: x*y*x*y == x*y*y*x
@@ -164,23 +202,33 @@ def symbolic_max_plus_matrices_band(d, n,
         sage: x*y*x*y == x*x*y*y
         False
 
-    For 'vc'?::
+        sage: x,y = symbolic_max_plus_matrices_upper(3, 2, 'z', 'v')
+        sage: x*y*x == x*x*x*y*x*x
+        True
+        sage: x*y*x*y == x*y*y*x
+        True
+        sage: x*y*x*y == y*x*y*x
+        True
+        sage: x*y*x*y == x*x*y*y
+        False
+
+    And for 'vc'? seems to be much more complicated.
 
     TESTS:
 
     Non interesting cases::
 
-        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 'c', 'c')
+        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 'z', 'z')
         sage: assert x == y
-        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 'c', 's')
+        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 'z', 's')
         sage: assert x == y
-        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 's', 'c')
+        sage: x,y = symbolic_max_plus_matrices_band(2, 2, 's', 'z')
         sage: assert y == x
         sage: x,y = symbolic_max_plus_matrices_band(2, 2, 's', 's')
         sage: assert y == y
     """
-    assert diag in ('c', 's', 'v', 'const', 'sim', 'var')
-    assert surdiag in ('c', 's', 'v', 'const', 'sim', 'var')
+    assert diag in ('z', 's', 'v', 'zero', 'same', 'var')
+    assert surdiag in ('z', 's', 'v', 'zero', 'same', 'var')
     diag = diag[0]
     surdiag = surdiag[0]
 
@@ -204,14 +252,14 @@ def symbolic_max_plus_matrices_band(d, n,
     f = (V.zero(),)
     mat_init = [[e]*d for _ in range(d)]
 
-    if diag == 'c':
+    if diag == 'z':
         for k in range(d):
             mat_init[k][k] = f
     elif diag == 's':
         for k in range(d):
             mat_init[k][k] = (next(B),)
 
-    if surdiag == 'c':
+    if surdiag == 'z':
         for k in range(d-1):
             mat_init[k][k+1] = f
     elif surdiag == 's':
@@ -238,39 +286,56 @@ def symbolic_max_plus_matrices_upper(d, n,
     r"""
     EXAMPLES::
 
+        sage: x,y = symbolic_max_plus_matrices_upper(3,2)
+        sage: x
+        A 3x3 symbolic max plus matrix on 12 variables
+        sage: print x
+        [  x0   x3  x4 ]
+        [ -oo   x1  x5 ]
+        [ -oo  -oo  x2 ]
+        sage: print y
+        [  x6   x9  x10 ]
+        [ -oo   x7  x11 ]
+        [ -oo  -oo   x8 ]
 
-    sage: x,y = symbolic_max_plus_matrices_upper(3,2)
-    sage: x
-    A 3x3 symbolic max plus matrix on 12 variables
-    sage: print x
-    [  x0   x3  x4 ]
-    [ -oo   x1  x5 ]
-    [ -oo  -oo  x2 ]
-    sage: print y
-    [  x6   x9  x10 ]
-    [ -oo   x7  x11 ]
-    [ -oo  -oo   x8 ]
+        sage: x,y = symbolic_max_plus_matrices_upper(3,2,'z','v')
+        sage: print x
+        [   0   x0  x1 ]
+        [ -oo    0  x2 ]
+        [ -oo  -oo   0 ]
+        sage: print y
+        [   0   x3  x4 ]
+        [ -oo    0  x5 ]
+        [ -oo  -oo   0 ]
 
-    sage: x,y = symbolic_max_plus_matrices_upper(3,2,'c','v')
-    sage: print x
-    [   0   x0  x1 ]
-    [ -oo    0  x2 ]
-    [ -oo  -oo   0 ]
-    sage: print y
-    [   0   x3  x4 ]
-    [ -oo    0  x5 ]
-    [ -oo  -oo   0 ]
+        sage: x,y = symbolic_max_plus_matrices_upper(3,2,'v','s')
+        sage: print x
+        [  x3   x0  x1 ]
+        [ -oo   x4  x2 ]
+        [ -oo  -oo  x5 ]
+        sage: print y
+        [  x6   x0  x1 ]
+        [ -oo   x7  x2 ]
+        [ -oo  -oo  x8 ]
 
-    sage: x,y = symbolic_max_plus_matrices_upper(3,2,'v','s')
-    sage: print x
-    [  x3   x0  x1 ]
-    [ -oo   x4  x2 ]
-    [ -oo  -oo  x5 ]
-    sage: print y
-    [  x6   x0  x1 ]
-    [ -oo   x7  x2 ]
-    [ -oo  -oo  x8 ]
+    TESTS:
+
+    Trivial cases::
+
+        sage: x,y = symbolic_max_plus_matrices_upper(2, 2, 'z', 'z')
+        sage: assert x == y
+        sage: x,y = symbolic_max_plus_matrices_upper(2, 2, 'z', 's')
+        sage: assert x == y
+        sage: x,y = symbolic_max_plus_matrices_upper(2, 2, 's', 'z')
+        sage: assert y == x
+        sage: x,y = symbolic_max_plus_matrices_upper(2, 2, 's', 's')
+        sage: assert y == y
     """
+    assert diag in ('z', 's', 'v', 'zero', 'same', 'var')
+    assert surdiag in ('z', 's', 'v', 'zero', 'same', 'var')
+    diag = diag[0]
+    surdiag = surdiag[0]
+
     d = int(d)
     n = int(n)
 
@@ -291,14 +356,14 @@ def symbolic_max_plus_matrices_upper(d, n,
     f = (V.zero(),)
     mat_init = [[e]*d for _ in range(d)]
 
-    if diag == 'c':
+    if diag == 'z':
         for k in range(d):
             mat_init[k][k] = f
     elif diag == 's':
         for k in range(d):
             mat_init[k][k] = (next(B),)
 
-    if surdiag == 'c':
+    if surdiag == 'z':
         for k1 in range(d):
             for k2 in range(k1+1,d):
                 mat_init[k1][k2] = f
@@ -322,8 +387,6 @@ def symbolic_max_plus_matrices_upper(d, n,
         matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
 
     return matrices
-
-
 
 ###########################
 # helper for pretty print #
@@ -384,12 +447,11 @@ class SymbolicMaxPlusMatrix(SageObject):
         sage: M2 == M1
         True
 
-        sage: x1,y1,z1 = symbolic_max_plus_matrices_band_sim_diag(3,3,'ppl')
-        sage: x2,y2,z2 = symbolic_max_plus_matrices_band_sim_diag(3,3,'cdd')
-        sage: x3,y3,z3 = symbolic_max_plus_matrices_band_sim_diag(3,3,'PALP')
+        sage: x1,y1,z1 = symbolic_max_plus_matrices_band(3,3,'s','v','ppl')
+        sage: x2,y2,z2 = symbolic_max_plus_matrices_band(3,3,'s','v','cdd')
+        sage: x3,y3,z3 = symbolic_max_plus_matrices_band(3,3,'s','v','PALP')
         sage: (x1*y1)*x1 == x1*(y1*x1) == (x2*y2)*x2 == x2*(y2*x2) == (x3*y3)*x3 == x3*(y3*x3)
         True
-        sage: 
         sage: (y1*x1)*y1*x1 == y1*(x1*y1)*x1 == (y1*x1)*(y1*x1)
         True
         sage: (y2*x2)*y2*x2 == y2*(x2*y2)*x2 == (y2*x2)*(y2*x2)
@@ -399,34 +461,33 @@ class SymbolicMaxPlusMatrix(SageObject):
         sage: x1*z1*x1*y1*y1*x1*z1 == x2*z2*x2*y2*y2*x2*z2 == x3*z3*x3*y3*y3*x3*z3
         True
 
-        sage: x,y = symbolic_max_plus_matrices_band_sim_diag(2,2)
-        sage:(x*y)*x == x*(y*x)
+        sage: x,y = symbolic_max_plus_matrices_band(2,2)
+        sage: (x*y)*x == x*(y*x)
         True
         sage: A = x*y*y*x
         sage: A * x * y * A == A * y * x * A
         True
     """
-    def __init__(self, n, nvar, data, ch=None):
+    def __init__(self, d, nvars, data, ch=None):
         r"""
         INPUT:
 
-        - ``n`` -- dimension
+        - ``d`` -- dimension
 
-        - ``nvar`` -- number of variabes
+        - ``nvars` -- number of variabes
 
         - ``data`` -- the polyhedron given as a tuple of tuples of tuples
 
         - ``ch`` -- the convex hull engine to use (could be one of
           'ppl', 'cdd' or 'PALP')
         """
-        self._n = n = int(n)
-        self._nvar = nvar = int(nvar)
-        if len(data) != n or any(len(x) != n for x in data):
+        self._d = d = int(d)
+        self._nvars = nvars = int(nvars)
+        if len(data) != d or any(len(x) != d for x in data):
             raise ValueError
         self._data = tuple(tuple(x) for x in data)
 
-        import convex_hull
-        self.convex_hull = convex_hull.get_convex_hull_engine(self._nvar, ch)
+        self.convex_hull = get_convex_hull_engine(self._nvars, ch)
 
     def convex_hull_engine(self):
         r"""
@@ -448,75 +509,17 @@ class SymbolicMaxPlusMatrix(SageObject):
         """
         return self.convex_hull._name
 
-    def num_variables(self):
+    def dim(self):
+        r"""
+        Return the dimension of this matrix.
+        """
+        return self._d
+
+    def num_vars(self):
         r"""
         Return the number of variables used in this matrix.
         """
-        return self._nvar
-
-    def equal_coefficients(self, other):
-        r"""
-        Return the list of equal coefficients between self and other.
-        """
-        n = self._n
-        return [(i,j) for i in range(n) for j in range(n) \
-                if self._data[i][j] == other._data[i][j]]
-
-    def __eq__(self, other):
-        r"""
-        Equality test
-        """
-        if type(self) is type(other):
-            return self._nvar == other._nvar and self._data == other._data
-        else:
-            raise TypeError("can not compare {} with {}".format(type(self), type(other)))
-
-    def __ne__(self, other):
-        r"""
-        Difference test
-        """
-        if type(self) is type(other):
-            return self._data != other._data or self._data != other._data
-        else:
-            raise TypeError("can not compare {} with {}".format(type(self), type(other)))
-
-    def __mul__(self, other):
-        r"""
-        Multiplication of matrices
-        """
-        n = self._n
-        assert self._n == other._n and self._nvar == other._nvar and self.convex_hull == other.convex_hull
-        new_data = [[None]*n for _ in range(n)]
-        for i in range(n):
-            for j in range(n):
-                vertices = set()
-                for k in range(n):
-                    l = [x+y for x in self._data[i][k] for y in other._data[k][j]]
-                    for v in l: v.set_immutable()
-                    vertices.update(l)
-                new_data[i][j] = self.convex_hull(vertices)
-
-        return SymbolicMaxPlusMatrix(self._n, self._nvar, new_data, self.convex_hull)
-
-    def _repr_(self):
-        r"""
-        String when the object is printed
-        """
-        return 'A {}x{} symbolic max plus matrix on {} variables'.format(self._n, self._n, self._nvar)
-
-    def __str__(self):
-        str_data = []
-        for i in range(self._n):
-            str_data.append([pretty_print_poly(self._data[i][j]) for j in range(self._n)])
-        col_sizes = [max(len(str_data[i][j]) for i in range(self._n)) for j in range(self._n)]
-        for i in range(self._n):
-            str_data[i] = '[ ' + \
-                '  '.join('{data:>{width}}'.format(data=data, width=width) for
-                         data,width in zip(str_data[i], col_sizes)) + \
-                          ' ]'
-        return '\n'.join(str_data)
-
-    str = __str__
+        return self._nvars
 
     def __getitem__(self, data):
         r"""
@@ -524,6 +527,112 @@ class SymbolicMaxPlusMatrix(SageObject):
         """
         i,j = data
         return self._data[i][j]
+
+    # the method below are generic
+
+    def __mul__(self, other):
+        r"""
+        Multiplication of matrices
+        """
+        assert self.dim() == other.dim() and self.num_vars() == other.num_vars()
+        d = self.dim()
+        new_data = [[None]*d for _ in range(d)]
+        for i in range(d):
+            for j in range(d):
+                vertices = set()
+                for k in range(d):
+                    l = [x+y for x in self[i,k] for y in other[k,j]]
+                    for v in l: v.set_immutable()
+                    vertices.update(l)
+                new_data[i][j] = self.convex_hull(vertices)
+
+        return SymbolicMaxPlusMatrix(d, self._nvars, new_data, self.convex_hull)
+
+    def equal_coefficients(self, other):
+        r"""
+        Return the list of equal coefficients between self and other.
+        """
+        d = self._d
+        return [(i,j) for i in range(d) for j in range(d) \
+                if self[i][j] == other[i][j]]
+
+    def __eq__(self, other):
+        r"""
+        Equality test
+
+        TESTS::
+
+            sage: A,B = symbolic_max_plus_matrices(2,2,sym=True)
+            sage: C,D = symbolic_max_plus_matrices(2,2,sym=False)
+            sage: A == C
+            True
+            sage: A == A
+            True
+            sage: C == C
+            True
+            sage: A == B
+            False
+            sage: C == D
+            False
+        """
+        if not isinstance(self, SymbolicMaxPlusMatrix) or \
+           not isinstance(other, SymbolicMaxPlusMatrix):
+            raise TypeError("can not compare {} with {}".format(type(self), type(other)))
+
+        if self._nvars != other._nvars or self._d != other._d:
+            return False
+
+        return all(self[i,j] == other[i,j] for i in range(self._d) for j in range(self._d))
+
+    def __ne__(self, other):
+        r"""
+        Difference test
+
+        TESTS::
+
+            sage: A,B = symbolic_max_plus_matrices(2,2,sym=True)
+            sage: C,D = symbolic_max_plus_matrices(2,2,sym=False)
+            sage: A != C
+            False
+            sage: A != A
+            False
+            sage: C != C
+            False
+            sage: A != B
+            True
+            sage: C != D
+            True
+        """
+        if not isinstance(self, SymbolicMaxPlusMatrix) or \
+           not isinstance(other, SymbolicMaxPlusMatrix):
+            raise TypeError("can not compare {} with {}".format(type(self), type(other)))
+
+        if self._nvars != other._nvars or self._d != other._d:
+            return True
+
+        return any(self[i,j] != other[i,j] for i in range(self._d) for j in range(self._d))
+
+    def _repr_(self):
+        r"""
+        String when the object is printed
+        """
+        return 'A {}x{} symbolic max plus matrix on {} variables'.format(
+                  self.dim(), self.dim(), self.num_vars())
+
+    def __str__(self):
+        str_data = []
+        d = self.dim()
+        for i in range(d):
+            str_data.append([pretty_print_poly(self[i,j]) for j in range(d)])
+        col_sizes = [max(len(str_data[i][j]) for i in range(d)) for j in range(d)]
+        for i in range(d):
+            str_data[i] = '[ ' + \
+                '  '.join('{data:>{width}}'.format(data=data, width=width) for
+                         data,width in zip(str_data[i], col_sizes)) + \
+                          ' ]'
+        return '\n'.join(str_data)
+
+    str = __str__
 
     def eval(self, p):
         r"""
@@ -538,28 +647,29 @@ class SymbolicMaxPlusMatrix(SageObject):
 
             sage: x,y = symbolic_max_plus_matrices_band(2, 2, 'v', 'v')
             sage: v = (1,2,3,-4,5,6)
-            sage: xv = x.eval(v)
-            sage: xv
+            sage: xv = x.eval(v)   # not tested
+            sage: xv               # not tested
             [   1 3 ]
             [ -oo 2 ]
-            sage: yv = y.eval(v)
-            sage: yv
+            sage: yv = y.eval(v)   # not tested
+            sage: yv               # not tested
             [  -4 6 ]
             [ -oo 5 ]
 
-            sage: (x*y*y*x*x).eval(v) == (xv*yv*yv*xv*xv)
+            sage: (x*y*y*x*x).eval(v) == (xv*yv*yv*xv*xv)  # not tested
             True
         """
-        F = FreeModule(ZZ,self._nvar)
+        F = FreeModule(ZZ, self._nvars)
         p = F(p)
         mat = []
-        for i in range(self._n):
+        d = self.dim()
+        for i in range(d):
             row = []
-            for j in range(self._n):
-                pts = self._data[i][j]
+            for j in range(d):
+                pts = self[i,j]
                 row.append(minus_infinity() if not pts else max(p.dot_product(v) for v in pts))
             mat.append(row)
-        return IntegerMaxPlusMatrix(self._n, mat) 
+        return IntegerMaxPlusMatrix(self._d, mat) 
 
 def vertex_swap(d, n, l, i1, i2, j1, j2):
     r"""
@@ -663,7 +773,7 @@ def swap3(d, n, v, i, j, k):
         z = a*d*d + d*k + j
         v[x],v[y],v[z] = v[z],v[x],v[y]
 
-class SymbolicSymmetricMaxPlusMatrix(SageObject):
+class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
     r"""
     Matrices that are symmetric under permutations.
 
@@ -681,17 +791,49 @@ class SymbolicSymmetricMaxPlusMatrix(SageObject):
     def __init__(self, d, n, diag, nondiag, ch=None):
         self._diag = diag        # diagonal term (0,0)
         self._nondiag = nondiag  # nondiagonal term (0,1)
-        self._d = d  # dimension
-        self._n = n  # number of matrices
+        self._d = d              # dimension
+        self._n = n              # number of matrices
+        self._nvars = n*d*d      # number of variables
 
-        import convex_hull
-        self.convex_hull = convex_hull.get_convex_hull_engine(self._d * self._d * self._n, ch)
+        self.convex_hull = get_convex_hull_engine(self._nvars, ch)
 
-    def __repr__(self):
-        return 'Symmetric {}x{} max plus matrix:\n diagonal: {}\n non-diag: {}'.format(
-                self._d,self._d,
-                pretty_print_poly(self._diag),
-                pretty_print_poly(self._nondiag))
+    def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: x1,y1 = symbolic_max_plus_matrices(5, 2, sym=True)
+            sage: x2,y2 = symbolic_max_plus_matrices(5, 2, sym=False)
+            sage: x1 == x2 and x1 == x1
+            True
+            sage: x1 == y1 or x1 == y2
+            False
+        """
+        if type(self) is type(other):
+            return self._d == other._d and \
+                   self._n == other._n and \
+                   self._diag == other._diag and \
+                   self._nondiag == other._nondiag
+        else:
+            return SymbolicMaxPlusMatrix.__eq__(self, other)
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: x1,y1 = symbolic_max_plus_matrices(5, 2, sym=True)
+            sage: x2,y2 = symbolic_max_plus_matrices(5, 2, sym=False)
+            sage: x1 != x2 or x1 != x1
+            False
+            sage: x1 != y1 and x1 != y2
+            True
+        """
+        if type(self) is type(other):
+            return self._d != other._d or \
+                   self._n != other._n or \
+                   self._diag != other._diag or \
+                   self._nondiag != other._nondiag
+        else:
+            return SymbolicMaxPlusMatrix.__ne__(self, other)
 
     def __getitem__(self, data):
         r"""
@@ -719,19 +861,21 @@ class SymbolicSymmetricMaxPlusMatrix(SageObject):
 
             sage: x1,y1 = symbolic_max_plus_matrices(5, 2, sym=True)
             sage: x2,y2 = symbolic_max_plus_matrices(5, 2, sym=False)
-            sage: mat_eq = lambda m1,m2: all(m1[i,j] == m2[i,j] for i in range(5) for j in range(5))
-            sage: assert mat_eq(x1,x2)
-            sage: assert mat_eq(y1,y2)
-            sage: assert mat_eq(x1*y1, x2*y2)
-            sage: assert mat_eq(y1*x1, y2*x2)
-            sage: assert mat_eq(x1*x1, x2*x2)
-            sage: assert mat_eq(x1*y1*x1, x2*y2*x2)
-            sage: assert mat_eq(x1*x1*x1, x2*x2*x2)
+            sage: assert x1 == x2 and y1 == y2
+            sage: assert x1*y1 == x2*y2 and y1*x1 == y2*x2
+            sage: assert x1*x1 == x2*x2
+            sage: assert x1*y1*x1 == x2*y2*x2
+            sage: assert x1*x1*x1 == x2*x2*x2
+
+            sage: x1,y1 = symbolic_max_plus_matrices(4, 2, sym=True)
+            sage: x2,y2 = symbolic_max_plus_matrices(4, 2, sym=False)
+            sage: x1*x1 == x1*x2 == x2*x1 == x2*x2
+            True
         """
-        assert type(self) is type(other) and \
-               self._n == other._n and \
-               self._d == other._d and \
-               self.convex_hull == other.convex_hull
+        if type(self) is not type(other):
+            return SymbolicMaxPlusMatrix.__mul__(self, other)
+
+        assert self._n == other._n and self._d == other._d 
 
         data = []
         for j in range(2):
@@ -744,588 +888,182 @@ class SymbolicSymmetricMaxPlusMatrix(SageObject):
 
         return SymbolicSymmetricMaxPlusMatrix(self._d, self._n, data[0], data[1], self.convex_hull)
 
-######################
-# Experimental stuff #
-######################
-def prod_symbolic(w, mats):
+#######################
+# convex hull engines #
+#######################
+
+def get_convex_hull_engine(nvar, convex_hull=None):
     r"""
-    Recursive computation that tries to minize the number of products
-
-    DO NOT USE... IT DOES NOT SEEMS FASTER!
-    """
-    assert max(w) <= len(mats)
-    if len(w) <= 3 or 3*len(mats) >= 2*len(w):
-        return prod(mats[i] for i in w)
-
-    ww = [(w[i],w[i+1]) for i in range(0,len(w)-1,2)]
-    P2 = list(set(ww))
-    P2_index = {p:i for i,p in enumerate(P2)}
-    mmats = [mats[p[0]] * mats[p[1]] for p in P2]
-
-    ww = [P2_index[u] for u in ww]
-    if len(w)%2:
-        mmats.append(mats[w[-1]])
-        ww.append(len(mmats)-1)
-    return prod_symbolic(ww, mmats)
-
-def relations_band(dim, start=3, num_mat=5000, limit_coeff=1073741824, filename=None):
-    r"""
-    List the relations for the band matrices (with identical diagonals) in a
-    given dimension.
-
-    INPUT:
-
-    - ``dim`` -- the dimension
-
-    - ``start`` -- the length of product we consider first (default to ``1``)
-
-    - ``num_mat`` -- the number of integer matrices used to check the relation.
-      Note that if all the integer matrices satisfy the relations, a (costly)
-      symbolic check is performed to guarantee that the relation is satisfied by
-      any pair of matrices.
-
-    .. NOTE::
-
-        All the time in spent in symbolic verification. The only way to make it
-        fast is to have a huge ``num_mat`` in order to eliminate the maximum of
-        relations without symbolic computations.
+    Call to various library for convex hull computation
 
     EXAMPLES::
 
-        sage: relations_band(3)
-        # band similar diagonal relations for n = 11
-        n = 11
-        xxyyx(y)xxyxy = xxyyx(x)xxyxy
-        xxyyx(y)xxyyx = xxyyx(x)xxyyx
-        xxyyx(y)xyyxx = xxyyx(x)xyyxx
-        xxyyx(y)yxxyy = xxyyx(x)yxxyy
-        xxyyx(y)yyxxy = xxyyx(x)yyxxy
-        xyxyy(y)yxxyy = xyxyy(x)yxxyy
-        xyxyy(y)yyxxy = xyxyy(x)yyxxy
-        xyxyy(y)yyxyx = xyxyy(x)yyxyx
-        xyyxx(y)xxyxy = xyyxx(x)xxyxy
-        xyyxx(y)xxyyx = xyyxx(x)xxyyx
-        xyyxx(y)xyyxx = xyyxx(x)xyyxx
-        xyyxx(y)yxxyy = xyyxx(x)yxxyy
-        xyyxx(y)yyxxy = xyyxx(x)yyxxy
-        # band similar diagonal relations for n = 12
-        n = 12
-        xxxyyx(y)xxyxy = xxxyyx(x)xxyxy
-        xxxyyx(y)xxyyx = xxxyyx(x)xxyyx
-        xxxyyx(y)xyyxx = xxxyyx(x)xyyxx
-        xxxyyx(y)yxxyy = xxxyyx(x)yxxyy
-        xxxyyx(y)yyxxy = xxxyyx(x)yyxxy
-        xxyxyx(y)xxyxy = xxyxyx(x)xxyxy
-        xxyxyx(y)xxyyx = xxyxyx(x)xxyyx
-        xxyxyx(y)xyyxx = xxyxyx(x)xyyxx
-        xxyxyy(y)xxyyx = xxyxyy(x)xxyyx
-        xxyxyy(y)xyyxx = xxyxyy(x)xyyxx
-        xxyxyy(y)yxxyy = xxyxyy(x)yxxyy
-        xxyxyy(y)yyxxy = xxyxyy(x)yyxxy
-        xxyxyy(y)yyxyx = xxyxyy(x)yyxyx
-        xxyyxx(y)xxyxy = xxyyxx(x)xxyxy
-        xxyyxx(y)xxyyx = xxyyxx(x)xxyyx
-        xxyyxx(y)xyyxx = xxyyxx(x)xyyxx
-        xxyyxx(y)yxxyy = xxyyxx(x)yxxyy
-        xxyyxx(y)yyxxy = xxyyxx(x)yyxxy
-        xxyyx(y)xxxyxy = xxyyx(x)xxxyxy
-        xxyyx(yx)xxyxy = xxyyx(xy)xxyxy
-        xxyyx(y)xxxyyx = xxyyx(x)xxxyyx
-        xxyyx(yx)xxyyx = xxyyx(xy)xxyyx
-        xxyyx(y)xxyxxy = xxyyx(x)xxyxxy
-        xxyyx(y)xxyxyx = xxyyx(x)xxyxyx
-        xxyyx(y)xxyxyy = xxyyx(x)xxyxyy
-        xxyyx(y)xxyyxx = xxyyx(x)xxyyxx
-        xxyyx(y)xxyyxy = xxyyx(x)xxyyxy
-        xxyyx(yx)xyyxx = xxyyx(xy)xyyxx
-        xxyyx(y)xxyyyx = xxyyx(x)xxyyyx
-        xxyyx(y)xyxxyy = xxyyx(x)xyxxyy
-        xxyyx(yx)yxxyy = xxyyx(xy)yxxyy
-        xxyyx(y)xyxyxx = xxyyx(x)xyxyxx
-        xxyyx(y)xyyxxx = xxyyx(x)xyyxxx
-        xxyyx(y)xyyxxy = xxyyx(x)xyyxxy
-        xxyyx(yx)yyxxy = xxyyx(xy)yyxxy
-        xxyyx(y)xyyyxx = xxyyx(x)xyyyxx
-        xxyyx(y)yxxxyy = xxyyx(x)yxxxyy
-        xxyyx(yy)xxyyx = xxyyx(xx)xxyyx
-        xxyyx(y)yxxyyx = xxyyx(x)yxxyyx
-        xxyyx(y)yxxyyy = xxyyx(x)yxxyyy
-        xxyyxy(y)xxyyx = xxyyxy(x)xxyyx
-        xxyyx(yy)xyyxx = xxyyx(xx)xyyxx
-        xxyyx(y)yxyyxx = xxyyx(x)yxyyxx
-        xxyyxy(y)xyyxx = xxyyxy(x)xyyxx
-        xxyyx(y)yyxxxy = xxyyx(x)yyxxxy
-        xxyyx(yy)yxxyy = xxyyx(xx)yxxyy
-        xxyyx(y)yyxxyx = xxyyx(x)yyxxyx
-        xxyyx(y)yyxxyy = xxyyx(x)yyxxyy
-        xxyyxy(y)yxxyy = xxyyxy(x)yxxyy
-        ...
+        sage: CH1 = get_convex_hull_engine(3, 'ppl')
+        sage: CH2 = get_convex_hull_engine(3, 'cdd')
+        sage: CH3 = get_convex_hull_engine(3, 'PALP')
+
+        sage: F = ZZ**3
+        sage: pts = [F.random_element() for _ in range(20)]
+        sage: CH1(pts) == CH2(pts) == CH3(pts)
+        True
+
+    By far the fastest is CH1. See also:
+
+    - http://miconvexhull.codeplex.com/
+    - http://www.boost.org/doc/libs/1_47_0/libs/geometry/doc/html/geometry/reference/algorithms/convex_hull.html
     """
-    # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_band(dim, 2, diag='s', surdiag='v')
+    if isinstance(convex_hull, ConvexHull):
+        return convex_hull
+    elif convex_hull is None or convex_hull == 'ppl':
+        return ConvexHullPolyhedra(nvar, 'ppl')
+    elif convex_hull == 'cdd':
+        return ConvexHullPolyhedra(nvar, 'cdd')
+    elif convex_hull == 'PALP':
+        return ConvexHullPalp(nvar)
+    else:
+        raise ValueError("convex_hull must either be 'ppl', 'cdd' or 'PALP'")
 
-    # the integer max-plus matrices
-    pairs = [random_integer_max_plus_matrices_band(dim, -limit_coeff, limit_coeff) for _ in range(num_mat)]
-    one_int = integer_max_plus_matrix_identity(dim)
-
-    # n     : length of the product
-    # ii1   : first word
-    # ii2   : second word
-    n = start
-    while True:
-        eliminated_from_int = 0
-        eliminated_from_symb = 0
-        relations = 0
-
-        if filename is None:
-            from sys import stdout
-            f = stdout
-        else:
-            f = open(filename.format(dim,n), 'w')
-
-        # we restrict to products that start and ends with the same letters
-        # up to symmetry we can restrict to
-        #   X ... X = X ... X
-        #   X ... Y = X ... Y
-
-        f.write("# band similar diagonal relations for n = {}\n".format(n))
-        print "n = {}".format(n)
-        for i1 in product((0,1), repeat=n-2):
-            for pref,suff in ((0,),(0,)),((0,),(1,)):
-                ii1 = pref + i1 + suff
-                assert len(ii1) == n
-                p,s = constraints_from_subwords(ii1, dim)
-                if p != -1:
-                    i1p = ii1[:p]; i1s = ii1[s:]
-                    for i2 in product((0,1), repeat=s-p):
-                        ii2 = i1p + i2 + i1s
-                        assert len(ii2) == n
-                        if ii1 == ii2:
-                            break
-                        if not is_relation(ii1, ii2, pairs):
-                            eliminated_from_int += 1
-                            continue
-                        if prod(ab[x] for x in ii1) != prod(ab[x] for x in ii2):
-                            eliminated_from_symb += 1
-                            continue
-
-                        f.write(pretty_relation_string(ii1,ii2,'xy'))
-                        f.write('\n')
-                        f.flush()
-                        relations += 1
-                        del i2  # makes itertools faster!
-            del i1  # makes itertools faster!
-
-        if filename is not None:
-            f.close()
-        n += 1
-
-        print "  int elimination  : {}".format(eliminated_from_int)
-        print "  symb elimination : {}".format(eliminated_from_symb)
-        print "  relations        : {}".format(relations)
-
-def relations_tri_sim_diag(dim, start=3, num_mat=20, filename=None):
+class ConvexHull(object):
     r"""
-    List the relations for the upper triangular matrices in a given dimension.
+    Class for convex hull computation.
 
-    INPUT:
+    to be implemented in subclasses:
 
-    - ``dim`` -- the dimension
+    - ``__init__(self, dimension)``: initialize the class to work in dimension
+      ``dim``
+    - ``__call__(self, pts)``: return the convex hull of the list ``pts``
+    """
+    pass
 
-    - ``start`` -- the length of product we consider first (default to ``1``)
-
-    - ``num_mat`` -- the number of integer matrices used to check the relation.
-      Note that if all the integer matrices satisfy the relations, a (costly)
-      symbolic check is performed to guarantee that the relation is satisfied by
-      any pair of matrices.
-
+class ConvexHullPolyhedra(ConvexHull):
+    r"""
     EXAMPLES::
 
-        sage: relations_tri(2)
-        # triangular relations for n = 1
-        # triangular relations for n = 2
-        # triangular relations for n = 3
-        # triangular relations for n = 4
-        # triangular relations for n = 5
-        # triangular relations for n = 6
-        # triangular relations for n = 7
-        # triangular relations for n = 8
-        # triangular relations for n = 9
-        # triangular relations for n = 10
-        #  relations (5,5)
-        xyyx(xy)xyyx = xyyx(yx)xyyx
-        xyyx(xy)yxxy = xyyx(yx)yxxy
-        xyyx(yx)xyyx = xyyx(xy)xyyx
-        xyyx(yx)yxxy = xyyx(xy)yxxy
-        # triangular relations for n = 11
-        #  relations (4,7)
-        xyyyyx(xy)yxy = xyyyyx(yx)yxy
-        xyyyyx(yx)yxy = xyyyyx(xy)yxy
-        ...
+        sage: C = ConvexHullPolyhedra(2)
+        sage: C([(0,1),(2,3),(1,2),(3,4),(0,0),(0,0),(1,1),(1,1)])
+        ((0, 0), (0, 1), (1, 1), (3, 4))
     """
-    # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_tri_sim_diag(dim, 2)
-    abc = symbolic_max_plus_matrices_tri_sim_diag(dim, 3)
-    one_ab = symbolic_max_plus_identity(dim, ab[0].num_variables())
-    one_abc = symbolic_max_plus_identity(dim, abc[0].num_variables())
+    _name = None
 
+    def __init__(self, dim, backend=None):
+        from sage.geometry.polyhedron.parent import Polyhedra
+        self._parent = Polyhedra(ZZ, int(dim), backend)
+        self._name = backend
 
-    # the integer max-plus matrices
-    pairs = [random_integer_max_plus_matrices_tri_sim_diag(dim, -2**30, 2**30) for _ in range(num_mat)]
-    A,B = AB = pairs[0]
+    def __eq__(self, other):
+        return type(self) is type(other) and self._parent == other._parent
 
-    one_int = integer_max_plus_matrix_identity(dim)
+    def __ne__(self, other):
+        return type(self) is not type(other) or self._parent != other._parent
 
-    # n     : length of the product
-    # i1,m1AA,m1AB : data for the first word
-    # i2,m2AA,m2AB : data for the second word
-    n = start
-    while True:
-        if filename is None:
-            from sys import stdout
-            f = stdout
-        else:
-            f = open(filename.format(dim,n), 'w')
+    def __call__(self, pts):
+        if pts:
+            pts = [p.vector() for p in self._parent([pts,[],[]],None).vertex_generator()]
+            for a in pts: a.set_immutable()
+            pts.sort()
+        return tuple(pts)
 
-        f.write("# triangular similar diagonal relations for n = {}\n".format(n))
-        relations = []
-
-        # we first want to consider the prefix/suffix such that we got a
-        # relation whatever is in between (of the same length)
-        # how do we identify these relations?
-
-        for p in minimal_all_subwords_prefix(n - 2*(dim-1), dim-1):
-            m_prefix = prod(AB[i] for i in p)
-            for s in minimal_all_subwords_suffix(n - len(p) - 1, dim-1):
-                m_suffix = prod(AB[i] for i in s)
-                for i1,m1 in products_n(A,B,n-len(p)-len(s)):
-                    for i2,m2 in products_n(A,B,n-len(p)-len(s)):
-                        if i1 == i2:
-                            break
-#
-#                # here we first test equality between m1 and m2
-#                # then we test the relations on all matrices in mats
-#                # then we check formally using symbolic matrices
-#                ii1 = [0] + i1 + [0]
-#                ii2 = [0] + i1[:ppos] + i2 + i1[spos:] + [0]
-#                print "{} =?= {}".format(ii1,ii2)
-#                if m1AA == m2AA and \
-#                   is_relation(ii1, ii2, pairs) and \
-#                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
-#                       f.write(pretty_relation_string(ii1,ii2,'xy'))
-#                       f.write('\n')
-#                       f.flush()
-#                ii1 = [0] + i1 + [1]
-#                ii2 = [0] + i1[:ppos] + i2 + i1[spos:] + [0]
-#                if m1AB == m2AB and \
-#                   is_relation(ii1, ii2, pairs) and \
-#                   prod(ab[x] for x in ii1) == prod(ab[x] for x in ii2):
-#                       f.write(pretty_relation_string(ii1,ii2,'xy'))
-#                       f.write('\n')
-#                       f.flush()
-#
-#        if filename is not None:
-#            f.close()
-
-        n += 1
-
-def relations_tri(dim, start=1, num_mat=10, filename=None):
+class ConvexHullPalp(ConvexHull):
     r"""
-    List the relations for the upper triangular matrices in a given dimension.
+    Compute convex hull using PALP.
 
-    INPUT:
-
-    - ``dim`` -- the dimension
-
-    - ``start`` -- the length of product we consider first (default to ``1``)
-
-    - ``num_mat`` -- the number of integer matrices used to check the relation.
-      Note that if all the integer matrices satisfy the relations, a (costly)
-      symbolic check is performed to guarantee that the relation is satisfied by
-      any pair of matrices.
-
-    EXAMPLES::
-
-        sage: relations_tri(2)
-        # triangular relations for n = 1
-        # triangular relations for n = 2
-        # triangular relations for n = 3
-        # triangular relations for n = 4
-        # triangular relations for n = 5
-        # triangular relations for n = 6
-        # triangular relations for n = 7
-        # triangular relations for n = 8
-        # triangular relations for n = 9
-        # triangular relations for n = 10
-        #  relations (5,5)
-        xyyx(xy)xyyx = xyyx(yx)xyyx
-        xyyx(xy)yxxy = xyyx(yx)yxxy
-        xyyx(yx)xyyx = xyyx(xy)xyyx
-        xyyx(yx)yxxy = xyyx(xy)yxxy
-        # triangular relations for n = 11
-        #  relations (4,7)
-        xyyyyx(xy)yxy = xyyyyx(yx)yxy
-        xyyyyx(yx)yxy = xyyyyx(xy)yxy
-        ...
+    Note: the points must be lattice points (ie integer coordinates) and
+    generate the ambient vector space.
     """
-    # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_tri(dim, 2)
-    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
+    _name = 'PALP'
 
-    # the integer max-plus matrices
-    mats = [random_integer_max_plus_matrix_tri(dim, -50*dim*dim, 50*dim*dim) for _ in range(num_mat)]
-    pairs = [(m1,m2) for m1 in mats for m2 in mats if m1 is not m2]
-    one_int = integer_max_plus_matrix_identity(dim)
+    def __init__(self, dim):
+        from sage.modules.free_module import FreeModule
+        self._free_module = FreeModule(ZZ, int(dim))
 
-    # n     : length of the product
-    # i1,m1 : data for the first word
-    # i2,m2 : data for the second word
-    n = start
-    while True:
-        if filename is None:
-            from sys import stdout
-            f = stdout
+    def __eq__(self, other):
+        return type(self) is type(other) and self._free_module == other._free_module
+
+    def __ne__(self, other):
+        return type(self) is not type(other) or self._free_module != other._free_module
+
+    def __call__(self, pts):
+        filename = tmp_filename()
+
+        pts = list(pts)
+        n = len(pts)
+        if n <= 2:
+            return tuple(pts)
+        d = len(pts[0])
+        assert d == self._free_module.rank()
+
+        # PALP only works with full dimension polyhedra!!
+        ppts = [x-pts[0] for x in pts]
+        U = self._free_module.submodule(ppts)
+        d2 = U.rank()
+        if d2 != d:
+            # not full dim
+            # we compute two matrices
+            #  M1: small space -> big space  (makes decomposition)
+            #  M2: big space -> small space  (i.e. basis of the module)
+            # warning: matrices act on row vectors, i.e. left action
+            from sage.matrix.constructor import matrix
+            from sage.modules.free_module import FreeModule
+            V2 = FreeModule(ZZ,d2)
+            M1 = U.matrix()
+            assert M1.nrows() == d2
+            assert M1.ncols() == d
+            M2 = matrix(QQ,d)
+            M2[:d2,:] = M1
+            i = d2
+            U = U.change_ring(QQ)
+            F = self._free_module.change_ring(QQ)
+            for b in F.basis():
+                if b not in U:
+                    M2.set_row(i, b)
+                    U = F.submodule(U.basis() + [b])
+                    i += 1
+            assert i == self._free_module.rank()
+            M2 = (~M2)[:,:d2]
+            assert M2.nrows() == d
+            assert M2.ncols() == d2
+            assert (M1*M2).is_one()
+            pts2 = [p * M2 for p in ppts]
         else:
-            f = open(filename.format(dim,n), 'w')
+            pts2 = pts
+            d2 = d
 
-        # TODO (see also in band relations): we can look only at the pair of
-        # words
-        f.write("# triangular relations for n = {}\n".format(n))
-        for k in range(1,n):
-            relations = []
-            for i1,m1 in products_p(mats[0], mats[1], k-1, n-k, one_int):
-                m1 = mats[0] * m1
-                i1 = [0] + i1
+        with open(filename, "w") as output:
+            output.write("{} {}\n".format(n,d2))
+            for p in pts2:
+                output.write(" ".join(map(str,p)))
+                output.write("\n")
 
-                for i2,m2 in products_p(mats[0], mats[1], k-1, n-k, one_int):
-                    m2 = mats[0] * m2
-                    i2 = [0] + i2
+        args = ['poly.x', '-v', filename]
+        try:
+            palp_proc = Popen(args,
+                    stdin=PIPE, stdout=PIPE,
+                    stderr=None, cwd=str(SAGE_TMP))
+        except OSError:
+            raise RuntimeError("Problem with calling PALP")
+        ans, err = palp_proc.communicate()
+        ret_code = palp_proc.poll()
 
-                    if i1 == i2:
-                        break
+        if ret_code:
+            raise RuntimeError("PALP return code is {} from input {}".format(ret_code, pts))
+        ans = ans.split('\n')
+        dd,nn = ans[0].split(' ')[:2]
+        dd = int(dd)
+        nn = int(nn)
+        if dd > nn: dd,nn = nn,dd
+        if d2 != int(dd):
+            raise RuntimeError("dimension changed... have d={} but PALP answered dd={} and nn={}".format(d2,dd,nn))
+        n2 = int(nn)
+        coords = []
+        for i in xrange(1,d2+1):
+            coords.append(map(ZZ,ans[i].split()))
+        new_pts = zip(*coords)
 
-                    # here we first test equality between m1 and m2
-                    # then we test the relations on all matrices in mats
-                    # then we check formally using symbolic matrices
-                    if m1 == m2 and \
-                       is_relation(i1, i2, pairs) and \
-                       prod(ab[x] for x in i1) == prod(ab[x] for x in i2):
-                           relations.append(pretty_relation_string(i1,i2,'ab'))
+        if d2 != d:
+            new_pts = [pts[0] + V2(p)*M1 for p in new_pts]
 
-#                for i2,m2 in products(mats[0], mats[1], k, n-k-1, one_int):
-#                    m2 = mats[1] * m2
-#                    i2 = [1] + i2
-#
-#                    # here we first test equality between m1 and m2
-#                    # then we test the relations on all matrices in mats
-#                    # then we check formally using symbolic matrices
-#                    if m1 == m2 and \
-#                       is_relation(i1, i2, pairs) and \
-#                       prod(ab[x] for x in i1) == prod(ab[x] for x in i2):
-#                           relations.append(pretty_relation_string(i1,i2))
-
-            if relations:
-                f.write("#  relations ({},{})\n".format(k,n-k))
-                for r in relations:
-                    f.write(r)
-                    f.write('\n')
-                f.flush()
-
-        if filename is not None:
-            f.close()
-        n += 1
-
-def relations_band_vc(dim, start=1, num_mat=500, filename=None):
-    # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_tri(dim, 2)
-    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
-
-    # the integer max-plus matrices
-    mats = [random_integer_max_plus_matrix_tri(dim, -50*dim*dim, 50*dim*dim) for _ in range(num_mat)]
-    pairs = [(m1,m2) for m1 in mats for m2 in mats if m1 is not m2]
-    one_int = integer_max_plus_matrix_identity(dim)
-
-    # n     : length of the product
-    # i1,m1 : data for the first word
-    # i2,m2 : data for the second word
-    n = start
-    while True:
-        if filename is None:
-            from sys import stdout
-            f = stdout
-        else:
-            f = open(filename.format(dim,n), 'w')
-
-        f.write("# Band^cv_{} relations of length n = {}\n".format(dim,n))
-
-        for n0 in range(1,n-1):
-            eliminated_from_int = 0
-            eliminated_from_symb = 0
-            nb_identities = 0
-
-            relations = []
-            n1 = n - n0
-            for i1,m1 in products_p(pairs[0][0], pairs[0][1], n0, n1, one_int):
-                p,s = constraints_from_subwords(i1, dim)
-                if p == -1:
-                    continue
-
-                mp = prod(pairs[0][k] for k in i1[:p])
-                ms = prod(pairs[1][k] for k in i1[s:])
-
-                nn1 = sum(i1[p:s])
-                nn0 = s-p-nn1
-                for ii2,mm2 in products_p(pairs[0][0], pairs[0][1], nn0, nn1, one_int):
-                    i2 = i1[:p] + ii2 + i1[s:]
-                    assert len(i1) == len(i2) and sum(i1) == sum(i2)
-                    if i1 == i2:
-                        break
-
-                    if not is_relation(tuple(i1), tuple(i2), pairs):
-                        eliminated_from_int += 1
-                    elif prod(ab[x] for x in i1) != prod(ab[x] for x in i2):
-                        eliminated_from_symb += 1
-                    else:
-                        nb_identities += 1
-                        relations.append(pretty_relation_string(i1,i2,'xy'))
-
-            print "({},{})".format(n0,n1)
-            print "  int elimination  : {}".format(eliminated_from_int)
-            print "  symb elimination : {}".format(eliminated_from_symb)
-            print "  identities       : {}".format(nb_identities)
-
-            if relations:
-                f.write("#  relations ({},{})\n".format(n0,n1))
-                for r in relations:
-                    f.write(r)
-                    f.write('\n')
-                    f.flush()
-
-        if filename is not None:
-            f.close()
-        n += 1
-
-def conj_min_relations_band_vc(dim, start=1, num_mat=500, filename=None):
-    r"""
-    Look at relations of the form
-
-    M * x*y * M == M * y*x * M
-
-    for matrices in B^vc where M contains the same number of x and y.
-    """
-    # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_band(dim, 2, diag='v', surdiag='c')
-    one = symbolic_max_plus_identity(dim, ab[0].num_variables())
-    xy = ab[0]*ab[1]
-    yx = ab[1]*ab[0]
-
-    # the integer max-plus matrices
-    pairs = [random_integer_max_plus_matrices_band(dim, -50*dim*dim, 50*dim*dim,
-        ord('v'), ord('c')) for _ in range(num_mat)]
-    one_int = integer_max_plus_matrix_identity(dim)
-
-    # n  : length of m
-    # i  : word of m
-    # i1 : word of mxym
-    # i2 : word of myxm
-    n = 1
-    while True:
-        if filename is None:
-            from sys import stdout
-            f = stdout
-        else:
-            f = open(filename.format(dim,n), 'w')
-
-        header = "# Band^vc_{} relations with n = {}".format(dim,n)
-        f.write(header)
-        f.write("\n")
-        if filename:
-            print header
-
-        eliminated_from_int = 0
-        eliminated_from_symb = 0
-        nb_identities = 0
-        for i in product_p(n-1, n):
-            i = (0,) + tuple(i)
-            i1 = i + (0,1) + i
-            i2 = i + (1,0) + i
-
-            if not is_relation(i1, i2, pairs, upper=True):
-                eliminated_from_int += 1
-                continue
-
-            print "  potential relation:", pretty_relation_string(i1,i2,'xy')
-            sys.stdout.flush()
-
-            t0 = time.clock()
-            m = prod(ab[x] for x in i)
-            t1 = time.clock()
-            print "    m    computed in {} seconds".format(t1-t0)
-            print "    nb pts in convex hull: {}".format([len(m[i,j]) for i in range(dim) for j in range(i,dim)])
-            t0 = time.clock()
-            mxym = m * xy * m
-            t1 = time.clock()
-            print "    mxym computed in {} seconds".format(t1-t0)
-            print "    nb pts in convex hull: {}".format([len(mxym[i,j]) for i in range(dim) for j in range(i,dim)])
-            t0 = time.clock()
-            myxm = m * yx * m
-            t1 = time.clock()
-            print "    myxm computed in {} seconds".format(t1-t0)
-            print "    nb pts in convex hull: {}".format([len(myxm[i,j]) for i in range(dim) for j in range(i,dim)])
-            if mxym != myxm:
-                print "    ... not a relation\n"
-                sys.stdout.flush()
-                eliminated_from_symb += 1
-                continue
-
-            print "    NEW RELATION\n"
-            nb_identities += 1
-            f.write(pretty_relation_string(i1,i2,'xy'))
-            f.write('\n')
-            f.flush()
-            print
-
-        print "  int elimination  : {}".format(eliminated_from_int)
-        print "  symb elimination : {}".format(eliminated_from_symb)
-        print "  identities       : {}".format(nb_identities)
-        print
-
-        if filename is not None:
-            f.close()
-        if nb_identities:
-            return
-        n += 1
-        if n == 9:
-            break
-
-# TODO
-#  relations in B^sv?
-#  d-relations for B^cv are {(u,v): Subwords_{d-1}(u) = Subwords_{d-1}(v)}
-
-def filter_relations(r, mats, ab, one):
-    ans = []
-    for r1,r2 in r:
-        if is_relation(r1, r2, mats) and \
-            prod(ab[x] for x in r1) == prod(ab[x] for x in r2):
-            ans.append(pretty_relation_string(r1,r2))
-    return ans
-
-def brute_force_fibo(dim):
-    dim = int(dim)
-    w = list(words.FibonacciWord([0,1])[:1000])
-    n = 1
-
-    mats = random_integer_max_plus_matrices_tri_sim_diag(dim, -2**20, 2**20)
-
-    while True:
-        u = prod(mats[w[i]] for i in range(n))
-        v = prod(mats[w[i]] for i in range(n-1,-1,-1))
-
-        if v*mats[0]*mats[1]*u != v*mats[1]*mats[0]*u:
-            n += 1
-            print n
-        else:
-            mats = random_integer_max_plus_matrices_tri_sim_diag(dim, -2**20, 2**20)
-
-
-
+        t = [self._free_module(p) for p in new_pts]
+        for v in t:
+            v.set_immutable()
+        t.sort()
+        return tuple(t)
