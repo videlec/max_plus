@@ -1,18 +1,5 @@
-"""
-Some experiments on symbolic max plus matrices
-
-We consider semigroup relations for various max-plus matrix semigroups:
-
- * upper triangular matrices with identical diagonals ('tri_sim_diag')
- * upper triangular matrices ('tri')
- * all matrices ('all')
-
-If u = v is a relation then
-
-pus = pvs is also a relation...
-
-So we should look for primitive relations.
-
+r"""
+Identities in the monoid of max-plus matrices
 
 1. For band 2x2 matrices same diag (or triangular same diag) the relations are exactly
 
@@ -41,7 +28,6 @@ Conjecture:
 
     with |p| >= dim+1 and |s| >= dim+1
 
-https://www.inf.ethz.ch/personal/fukudak/polyfaq/node23.html
 
 EXAMPLES::
 
@@ -56,13 +42,13 @@ EXAMPLES::
     'cdd'
 """
 
-from itertools import product
-import time
 from subprocess import Popen, PIPE
 
 from sage.misc.misc import SAGE_TMP
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.misc import SAGE_TMP
+
+from sage.structure.sage_object import SageObject
 
 from sage.geometry.polyhedron.parent import Polyhedra
 from sage.modules.free_module import FreeModule
@@ -389,32 +375,8 @@ def symbolic_max_plus_matrices_upper(d, n,
     return matrices
 
 ###########################
-# helper for pretty print #
+# Helper for pretty print #
 ###########################
-
-def pretty_relation_string(r1, r2, letters='mn'):
-    r"""
-    A nice string to represent a relation
-
-    EXAMPLES::
-
-        sage: pretty_relation_string([0,1,1,0],[1,1,0,0], 'xy')
-        '(xyy)x = (yyx)x'
-        sage: pretty_relation_string([0,0,1,0],[0,1,0,0], 'xy')
-        'x(xy)x = x(yx)x'
-    """
-    p = 0
-    while r1[p] == r2[p]: p += 1
-    s = -1
-    while r1[s] == r2[s]: s -= 1
-    s += 1
-    return '{}({}){} = {}({}){}'.format(
-       ''.join(letters[i] for i in r1[:p]),
-       ''.join(letters[i] for i in r1[p:s]),
-       ''.join(letters[i] for i in r1[s:]),
-       ''.join(letters[i] for i in r2[:p]),
-       ''.join(letters[i] for i in r2[p:s]),
-       ''.join(letters[i] for i in r2[s:]))
 
 def pretty_print_poly(p):
     if not p:
@@ -889,7 +851,7 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
         return SymbolicSymmetricMaxPlusMatrix(self._d, self._n, data[0], data[1], self.convex_hull)
 
 #######################
-# convex hull engines #
+# Convex hull engines #
 #######################
 
 def get_convex_hull_engine(nvar, convex_hull=None):
@@ -909,6 +871,7 @@ def get_convex_hull_engine(nvar, convex_hull=None):
 
     By far the fastest is CH1. See also:
 
+    - https://www.inf.ethz.ch/personal/fukudak/polyfaq/node23.html
     - http://miconvexhull.codeplex.com/
     - http://www.boost.org/doc/libs/1_47_0/libs/geometry/doc/html/geometry/reference/algorithms/convex_hull.html
     """

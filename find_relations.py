@@ -1,6 +1,15 @@
+import time
+
+from itertools import product
+
 from semigroup_tools import (products_n, products_p,
         constraints_from_subwords, minimal_all_subwords_prefix,
         minimal_all_subwords_suffix)
+
+from max_plus import (symbolic_max_plus_identity,
+     symbolic_max_plus_matrices,
+     symbolic_max_plus_matrices_band,
+     symbolic_max_plus_matrices_upper)
 
 ######################
 # Experimental stuff #
@@ -25,6 +34,30 @@ def prod_symbolic(w, mats):
         mmats.append(mats[w[-1]])
         ww.append(len(mmats)-1)
     return prod_symbolic(ww, mmats)
+
+def pretty_relation_string(r1, r2, letters='mn'):
+    r"""
+    A nice string to represent a relation
+
+    EXAMPLES::
+
+        sage: pretty_relation_string([0,1,1,0],[1,1,0,0], 'xy')
+        '(xyy)x = (yyx)x'
+        sage: pretty_relation_string([0,0,1,0],[0,1,0,0], 'xy')
+        'x(xy)x = x(yx)x'
+    """
+    p = 0
+    while r1[p] == r2[p]: p += 1
+    s = -1
+    while r1[s] == r2[s]: s -= 1
+    s += 1
+    return '{}({}){} = {}({}){}'.format(
+       ''.join(letters[i] for i in r1[:p]),
+       ''.join(letters[i] for i in r1[p:s]),
+       ''.join(letters[i] for i in r1[s:]),
+       ''.join(letters[i] for i in r2[:p]),
+       ''.join(letters[i] for i in r2[p:s]),
+       ''.join(letters[i] for i in r2[s:]))
 
 def relations_band(dim, start=3, num_mat=5000, limit_coeff=1073741824, filename=None):
     r"""
@@ -472,14 +505,14 @@ def conj_min_relations_band_vc(dim, start=1, num_mat=500, filename=None):
     for matrices in B^vc where M contains the same number of x and y.
     """
     # the symbolic max-plus matrices
-    ab = symbolic_max_plus_matrices_band(dim, 2, diag='v', surdiag='c')
+    ab = symbolic_max_plus_matrices_band(dim, 2, diag='v', surdiag='z')
     one = symbolic_max_plus_identity(dim, ab[0].num_vars())
     xy = ab[0]*ab[1]
     yx = ab[1]*ab[0]
 
     # the integer max-plus matrices
     pairs = [random_integer_max_plus_matrices_band(dim, -50*dim*dim, 50*dim*dim,
-        ord('v'), ord('c')) for _ in range(num_mat)]
+        ord('v'), ord('z')) for _ in range(num_mat)]
     one_int = integer_max_plus_matrix_identity(dim)
 
     # n  : length of m
@@ -584,6 +617,4 @@ def brute_force_fibo(dim):
             print n
         else:
             mats = random_integer_max_plus_matrices_tri_sim_diag(dim, -2**20, 2**20)
-
-
 
