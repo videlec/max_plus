@@ -8,9 +8,9 @@ where you downloaded the file. Start Sage and run
 
 Once that done, you can create symbolic matrices with the following functions
 
-    symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch)
-	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch)
-    symbolic_max_plus_matrices(d, n, ch, sym)
+    symbolic_max_plus_matrices_band(d, n, diag, surdiag, i, ch)
+	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, i, ch)
+    symbolic_max_plus_matrices(d, n, i, ch, sym)
 
 for respectively band, upper triangular and full matrices. The arguments are
 
@@ -18,12 +18,15 @@ for respectively band, upper triangular and full matrices. The arguments are
 
 - `n` - the number of matrices
 
-- `diag` - describes whether the diagonal is zero (`'z'`), same
-  in each of the `n` matrices (`'s'`) or variable (`'v'`). This is optional and
-  default to `'v'`.
+- `diag` - describes whether the diagonal is zero (`'z'`), constant (`'c'`),
+  the same in each of the `n` matrices (`'s'`) or variable (`'v'`). This is
+  optional and default to `'v'`.
 
 - `surdiag` - describes whether the surdiagonal is constant, same or variable.
   This is also optional.
+
+- `i` - an optional number to set a variable to zero. If set, the number of variable
+  is one less and hence convex hull computations much faster.
 
 - `ch` - (optional) set the convex hull engine (could be one of 'ppl', 'cdd'
   or 'PALP'). It defaults to 'ppl' which seems to be the fastest.
