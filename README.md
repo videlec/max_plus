@@ -1,8 +1,8 @@
 # Sage library for max-plus matrix identities
 
 To run the library you need to install Sage (http://sagemath.org). Then clone
-this repository (or download all the file `max_plus.py`). Go to the directory
-where you downloaded the file. Start Sage and run
+this repository (or download the files `max_plus.py` and `int_max_plus.pyx`).
+Go to the directory where you cloned or downloaded the file. Start Sage and run
 
     sage: %runfile max_plus.py
 
@@ -22,8 +22,8 @@ for respectively band, upper triangular and full matrices. The arguments are
   the same in each of the `n` matrices (`'s'`) or variable (`'v'`). This is
   optional and default to `'v'`.
 
-- `surdiag` - describes whether the surdiagonal is constant, same or variable.
-  This is also optional.
+- `surdiag` - describes whether the surdiagonal is constant, zero, same or
+  variable.  This is also optional.
 
 - `i` - an optional number to set a variable to zero. If set, the number of variable
   is one less and hence convex hull computations much faster.
