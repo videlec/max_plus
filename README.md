@@ -60,7 +60,7 @@ For example you can do
 	True
 
 	sage: x2,y2,z2 = symbolic_max_plus_matrices_upper(3, 3)
-    sage: x2.num_variables()
+    sage: x2.num_vars()
     18
 	sage: print x2
 	[  x0   x3  x4 ]
@@ -107,6 +107,7 @@ method `eval`. For that you first need to compile `int_max_plus.pyx`
     [   0   0 -oo ]
 	[ -oo   0   3 ]
 	[ -oo -oo   0 ]
+    sage: p = x*y*x
     sage: pv = p.eval((1,-1,0,3))
     sage: pv
 	[   0   1 4 ]
