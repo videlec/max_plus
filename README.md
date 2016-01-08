@@ -8,9 +8,9 @@ Go to the directory where you cloned or downloaded the file. Start Sage and run
 
 Once that done, you can create symbolic matrices with the following functions
 
-    symbolic_max_plus_matrices_band(d, n, diag, surdiag, i, ch)
-	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, i, ch)
-    symbolic_max_plus_matrices(d, n, i, ch, sym)
+    symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch, sym)
+	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch, sym)
+    symbolic_max_plus_matrices(d, n, ch, sym)
 
 for respectively band, upper triangular and full matrices. The arguments are
 
@@ -25,15 +25,16 @@ for respectively band, upper triangular and full matrices. The arguments are
 - `surdiag` - describes whether the surdiagonal is constant, zero, same or
   variable.  This is also optional.
 
-- `i` - an optional number to set a variable to zero. If set, the number of variable
-  is one less and hence convex hull computations much faster.
-
 - `ch` - (optional) set the convex hull engine (could be one of 'ppl', 'cdd'
   or 'PALP'). It defaults to 'ppl' which seems to be the fastest.
 
-- `sym` - (optional) specifies the implementation: if `sym` is `True` uses matrices that
-  store only two coefficients (and deduce the others by symmetry). If `sym` is
-  `False` uses matrices that store all coefficients.
+- `sym` - (optional, default to `True`) specifies the implementation: if `sym`
+  is `True` the matrices do not store all the coefficients (only two in the case
+  of full matrices and `d` in the case of triangular ones). The multiplication
+  in these case should be a little bit faster (by a factor `d^2` for dense
+  matrix but much less for triangular ones). This should be set to `False` only
+  to debug the code or to play with `diag=c` or `surdiag=c` that are not
+  compatible with this option.
 
 For example you can do
 
@@ -63,16 +64,16 @@ For example you can do
     sage: x2.num_vars()
     18
 	sage: print x2
-	[  x0   x3  x4 ]
-	[ -oo   x1  x5 ]
+	[  x0   x3  x5 ]
+	[ -oo   x1  x4 ]
 	[ -oo  -oo  x2 ]
 	sage: print y2
-	[  x6   x9  x10 ]
-	[ -oo   x7  x11 ]
+	[  x6   x9  x11 ]
+	[ -oo   x7  x10 ]
 	[ -oo  -oo   x8 ]
 	sage: print z2
-	[ x12  x15  x16 ]
-	[ -oo  x13  x17 ]
+	[ x12  x15  x17 ]
+	[ -oo  x13  x16 ]
 	[ -oo  -oo  x14 ]
 
 And with full 3x3 matrices

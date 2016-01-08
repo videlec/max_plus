@@ -72,6 +72,16 @@ belong to a same given subspace of rank 5 (where we have 8 variables)::
     sage: z4 = x*y
     sage: all(z.get_vector_span(i,j).is_submodule(V) for i in (0,1) for j in (0,1) for z in (z1,z2,z3))
     True
+
+.. TODO::
+
+    Consider the matrices as matrices over flat polynomials with countably many
+    variables. In particular, increase ``num_vars`` in multiplication if needed.
+
+    variables: x0, x1, x2, ...
+    -> needs convention for zero and -infinity
+
+    Rectangular matrices
 """
 
 import itertools
@@ -115,7 +125,7 @@ def symbolic_max_plus_identity(d, nvar, ch=None):
     data = [[zero if i == j else e for j in range(d)] for i in range(d)]
     return SymbolicMaxPlusMatrix(d, nvar, data, ch)
 
-def symbolic_max_plus_matrices(d, n, i=False, ch=None, sym=True):
+def symbolic_max_plus_matrices(d, n, ch=None, sym=True):
     r"""
     Return ``n`` independent symbolic matrices in dimension ``d``.
 
@@ -124,8 +134,6 @@ def symbolic_max_plus_matrices(d, n, i=False, ch=None, sym=True):
     - ``d`` -- the dimension
 
     - ``n`` -- the number of matrices
-
-    - ``i`` -- an optional number of a variable to be set to 0
 
     - ``ch`` -- the convex hull engine
 
@@ -158,56 +166,24 @@ def symbolic_max_plus_matrices(d, n, i=False, ch=None, sym=True):
         sage: L2 == R2
         True
 
-    Check the ``i`` option::
+    Compatibility of output with ``sym=False`` and ``sym=True``::
 
-        sage: a,b=symbolic_max_plus_matrices(2,2,i=0,sym=False)
-        sage: print a
-        [  0  x0 ]
-        [ x1  x2 ]
-        sage: print b
-        [ x3  x4 ]
-        [ x5  x6 ]
-        sage: a.num_vars()
-        7
-        sage: a,b=symbolic_max_plus_matrices(2,2,i=1,sym=False)
-        sage: print a
-        [ x0   0 ]
-        [ x1  x2 ]
-        sage: print b
-        [ x3  x4 ]
-        [ x5  x6 ]
-        sage: a.num_vars()
-        7
-
-    Compatibility of output::
-
-        sage: symbolic_max_plus_matrices(3,3,sym=False) == \
-        ....: symbolic_max_plus_matrices(3,3,sym=True)
-        True
+        sage: a1,b1,c1 = symbolic_max_plus_matrices(3,3,sym=False)
+        sage: a2,b2,c2 = symbolic_max_plus_matrices(3,3,sym=True)
+        sage: assert a1 == a2 and b1 == b2 and c1 == c2
+        sage: assert a1*b1 == a2*b2 == a2*b1 == a1*b2
+        sage: assert a1*b1*c1*b1*a1 == a2*b2*c2*b2*a2
     """
     d = int(d)
     n = int(n)
     nvar = n * d * d
 
-    if i is False:
-        V = FreeModule(ZZ, nvar)
-        B = ((b,) for b in V.basis())
-    else:
-        nvar = nvar-1
-        V = FreeModule(ZZ, nvar)
-        if i is None:
-            i = nvar-1
-        else:
-            i = int(i)
-            assert 0 <= i < nvar
-        B = list(V.basis())
-        B.insert(i, V.zero())
-        B = ((b,) for b in B)
+    V = FreeModule(ZZ, nvar)
+    B = ((b,) for b in V.basis())
 
     matrices = []
 
     if sym:
-        assert i is False
         z = [0]*nvar
         for i in range(n):
             z[i*d*d] = 1
@@ -229,7 +205,7 @@ def symbolic_max_plus_matrices(d, n, i=False, ch=None, sym=True):
     return matrices
 
 def symbolic_max_plus_matrices_band(d, n, 
-        diag='v', surdiag='v', i=False, ch=None):
+        diag='v', surdiag='v', ch=None, sym=True):
     r"""
     INPUT:
 
@@ -243,11 +219,10 @@ def symbolic_max_plus_matrices_band(d, n,
 
     - ``surdiag`` -- one of ``'z'``, ``'c'``, ``'s'``, ``'v'``
 
-    - ``i`` -- (optional) variable number to set to zero. If ``False`` no
-      variable is set to ``0` (default behavior). Setting this will decrease the
-      dimension of a unit and improves performance of matrix products.
-
     - ``ch`` -- convex hull engine to use
+
+    - ``sym`` -- if ``True`` uses condensed matrix form that lower the number of
+      convex hull computations (`d` instead of `d^2`)
 
     EXAMPLES:
 
@@ -274,34 +249,17 @@ def symbolic_max_plus_matrices_band(d, n,
         sage: x*y*x*y == x*x*y*y
         False
 
-    And for 'vc'? seems to be much more complicated.
+    "Sparse" versus "dense" representations::
 
-    Custom setting of the zero variable::
+        sage: a1,b1 = symbolic_max_plus_matrices_band(4,2,'s','v',sym=False)
+        sage: a2,b2 = symbolic_max_plus_matrices_band(4,2,'s','v',sym=True)
+        sage: a1 == a2 and b1 == b2
+        True
+        sage: a1*a1 == a2*a2 and a1*b1 == a2*b2
+        True
+        sage: b1*a1*b1*a1*a1 == b2*a2*b2*a2*a2
+        True
 
-        sage: x,y=symbolic_max_plus_matrices_band(2,2)
-        sage: print x
-        [  x0  x2 ]
-        [ -oo  x1 ]
-        sage: print y
-        [  x3  x5 ]
-        [ -oo  x4 ]
-
-        sage: x,y=symbolic_max_plus_matrices_band(2,2,i=2)
-        sage: print x
-        [  x0   0 ]
-        [ -oo  x1 ]
-        sage: print 
-        sage: print y
-        [  x2  x4 ]
-        [ -oo  x3 ]
-
-        sage: x,y=symbolic_max_plus_matrices_band(2,2,i=False)
-        sage: print x
-        [  x0  x2 ]
-        [ -oo  x1 ]
-        sage: print y
-        [  x3  x5 ]
-        [ -oo  x4 ]
 
     TESTS:
 
@@ -315,9 +273,27 @@ def symbolic_max_plus_matrices_band(d, n,
         sage: assert y == x
         sage: x,y = symbolic_max_plus_matrices_band(2, 2, 's', 's')
         sage: assert y == y
+
+        sage: for a in 'zcsv':
+        ....:     for b in 'zcsv':
+        ....:         x,y = symbolic_max_plus_matrices_band(3,2,a,b,sym=False)
+        ....:         entries = set().union(x.list(), y.list())
+        ....:         nvars = len(entries) - (2 if a == 'z' or b == 'z' else 1)
+        ....:         assert x.num_vars() == y.num_vars() == nvars
+
+    Tests of "sparse" versus "dense"::
+
+        sage: for diag in 'zsv':
+        ....:     for surdiag in 'zsv':
+        ....:         a1,b1 = symbolic_max_plus_matrices_band(4,2,diag,surdiag,sym=False)
+        ....:         a2,b2 = symbolic_max_plus_matrices_band(4,2,diag,surdiag,sym=True)
+        ....:         assert a1 == a2 and b1 == b2 and a1*b1*a1 == a2*b2*a2
     """
     assert isinstance(diag,str) and len(diag) == 1 and diag in 'csvz'
     assert isinstance(surdiag,str) and len(surdiag) == 1 and surdiag in 'csvz'
+
+    if sym and (diag=='c' or surdiag=='c'):
+        raise ValueError("sym=True option not compatible with diag='c' or surdiag='c'")
 
     d = int(d)
     n = int(n)
@@ -337,19 +313,8 @@ def symbolic_max_plus_matrices_band(d, n,
     elif surdiag == 'v':
         nvar += n*(d-1)
 
-    if i is False:
-        V = FreeModule(ZZ, nvar)
-        B = iter(V.basis())
-    else:
-        if i is None:
-            i = nvar-1
-        i = int(i)
-        assert 0 <= i < nvar
-        nvar = nvar-1
-        V = FreeModule(ZZ,nvar)
-        B = list(V.basis())
-        B.insert(i,V.zero())
-        B = iter(B)
+    V = FreeModule(ZZ, nvar)
+    B = iter(V.basis())
     e = ()
     zero = (V.zero(),)
     mat_init = [[e]*d for _ in range(d)]
@@ -387,12 +352,15 @@ def symbolic_max_plus_matrices_band(d, n,
             for k in range(d-1):
                 mat[k][k+1] = (next(B),)
 
-        matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
+        if sym:
+            matrices.append(SymbolicSymmetricMaxPlusUpperMatrix(d, nvar, mat[0], ch))
+        else:
+            matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
 
     return matrices
 
 def symbolic_max_plus_matrices_upper(d, n, 
-        diag='v', surdiag='v', i=False, ch=None):
+        diag='v', surdiag='v', ch=None, sym=True):
     r"""
     EXAMPLES::
 
@@ -400,42 +368,39 @@ def symbolic_max_plus_matrices_upper(d, n,
         sage: x
         A 3x3 symbolic max plus matrix on 12 variables
         sage: print x
-        [  x0   x3  x4 ]
-        [ -oo   x1  x5 ]
+        [  x0   x3  x5 ]
+        [ -oo   x1  x4 ]
         [ -oo  -oo  x2 ]
         sage: print y
-        [  x6   x9  x10 ]
-        [ -oo   x7  x11 ]
+        [  x6   x9  x11 ]
+        [ -oo   x7  x10 ]
         [ -oo  -oo   x8 ]
 
         sage: x,y = symbolic_max_plus_matrices_upper(3,2,'z','v')
         sage: print x
-        [   0   x0  x1 ]
-        [ -oo    0  x2 ]
+        [   0   x0  x2 ]
+        [ -oo    0  x1 ]
         [ -oo  -oo   0 ]
         sage: print y
-        [   0   x3  x4 ]
-        [ -oo    0  x5 ]
+        [   0   x3  x5 ]
+        [ -oo    0  x4 ]
         [ -oo  -oo   0 ]
 
         sage: x,y = symbolic_max_plus_matrices_upper(3,2,'v','s')
         sage: print x
-        [  x3   x0  x1 ]
-        [ -oo   x4  x2 ]
+        [  x3   x0  x2 ]
+        [ -oo   x4  x1 ]
         [ -oo  -oo  x5 ]
         sage: print y
-        [  x6   x0  x1 ]
-        [ -oo   x7  x2 ]
+        [  x6   x0  x2 ]
+        [ -oo   x7  x1 ]
         [ -oo  -oo  x8 ]
 
-    Test the option ``i``::
-
-        sage: x, = symbolic_max_plus_matrices_upper(3,1,'v','v')
-        sage: x.num_vars()
-        6
-        sage: x, = symbolic_max_plus_matrices_upper(3,1,'v','v',i=0) 
-        sage: x.num_vars()
-        5
+        sage: for diag in 'zsv':
+        ....:     for surdiag in 'zsv':
+        ....:         a1,b1 = symbolic_max_plus_matrices_upper(4,2,diag,surdiag,sym=False)
+        ....:         a2,b2 = symbolic_max_plus_matrices_upper(4,2,diag,surdiag,sym=True)
+        ....:         assert a1 == a2 and b1 == b2 and a1*b1*a1 == a2*b2*a2
 
     TESTS:
 
@@ -457,6 +422,9 @@ def symbolic_max_plus_matrices_upper(d, n,
     n = int(n)
     assert d > 0 and n > 0
 
+    if sym and (diag == 'c' or surdiag == 'c'):
+        raise ValueError("sym=True is not compatible with diag=c or surdiag=c")
+
     nvar = 0
     if diag == 'c':
         nvar += 1
@@ -472,20 +440,8 @@ def symbolic_max_plus_matrices_upper(d, n,
     elif surdiag == 'v':
         nvar += n*d*(d-1)//2
 
-    if i is False:
-        V = FreeModule(ZZ, nvar)
-        B = ((b,) for b in V.basis())
-    else:
-        if i is None:
-            i = nvar-1
-        else:
-            i = int(i)
-        assert 0 <= i < nvar
-        nvar = nvar-1
-        V = FreeModule(ZZ,nvar)
-        B = list(V.basis())
-        B.insert(i,V.zero())
-        B = ((b,) for b in B)
+    V = FreeModule(ZZ, nvar)
+    B = ((b,) for b in V.basis())
 
     zero = (V.zero(),)
     e = ()
@@ -508,9 +464,9 @@ def symbolic_max_plus_matrices_upper(d, n,
             f = itertools.repeat(next(B))
         else:
             f = B
-        for k1 in range(d):
-            for k2 in range(k1+1,d):
-                mat_init[k1][k2] = next(f)
+        for h in range(1,d):
+            for k1 in range(d-h):
+                mat_init[k1][k1+h] = next(f)
 
     matrices = []
     for i in range(n):
@@ -520,11 +476,14 @@ def symbolic_max_plus_matrices_upper(d, n,
             for k in range(d):
                 mat[k][k] = next(B)
         if surdiag == 'v':
-            for k1 in range(d):
-                for k2 in range(k1+1,d):
-                    mat[k1][k2] = next(B)
+            for h in range(1,d):
+                for k in range(d-h):
+                    mat[k][k+h] = next(B)
 
-        matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
+        if sym:
+            matrices.append(SymbolicSymmetricMaxPlusUpperMatrix(d, nvar, mat[0], ch))
+        else:
+            matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
 
     return matrices
 
@@ -663,7 +622,7 @@ class SymbolicMaxPlusMatrix(SageObject):
             not isinstance(self, SymbolicMaxPlusMatrix) and \
             not isinstance(other, SymbolicMaxPlusMatrix):
                 raise TypeError("can not multiply {} with {}".format(type(self),type(other)))
-        if self._d != other._d or self._nvars != other._nvars:
+        if self._d != other._d:
             raise TypeError("dimension or number of variable mismatch")
         d = self._d
         new_data = [[None]*d for _ in range(d)]
@@ -677,6 +636,26 @@ class SymbolicMaxPlusMatrix(SageObject):
                 new_data[i][j] = self.convex_hull(vertices)
 
         return SymbolicMaxPlusMatrix(d, self._nvars, new_data, self.convex_hull)
+
+    def list(self):
+        r"""
+        Return the list of entries of this matrix.
+
+        EXAMPLES::
+
+            sage: a, = symbolic_max_plus_matrices(3,1)
+            sage: a.list()
+            [((1, 0, 0, 0, 0, 0, 0, 0, 0),),
+             ((0, 1, 0, 0, 0, 0, 0, 0, 0),),
+             ((0, 0, 1, 0, 0, 0, 0, 0, 0),),
+             ((0, 0, 0, 1, 0, 0, 0, 0, 0),),
+             ((0, 0, 0, 0, 1, 0, 0, 0, 0),),
+             ((0, 0, 0, 0, 0, 1, 0, 0, 0),),
+             ((0, 0, 0, 0, 0, 0, 1, 0, 0),),
+             ((0, 0, 0, 0, 0, 0, 0, 1, 0),),
+             ((0, 0, 0, 0, 0, 0, 0, 0, 1),)]
+        """
+        return [self[i,j] for i in range(self._d) for j in range(self._d)]
 
     def __pow__(self, n):
         r"""
@@ -751,14 +730,7 @@ class SymbolicMaxPlusMatrix(SageObject):
             sage: C != D
             True
         """
-        if not isinstance(self, SymbolicMaxPlusMatrix) or \
-           not isinstance(other, SymbolicMaxPlusMatrix):
-            raise TypeError("can not compare {} with {}".format(type(self), type(other)))
-
-        if self._nvars != other._nvars or self._d != other._d:
-            return True
-
-        return any(self[i,j] != other[i,j] for i in range(self._d) for j in range(self._d))
+        return not self == other
 
     def _repr_(self):
         r"""
@@ -951,6 +923,95 @@ def swap3(d, n, v, i, j, k):
         z = a*d*d + d*k + j
         v[x],v[y],v[z] = v[z],v[x],v[y]
 
+def vertex_cyclic_swap(nvars, l, i):
+    r"""
+    Perform a cyclic swap on the vertices.
+
+    This is used in multiplication of symbolic upper matrices.
+
+    Currently it is suboptimal but on the other hand, this cost much less than
+    whatever convex hull computation.
+    """
+    if i == 0 or not l:
+        return l
+    ll = []
+    F = l[0].parent()
+    for v in l:
+        assert not v[-i:]
+        ll.append(F(tuple(v[-i:]) + tuple(v[:-i])))
+    for v in ll: v.set_immutable()
+    return tuple(ll)
+
+class SymbolicSymmetricMaxPlusUpperMatrix(SymbolicMaxPlusMatrix):
+    r"""
+    By convention, if there is a variable x_k in position (i,j) the variable
+    x_{k+1} must be in position (i+1,j+1).
+    """
+    def __init__(self, d, nvars, row, ch=None):
+        self._d = d              # size
+        self._nvars = nvars      # number of variables
+        self._row = row          # the terms (0,i)
+
+        self.convex_hull = get_convex_hull_engine(self._nvars, ch)
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self._d == other._d and \
+                   self._nvars == other._nvars and \
+                   self._row == other._row
+        else:
+            return SymbolicMaxPlusMatrix.__eq__(self, other)
+
+    def __getitem__(self, data):
+        r"""
+        TESTS::
+
+            sage: a,b = symbolic_max_plus_matrices_band(4,2,'s','v')
+            sage: type(a)
+            <class '__main__.SymbolicSymmetricMaxPlusUpperMatrix'>
+            sage: a[0,1]
+            ((0, 0, 0, 0, 1, 0, 0, 0, 0, 0),)
+            sage: a[1,2]
+            ((0, 0, 0, 0, 0, 1, 0, 0, 0, 0),)
+            sage: (a*b*a)[1,3]
+            ((0, 0, 0, 1, 0, 1, 0, 0, 0, 1),
+             (0, 0, 1, 0, 0, 1, 1, 0, 0, 0),
+             (0, 1, 0, 0, 0, 0, 1, 0, 1, 0))
+        """
+        i,j = data
+        i = int(i); j = int(j)
+        if i < 0 or i >= self._d or j < 0 or j >= self._d:
+            raise IndexError("matrix index out of range")
+        if i > j:
+            return ()
+        else:
+            return vertex_cyclic_swap(self._nvars, self._row[j-i], i)
+
+    def __mul__(self, other):
+        if type(self) is not type(other):
+            return SymbolicMaxPlusMatrix.__mul__(self, other)
+
+        assert self._nvars == other._nvars and self._d == other._d 
+
+        # NOTE: there are some cases where the minkowski sum can be much faster
+        # to compute: when the points are in disjoint subspaces as for example:
+        #  C1 = [(1,1,0,0), (-1,3,0,0)]
+        #  C2 = [(0,0,5,-2), (0,0,1,3), (0,0,-2,2)]
+        # it is not clear whether we will gain in the most expensive computation
+        # of the (0,d-1) coefficient.
+
+        row = []
+        for j in range(self._d):
+            vertices = set()
+            for k in range(0,j+1):
+                l = [x+y for x in self[0,k] for y in other[k,j]]
+                for v in l: v.set_immutable()
+                vertices.update(l)
+            row.append(self.convex_hull(vertices))
+
+        return SymbolicSymmetricMaxPlusUpperMatrix(self._d, self._nvars, row, self.convex_hull)
+
+
 class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
     r"""
     Matrices that are symmetric under permutations.
@@ -993,25 +1054,6 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
                    self._nondiag == other._nondiag
         else:
             return SymbolicMaxPlusMatrix.__eq__(self, other)
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: x1,y1 = symbolic_max_plus_matrices(5, 2, sym=True)
-            sage: x2,y2 = symbolic_max_plus_matrices(5, 2, sym=False)
-            sage: x1 != x2 or x1 != x1
-            False
-            sage: x1 != y1 and x1 != y2
-            True
-        """
-        if type(self) is type(other):
-            return self._d != other._d or \
-                   self._n != other._n or \
-                   self._diag != other._diag or \
-                   self._nondiag != other._nondiag
-        else:
-            return SymbolicMaxPlusMatrix.__ne__(self, other)
 
     def __getitem__(self, data):
         r"""
