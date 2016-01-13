@@ -136,7 +136,7 @@ There are currently few functions to check some relations combinatorially in `B^
 
 - `is_sv_identity_parallel(u1, u2, d, prefix_length)`: the same as above but
   with parallelization. The argument `prefix_length` is used to chunk the
-  subwords to test into different jobs. If it is set to `k` then there will be
+  subwords into different jobs: if it is set to `k` then there will be
   `2^k` jobs which correspond to the `2^k` possible prefixes.
 
 Here are some examples
@@ -157,8 +157,8 @@ Here are some examples
 	Wall time: 1.03 s
 	True
 
-For d=6 the computation takes around 40secs (note the `verbose` option to get
-information about the ongoing computation):
+For d=6 the computation takes around 40secs with 4 cores (note the `verbose`
+option to get information about the ongoing computation):
 
 	sage: p = 'xyyxxxyyyyxxxxxyyyyy'
 	sage: s = 'xxxxxyyyyyxxxxyyyxxy'
