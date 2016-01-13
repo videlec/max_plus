@@ -94,6 +94,7 @@ import multiprocessing as mp
 from itertools import product
 from datetime import datetime
 import os
+import sys
 from subprocess import Popen, PIPE
 from time import time
 
@@ -103,6 +104,8 @@ from sage.misc.misc import SAGE_TMP
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import generic_power
+
+from sage.libs.ppl import Variable, C_Polyhedron, point, Generator_System, Linear_Expression
 
 from sage.geometry.polyhedron.parent import Polyhedra
 from sage.modules.free_module import FreeModule
@@ -1126,41 +1129,168 @@ def occurrences(w, u):
     r"""
     Return the set of occurrences of ``u`` in ``w``.
 
+    If the word ``w`` contains one or more jokers (i.e. the letter ``'*'``) then
+    a pair of lists is returned. The first one is made of occurrences that does
+    not pass through joker and the other one is the complement.
+
     EXAMPLES::
 
         sage: occurrences('abbabab', 'abb')
         [(0, 1, 2), (0, 1, 4), (0, 2, 4), (0, 1, 6), (0, 2, 6),
          (0, 4, 6), (3, 4, 6)]
+
+        sage: s,t=occurrences('xyyxx*yyxxy', 'xyx')
+        sage: s
+        [(0, 1, 3), (0, 2, 3), (0, 1, 4), ..., (3, 7, 9), (4, 7, 9)]
+        sage: t
+        [(0, 1, 5), (0, 2, 5), (0, 5, 8), ..., (5, 6, 9), (5, 7, 9)]
     """
     # NOTE: this method is efficient because it parses only once the word w. On
     # the other hand there is a clear waste of memory if we just want to go
     # through the occurrences and not make the list of them (which is *not* our
     # case). Though we could eliminate some of the non-extremal occurrences but
-    # that would be some work to do...
+    # that would be some work to implement (?)
     pos = [[] for _ in range(len(u))]
+    pos2 = [[] for _ in range(len(u))]
+
+    for i,letter in enumerate(w):
+        for j in range(len(u)-1,0,-1):
+            if letter == '*':
+                pos2[j].extend(x + (i,) for x in pos[j-1])
+            elif letter == u[j]:
+                pos[j].extend(x + (i,) for x in pos[j-1])
+                pos2[j].extend(x + (i,) for x in pos2[j-1])
+        if letter == '*':
+            pos2[0].append((i,))
+        elif letter == u[0]:
+            pos[0].append((i,))
+
+    return pos[-1] if not pos2[0] else (pos[-1], pos2[-1])
+
+def extremal_occurrences(w, u):
+    r"""
+    Return the set of extremal occurrences of ``u`` in ``w``.
+
+    An occurrence is extremal if the letters can not move inside the occurrence.
+    This is a subset of all occurrences of ``u`` in ``w`` but *much* that
+    defines the same convex hull.
+
+    EXAMPLES::
+
+        sage: extremal_occurrences('aabb','ab')
+        [(0, 2), (1, 2), (0, 3), (1, 3)]
+        sage: extremal_occurrences('aaabbb','ab')
+        [(0, 3), (2, 3), (0, 5), (2, 5)]
+
+        sage: p = 'xyyxxxyyy'
+        sage: s = 'xxxyyyxxy'
+        sage: o1 = occurrences(p+'x'+s, 'xyx')
+        sage: o1
+        [(0, 1, 3), (0, 2, 3), (0, 1, 4), ...,   (11, 15, 17), (12, 15, 17)]
+        sage: len(o1)
+        138
+        sage: o2 = extremal_occurrences(p+'x'+s, 'xyx')
+        sage: o2
+        [(0, 1, 3), (0, 2, 3), (5, 6, 9), ...,  (0, 15, 17), (12, 15, 17)]
+        sage: len(o2)
+        13
+        sage: Polyhedron(o1) == Polyhedron(o2)
+        True
+
+        sage: for w in ('abbaab', 'aabbaabb', 'abbaaabbbaaaabbbaab',
+        ....:           'aaaabbbbaaaabbbbaaaa'):
+        ....:     for n in (1,2,3,4):
+        ....:         for u in product('ab', repeat=n):
+        ....:             P1 = Polyhedron(occurrences(w,u))
+        ....:             P2 = Polyhedron(extremal_occurrences(w,u))
+        ....:             assert P1 == P2
+    """
+    if len(u) == 0:
+        return [()]
+
+    pos = [[] for _ in range(len(u))]
+
+    letters = set(w)
+    n = len(w)
+
+    # find next left and next right occurrences of letters
+    next_left = [None]*n
+    next_right = [None]*n
+    last = {letter: -1 for letter in letters}
+    for i,letter in enumerate(w):
+        next_left[i] = last[letter]
+        last[letter] = i
+    last = {letter: n for letter in letters}
+    for i,letter in enumerate(reversed(w)):
+        next_right[n-i-1] = last[letter]
+        last[letter] = n-i-1
 
     for i,letter in enumerate(w):
         for j in range(len(u)-1,0,-1):
             if letter == u[j]:
-                pos[j].extend(x + (i,) for x in pos[j-1])
+                for x in pos[j-1]:
+                    if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= i:
+                        pos[j].append(x + (i,))
+            else:
+                k = 0
+                while k < len(pos[j-1]):
+                    x = pos[j-1][k]
+                    if next_left[x[-1]] > x[-2] and next_right[x[-1]] < i:
+                        del pos[j-1][k]
+                    else:
+                        k += 1
         if letter == u[0]:
-            pos[0].append((i,))
+            pos[0].append((-1,i))
 
-    return pos[-1]
+    return [x[1:] for x in pos[-1] if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= n]
 
-def is_sv_identity(u1, u2, d, convex_hull=None, p=()):
+def extremal_mid_occurrences(p, s, u):
     r"""
-    Check if ``(u1,u2)`` is a B^{sv} identity with letterx 'x' and 'y' in dimension ``d``.
+    Iterator through the occurrences of ``u`` in ``p*s`` that go through ``*``.
 
-    This method looks through all subwords of length ``d-1``.
+    TESTS::
+
+        sage: for p,s in (('xyyxxxyyy','xxxyyyxxy'), ('xxxyyyxxy','xyxyxyxy')):
+        ....:     for n in (1,2,3):
+        ....:         for u in product('xy', repeat=n):
+        ....:             w = p+'*'+s
+        ....:             o1 = extremal_occurrences(w, u)
+        ....:             o2 = list(extremal_mid_occurrences(p, s, u))
+        ....:             o3,o4 = occurrences(w, u)
+        ....:             assert Polyhedron(o3) == Polyhedron(o1)
+        ....:             assert Polyhedron(o4) == Polyhedron(o2)
+    """
+    n = len(p)
+    for i in range(len(u)):
+        for o1 in extremal_occurrences(p, u[:i]):
+            o1 = o1 + (n,)
+            for o2 in extremal_occurrences(s, u[i+1:]):
+                yield o1 + tuple(n+1+j for j in o2)
+
+def ppl_polytope(pts):
+    r"""
+    Build a ppl polytope (i.e. a ``C_Polyhedron``).
+    
+    This seems to be twice faster as Sage function... there is something wrong
+    in Sage class for polyhedra.
+    """
+    gs = Generator_System()
+    for p in pts:
+        gs.insert(point(Linear_Expression(p,0)))
+    return C_Polyhedron(gs)
+
+def is_sv_identity(p, s, d, prefix=()):
+    r"""
+    Check if ``(pxs, pys)`` is a B^{sv} identity in dimension ``d``.
+
+    This method go through all subwords of length ``d-1`` and for each of them
+    see whether the some polytopes coincide.
 
     INPUT:
 
-    - ``u1``, ``u2`` -- the identity
+    - ``p``, ``s`` -- prefix and suffix for the identity
 
     - ``d`` -- dimension
-
-    - ``convex_hull`` -- an optional convex hull engine
 
     - ``p`` -- an optional prefix (mostly used for parallelization, see the
       function ``is_sv_identity_parallel`` below).
@@ -1169,37 +1299,46 @@ def is_sv_identity(u1, u2, d, convex_hull=None, p=()):
 
         sage: p = 'xxyyx'
         sage: s = 'xxyxy'
-        sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
+        sage: is_sv_identity(p, s, 3)
         True
-
-        sage: p = 'xyxyy'
-        sage: s = 'yxxyy'
-        sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
-        True
-        sage: is_sv_identity(p+'xy'+s, p+'xx'+s, 3)
+        sage: is_sv_identity(p, s, 4)
         False
 
         sage: p,s = vincent_sv_prefix_suffix(4)
-        sage: is_sv_identity(p+'x'+s, p+'y'+s, 4)
+        sage: is_sv_identity(p, s, 4)
         True
+        sage: is_sv_identity(p, s, 5)
+        False
 
         sage: p,s = vincent_sv_prefix_suffix(5)
-        sage: is_sv_identity(p+'x'+s, p+'y'+s, 5)  # ~1.8secs
+        sage: is_sv_identity(p, s, 5)
         True
+        sage: is_sv_identity(p, s, 6)
+        False
 
         sage: x,y = symbolic_max_plus_matrices_band(5, 2, 's', 'v')
         sage: p = x*y*y*x*x*x*y*y*y*y*x*x*x*x  # ~0.5sec
         sage: s = y*y*y*y*x*x*x*x*y*y*y*x*x*y  # ~0.5sec
         sage: p*x*s == p*y*s                   # ~6secs
         True
+
+        sage: p,s=('xxxyyxyxx', 'xxxyxxyxy')
+        sage: is_sv_identity(p, s, 4)
+        True
+        sage: is_sv_identity(p, s, 5)
+        False
     """
-    p = tuple(p)
-    convex_hull = get_convex_hull_engine(d-1, convex_hull)
-    for q in product('xy', repeat=d-1-len(p)):
-        o1 = occurrences(u1, p+q)
-        o2 = occurrences(u2, p+q)
-        if convex_hull(o1) != convex_hull(o2):
-            return False
+    pref = tuple(prefix)
+    n = len(p)
+    for q in product('xy', repeat=d-1-len(prefix)):
+        u = prefix+q
+        avoid = extremal_occurrences(p+'*'+s, u)
+        P = ppl_polytope(avoid)
+        # now iterate through occurrences of u in p*s that passes through *
+        for o in extremal_mid_occurrences(p, s, u):
+            pt = C_Polyhedron(point(Linear_Expression(o,0)))
+            if not P.contains(pt):
+                return False
     return True
 
 def parallel_unfold(args):
@@ -1215,18 +1354,20 @@ def parallel_unfold(args):
         print "{}: new job at {}:{}:{}\n  {}".format(
                 mp.current_process().name, t.hour, t.minute,
                 t.second, args)
+        sys.stdout.flush()
     ans = f(*args)
     if verbose:
         print "{}: job done in {} seconds".format(mp.current_process().name, time()-t0)
+        sys.stdout.flush()
     return ans
 
-def is_sv_identity_parallel(u1, u2, d, prefix_length, ncpus=None, verbose=False):
+def is_sv_identity_parallel(p, s, d, prefix_length, ncpus=None, verbose=False):
     r"""
     Check identity using parallelization features
 
     INPT:
 
-    - ``u1``, ``u2`` -- the identity to check
+    - ``p``, ``s`` -- the identity to check
 
     - ``d`` -- the dimension of the space
 
@@ -1241,21 +1382,20 @@ def is_sv_identity_parallel(u1, u2, d, prefix_length, ncpus=None, verbose=False)
     EXAMPLES::
 
         sage: p,s = vincent_sv_prefix_suffix(5)
-        sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 5, 3)  # not tested (fail in doctest)
+        sage: is_sv_identity_parallel(p, s, 5, 3)  # not tested (fail in doctest)
         True
 
         sage: p,s = vincent_sv_prefix_suffix(6)
-        sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 6, 4) # not tested (~40 secs)
+        sage: is_sv_identity_parallel(p, s, 6, 4) # not tested (~40 secs)
 
         sage: p,s = vincent_sv_prefix_suffix(7)
         sage: len(p)
         27
     """
-    ch = get_convex_hull_engine(d-1)
     if ncpus is None:
         ncpus = mp.cpu_count()
     pool = mp.Pool(ncpus)
-    tasks = ((verbose,is_sv_identity,u1,u2,d,ch,p) for p in product('xy', repeat=prefix_length))
+    tasks = ((verbose,is_sv_identity,p,s,d,prefix) for prefix in product('xy', repeat=prefix_length))
     t0 = time()
     for ans in pool.imap_unordered(parallel_unfold, tasks):
         if ans is False:
@@ -1379,7 +1519,6 @@ class ConvexHullPolyhedra(ConvexHull):
             pts.sort()
         return tuple(pts)
 
-from sage.libs.ppl import Variable, C_Polyhedron, point, Generator_System, Linear_Expression
 
 class ConvexHullPPL(ConvexHull):
     r"""

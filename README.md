@@ -128,13 +128,22 @@ matrices.
 
 ## Combinatorics
 
-There are currently few functions to check some relations combinatorially in `B^{sv}_d`. The identities must be written with the letters 'x' and 'y'.
+There are currently few functions to check some relations combinatorially in `B^{sv}_d`.
 
-- `def occurrences(w, u)`: compute the position of the occurrences of `u` in `w`
+- `def occurrences(w, u)`: return the occurrences of `u` in `w`
 
-- `is_sv_identity(u1, u2, d)`: check whether `(u1,u2)` is an identity in `B^{sv}_d`.
+- `def extremal_occurrences(w, u)`: return the extremal occurrences of `u` in
+  `w` (the convex hull of this set is the same as all occurrences)
 
-- `is_sv_identity_parallel(u1, u2, d, prefix_length)`: the same as above but
+- `def extremal_mid_occurrences(p, s, u)`: return the occurrences of `u` in
+  `p*s` where the occurrence uses the joker letter `*`.
+
+To check identities you can use the following functions (note that identities
+must be written with the letters 'x' and 'y'):
+
+- `is_sv_identity(p, s, d)`: check whether `(pxs,pys)` is an identity in `B^{sv}_d`.
+
+- `is_sv_identity_parallel(p, s, d, prefix_length)`: the same as above but
   with parallelization. The argument `prefix_length` is used to chunk the
   subwords into different jobs: if it is set to `k` then there will be
   `2^k` jobs which correspond to the `2^k` possible prefixes.
@@ -143,51 +152,53 @@ Here are some examples
 
     sage: p = 'xyxxyy'
     sage: s = 'xxyyxy'
-    sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
+    sage: is_sv_identity(p, s, 3)
     True
 
     sage: p = 'xyyxxxyyyyxxxx'
     sage: s = 'yyyyxxxxyyyxxy'
-    sage: %time is_sv_identity(p+'x'+s, p+'y'+s, 5)
-	CPU times: user 1.79 s, sys: 12 ms, total: 1.8 s
-	Wall time: 1.76 s
+    sage: %time is_sv_identity(p, s, 5)
+	CPU times: user 136 ms, sys: 4 ms, total: 140 ms
+	Wall time: 130 ms
 	True
-    sage: %time is_sv_identity_parallel(p+'x'+s, p+'y'+s, 5, 3)
-	CPU times: user 8 ms, sys: 20 ms, total: 28 ms
-	Wall time: 1.03 s
-	True
-
-For d=6 the computation takes around 40secs with 4 cores (note the `verbose`
-option to get information about the ongoing computation):
 
 	sage: p = 'xyyxxxyyyyxxxxxyyyyy'
 	sage: s = 'xxxxxyyyyyxxxxyyyxxy'
-	sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 6, 3, verbose=True)
-	PoolWorker-25: new job at 22:45:26
-	...
-	PoolWorker-26: new job at 22:45:26
-	...
-	PoolWorker-27: new job at 22:45:26
-	...
-	PoolWorker-28: new job at 22:45:26
-	...
-    PoolWorker-25: job done in 19.6683559418 seconds
-    PoolWorker-25: new job at 22:45:45
-    PoolWorker-28: job done in 22.5837759972 seconds
-    PoolWorker-28: new job at 22:45:48
-    ...
-    PoolWorker-26: job done in 22.8013679981 seconds
-    PoolWorker-26: new job at 22:45:49
-    ...
-    PoolWorker-27: job done in 26.1923320293 seconds
-    PoolWorker-27: new job at 22:45:52
-    ...
-    PoolWorker-25: job done in 21.8572430611 seconds
-    PoolWorker-27: job done in 17.1816589832 seconds
-    PoolWorker-26: job done in 20.6833930016 seconds
-    PoolWorker-28: job done in 22.0388650894 seconds
-    computation with 4 cpus performed in 44.6829161644 seconds
-    True
+	sage: %time is_sv_identity(p, s, 6)
+	CPU times: user 812 ms, sys: 8 ms, total: 820 ms
+	Wall time: 786 ms
+	True
+    sage: is_sv_identity(p, s, 7)
+    False
+
+	sage: p,s = vincent_sv_prefix_suffix(7)
+	sage: is_sv_identity_parallel(p, s, 7, 3, verbose=True)
+	PoolWorker-17: new job at 16:43:7
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'x', 'x'))
+	PoolWorker-18: new job at 16:43:7
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'x', 'y'))
+	PoolWorker-19: new job at 16:43:7
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'y', 'x'))
+	PoolWorker-20: new job at 16:43:8
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'y', 'y'))
+	PoolWorker-19: job done in 1.26115489006 seconds
+	PoolWorker-19: new job at 16:43:9
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'x', 'x'))
+	PoolWorker-20: job done in 1.93957805634 seconds
+	PoolWorker-20: new job at 16:43:9
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'x', 'y'))
+	PoolWorker-18: job done in 2.48127698898 seconds
+	PoolWorker-18: new job at 16:43:10
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'y', 'x'))
+	PoolWorker-17: job done in 2.97481107712 seconds
+	PoolWorker-17: new job at 16:43:10
+	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'y', 'y'))
+	PoolWorker-20: job done in 1.38204503059 seconds
+	PoolWorker-19: job done in 2.0873029232 seconds
+	PoolWorker-18: job done in 1.68425393105 seconds
+	PoolWorker-17: job done in 1.7091588974 seconds
+	computation with 4 cpus performed in 4.71341395378 seconds
+	True
 
 ## Contact
 
