@@ -139,6 +139,8 @@ There are currently few functions to check some relations combinatorially in `B^
   subwords to test into different jobs. If it is set to `k` then there will be
   `2^k` jobs which correspond to the `2^k` possible prefixes.
 
+Here are some examples
+
     sage: p = 'xyxxyy'
     sage: s = 'xxyyxy'
     sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
