@@ -1,12 +1,17 @@
 # Sage library for max-plus matrix identities
 
+## Introduction
+
 To run the library you need to install Sage (http://sagemath.org). Then clone
 this repository (or download the files `max_plus.py` and `int_max_plus.pyx`).
 Go to the directory where you cloned or downloaded the file. Start Sage and run
 
     sage: %runfile max_plus.py
 
-Once that done, you can create symbolic matrices with the following functions
+## Symbolic and integer max plus matrices
+
+Once you are able to load the file `max_plus.py`, you can create symbolic
+matrices with the following functions
 
     symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch, sym)
 	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch, sym)
@@ -116,5 +121,72 @@ method `eval`. For that you first need to compile `int_max_plus.pyx`
 	[ -oo -oo 0 ]
     sage: pv == xv*yv*xv
     True
+
+Computations with integer matrices are infinitely faster. Hence, if you intend
+to test some relations it is adviced to first test them on a sample of integer
+matrices.
+
+## Combinatorics
+
+There are currently few functions to check some relations combinatorially in `B^{sv}_d`. The identities must be written with the letters 'x' and 'y'.
+
+- `def occurrences(w, u)`: compute the position of the occurrences of `u` in `w`
+
+- `is_sv_identity(u1, u2, d)`: check whether `(u1,u2)` is an identity in `B^{sv}_d`.
+
+- `is_sv_identity_parallel(u1, u2, d, prefix_length)`: the same as above but
+  with parallelization. The argument `prefix_length` is used to chunk the
+  subwords to test into different jobs. If it is set to `k` then there will be
+  `2^k` jobs which correspond to the `2^k` possible prefixes.
+
+    sage: p = 'xyxxyy'
+    sage: s = 'xxyyxy'
+    sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
+    True
+
+    sage: p = 'xyyxxxyyyyxxxx'
+    sage: s = 'yyyyxxxxyyyxxy'
+    sage: %time is_sv_identity(p+'x'+s, p+'y'+s, 5)
+	CPU times: user 1.79 s, sys: 12 ms, total: 1.8 s
+	Wall time: 1.76 s
+	True
+    sage: %time is_sv_identity_parallel(p+'x'+s, p+'y'+s, 5, 3)
+	CPU times: user 8 ms, sys: 20 ms, total: 28 ms
+	Wall time: 1.03 s
+	True
+
+For d=6 the computation takes around 40secs (note the `verbose` option to get
+information about the ongoing computation):
+
+	sage: p = 'xyyxxxyyyyxxxxxyyyyy'
+	sage: s = 'xxxxxyyyyyxxxxyyyxxy'
+	sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 6, 3, verbose=True)
+	PoolWorker-25: new job at 22:45:26
+	...
+	PoolWorker-26: new job at 22:45:26
+	...
+	PoolWorker-27: new job at 22:45:26
+	...
+	PoolWorker-28: new job at 22:45:26
+	...
+    PoolWorker-25: job done in 19.6683559418 seconds
+    PoolWorker-25: new job at 22:45:45
+    PoolWorker-28: job done in 22.5837759972 seconds
+    PoolWorker-28: new job at 22:45:48
+    ...
+    PoolWorker-26: job done in 22.8013679981 seconds
+    PoolWorker-26: new job at 22:45:49
+    ...
+    PoolWorker-27: job done in 26.1923320293 seconds
+    PoolWorker-27: new job at 22:45:52
+    ...
+    PoolWorker-25: job done in 21.8572430611 seconds
+    PoolWorker-27: job done in 17.1816589832 seconds
+    PoolWorker-26: job done in 20.6833930016 seconds
+    PoolWorker-28: job done in 22.0388650894 seconds
+    computation with 4 cpus performed in 44.6829161644 seconds
+    True
+
+## Contact
 
 Any comment or remark is welcome at vincentDOTdelecroixATlabriDOTfr
