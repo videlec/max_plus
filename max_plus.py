@@ -82,10 +82,20 @@ belong to a same given subspace of rank 5 (where we have 8 variables)::
     -> needs convention for zero and -infinity
 
     Rectangular matrices
+
+    Polyhedron.intersection_assign(Polyhedron)
+    Polyhedron.poly_hull_assign(Polyhedron) -> compute convex hull of union
+    Polyhedron.poly_difference_assign(Polyhedron)
+
 """
 
 import itertools
+import multiprocessing as mp
+from itertools import product
+from datetime import datetime
+import os
 from subprocess import Popen, PIPE
+from time import time
 
 from sage.misc.misc import SAGE_TMP
 from sage.misc.temporary_file import tmp_filename
@@ -1108,6 +1118,173 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
 
         return SymbolicSymmetricMaxPlusMatrix(self._d, self._n, data[0], data[1], self.convex_hull)
 
+
+#########################
+# Combinatorial methods #
+#########################
+def occurrences(w, u):
+    r"""
+    Return the set of occurrences of ``u`` in ``w``.
+
+    EXAMPLES::
+
+        sage: occurrences('abbabab', 'abb')
+        [(0, 1, 2), (0, 1, 4), (0, 2, 4), (0, 1, 6), (0, 2, 6),
+         (0, 4, 6), (3, 4, 6)]
+    """
+    # NOTE: this method is efficient because it parses only once the word w. On
+    # the other hand there is a clear waste of memory if we just want to go
+    # through the occurrences and not make the list of them (which is *not* our
+    # case). Though we could eliminate some of the non-extremal occurrences but
+    # that would be some work to do...
+    pos = [[] for _ in range(len(u))]
+
+    for i,letter in enumerate(w):
+        for j in range(len(u)-1,0,-1):
+            if letter == u[j]:
+                pos[j].extend(x + (i,) for x in pos[j-1])
+        if letter == u[0]:
+            pos[0].append((i,))
+
+    return pos[-1]
+
+def is_sv_identity(u1, u2, d, convex_hull=None, p=()):
+    r"""
+    Check if ``(u1,u2)`` is a B^{sv} identity with letterx 'x' and 'y' in dimension ``d``.
+
+    This method looks through all subwords of length ``d-1``.
+
+    INPUT:
+
+    - ``u1``, ``u2`` -- the identity
+
+    - ``d`` -- dimension
+
+    - ``convex_hull`` -- an optional convex hull engine
+
+    - ``p`` -- an optional prefix (mostly used for parallelization, see the
+      function ``is_sv_identity_parallel`` below).
+
+    EXAMPLES::
+
+        sage: p = 'xxyyx'
+        sage: s = 'xxyxy'
+        sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
+        True
+
+        sage: p = 'xyxyy'
+        sage: s = 'yxxyy'
+        sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
+        True
+        sage: is_sv_identity(p+'xy'+s, p+'xx'+s, 3)
+        False
+
+        sage: p,s = vincent_sv_prefix_suffix(4)
+        sage: is_sv_identity(p+'x'+s, p+'y'+s, 4)
+        True
+
+        sage: p,s = vincent_sv_prefix_suffix(5)
+        sage: is_sv_identity(p+'x'+s, p+'y'+s, 5)  # ~1.8secs
+        True
+
+        sage: x,y = symbolic_max_plus_matrices_band(5, 2, 's', 'v')
+        sage: p = x*y*y*x*x*x*y*y*y*y*x*x*x*x  # ~0.5sec
+        sage: s = y*y*y*y*x*x*x*x*y*y*y*x*x*y  # ~0.5sec
+        sage: p*x*s == p*y*s                   # ~6secs
+        True
+    """
+    p = tuple(p)
+    convex_hull = get_convex_hull_engine(d-1, convex_hull)
+    for q in product('xy', repeat=d-1-len(p)):
+        o1 = occurrences(u1, p+q)
+        o2 = occurrences(u2, p+q)
+        if convex_hull(o1) != convex_hull(o2):
+            return False
+    return True
+
+def parallel_unfold(args):
+    r"""
+    Helper for parallel functions.
+    """
+    verbose = args[0]
+    f = args[1]
+    args = args[2:]
+    if verbose:
+        t = datetime.now()
+        t0 = time()
+        print "{}: new job at {}:{}:{}\n  {}".format(
+                mp.current_process().name, t.hour, t.minute,
+                t.second, args)
+    ans = f(*args)
+    if verbose:
+        print "{}: job done in {} seconds".format(mp.current_process().name, time()-t0)
+    return ans
+
+def is_sv_identity_parallel(u1, u2, d, prefix_length, ncpus=None, verbose=False):
+    r"""
+    Check identity using parallelization features
+
+    INPT:
+
+    - ``u1``, ``u2`` -- the identity to check
+
+    - ``d`` -- the dimension of the space
+
+    - ``prefix_length`` -- length of the prefix
+
+    - ``ncpus`` -- (optional, default the number of cpus on the computer) number
+      of cpus to use
+
+    - ``verbose`` -- (optional, default ``False``) whether some additional
+      information about the workers will be printed
+
+    EXAMPLES::
+
+        sage: p,s = vincent_sv_prefix_suffix(5)
+        sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 5, 3)  # not tested (fail in doctest)
+        True
+
+        sage: p,s = vincent_sv_prefix_suffix(6)
+        sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 6, 4) # not tested (~40 secs)
+
+        sage: p,s = vincent_sv_prefix_suffix(7)
+        sage: len(p)
+        27
+    """
+    ch = get_convex_hull_engine(d-1)
+    if ncpus is None:
+        ncpus = mp.cpu_count()
+    pool = mp.Pool(ncpus)
+    tasks = ((verbose,is_sv_identity,u1,u2,d,ch,p) for p in product('xy', repeat=prefix_length))
+    t0 = time()
+    for ans in pool.imap_unordered(parallel_unfold, tasks):
+        if ans is False:
+            break
+    pool.terminate()
+    pool.join()
+    if verbose:
+        print "computation with {} cpus performed in {} seconds".format(ncpus,
+                time() -t0)
+    return ans
+
+def vincent_sv_prefix_suffix(d):
+    r"""
+    Return the ``p``,``s`` from the conjecture
+    """
+    p = ''
+    s = ''
+    pletter = 'x'
+    sletter = 'y'
+    for i in range(1,d):
+        p = p + pletter * i
+        s = sletter * i + s
+        pletter,sletter = sletter,pletter
+    p = p + pletter * (d-1)
+    s = sletter * (d-1) + s
+    return p,s
+
+
+
 #######################
 # Convex hull engines #
 #######################
@@ -1118,13 +1295,23 @@ def get_convex_hull_engine(nvar, convex_hull=None):
 
     EXAMPLES::
 
+        sage: CH0 = get_convex_hull_engine(3, 'ppl_raw')
         sage: CH1 = get_convex_hull_engine(3, 'ppl')
         sage: CH2 = get_convex_hull_engine(3, 'cdd')
         sage: CH3 = get_convex_hull_engine(3, 'PALP')
 
         sage: F = ZZ**3
         sage: pts = [F.random_element() for _ in range(20)]
-        sage: CH1(pts) == CH2(pts) == CH3(pts)
+        sage: CH0(pts) == CH1(pts) == CH2(pts) == CH3(pts)
+        True
+
+        sage: CH0 = get_convex_hull_engine(4, 'ppl_raw')
+        sage: CH1 = get_convex_hull_engine(4, 'ppl')
+        sage: CH2 = get_convex_hull_engine(4, 'cdd')
+        sage: CH3 = get_convex_hull_engine(4, 'PALP')
+        sage: F = ZZ**4
+        sage: pts = [F.random_element() for _ in range(30)]
+        sage: CH0(pts) == CH1(pts) == CH2(pts) == CH3(pts)
         True
 
     By far the fastest is CH1 ('ppl') in all situtations encountered. Note that
@@ -1133,9 +1320,14 @@ def get_convex_hull_engine(nvar, convex_hull=None):
     - https://www.inf.ethz.ch/personal/fukudak/polyfaq/node23.html
     - http://miconvexhull.codeplex.com/
     - http://www.boost.org/doc/libs/1_47_0/libs/geometry/doc/html/geometry/reference/algorithms/convex_hull.html
+    - Fukada, "From the zonotope construction to the Minkowski addition of
+      convex polytopes"
+      http://www.sciencedirect.com/science/article/pii/S0747717104000409
     """
     if isinstance(convex_hull, ConvexHull):
         return convex_hull
+    elif convex_hull == 'ppl_raw':
+        return ConvexHullPPL(nvar)
     elif convex_hull is None or convex_hull == 'ppl':
         return ConvexHullPolyhedra(nvar, 'ppl')
     elif convex_hull == 'cdd':
@@ -1155,7 +1347,12 @@ class ConvexHull(object):
       ``dim``
     - ``__call__(self, pts)``: return the convex hull of the list ``pts``
     """
-    pass
+    _name = 'none'
+    def __ne__(self, other):
+        return not self == ohter
+
+    def __repr__(self):
+        return "Convex hull engine {}".format(self._name)
 
 class ConvexHullPolyhedra(ConvexHull):
     r"""
@@ -1175,13 +1372,34 @@ class ConvexHullPolyhedra(ConvexHull):
     def __eq__(self, other):
         return type(self) is type(other) and self._parent == other._parent
 
-    def __ne__(self, other):
-        return type(self) is not type(other) or self._parent != other._parent
-
     def __call__(self, pts):
         if pts:
             pts = [p.vector() for p in self._parent([pts,[],[]],None).vertex_generator()]
             for a in pts: a.set_immutable()
+            pts.sort()
+        return tuple(pts)
+
+from sage.libs.ppl import Variable, C_Polyhedron, point, Generator_System, Linear_Expression
+
+class ConvexHullPPL(ConvexHull):
+    r"""
+    Compute convex hull using a raw PPL interface (`sage.libs.ppl`).
+
+    This is not faster than polyhedra from Sage.
+    """
+    _name = 'ppl_raw'
+    def __init__(self, dim):
+        self.dim = int(dim)
+        self.vars = [Variable(i) for i in range(dim)]
+        self.V = FreeModule(ZZ, self.dim)
+
+    def __call__(self, pts):
+        if pts:
+            gs = Generator_System()
+            for p in pts:
+                gs.insert(point(Linear_Expression(p,0)))
+            poly = C_Polyhedron(gs)
+            pts = [self.V(p.coefficients()) for p in poly.minimized_generators()]
             pts.sort()
         return tuple(pts)
 
