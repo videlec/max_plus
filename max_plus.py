@@ -217,7 +217,7 @@ def symbolic_max_plus_matrices(d, n, ch=None, sym=True):
 
     return matrices
 
-def symbolic_max_plus_matrices_band(d, n, 
+def symbolic_max_plus_matrices_band(d, n,
         diag='v', surdiag='v', ch=None, sym=True):
     r"""
     INPUT:
@@ -372,7 +372,7 @@ def symbolic_max_plus_matrices_band(d, n,
 
     return matrices
 
-def symbolic_max_plus_matrices_upper(d, n, 
+def symbolic_max_plus_matrices_upper(d, n,
         diag='v', surdiag='v', ch=None, sym=True):
     r"""
     EXAMPLES::
@@ -600,7 +600,7 @@ class SymbolicMaxPlusMatrix(SageObject):
             sage: x.convex_hull_engine()
             'cdd'
 
-            sage: x,y = symbolic_max_plus_matrices_band(4, 2, ch='PALP') 
+            sage: x,y = symbolic_max_plus_matrices_band(4, 2, ch='PALP')
             sage: x.convex_hull_engine()
             'PALP'
         """
@@ -802,7 +802,7 @@ class SymbolicMaxPlusMatrix(SageObject):
                 pts = self[i,j]
                 row.append(minus_infinity() if not pts else max(p.dot_product(v) for v in pts))
             mat.append(row)
-        return IntegerMaxPlusMatrix(self._d, mat) 
+        return IntegerMaxPlusMatrix(self._d, mat)
 
     def get_vector_span(self, i, j):
         r"""
@@ -1004,7 +1004,7 @@ class SymbolicSymmetricMaxPlusUpperMatrix(SymbolicMaxPlusMatrix):
         if type(self) is not type(other):
             return SymbolicMaxPlusMatrix.__mul__(self, other)
 
-        assert self._nvars == other._nvars and self._d == other._d 
+        assert self._nvars == other._nvars and self._d == other._d
 
         # NOTE: there are some cases where the minkowski sum can be much faster
         # to compute: when the points are in disjoint subspaces as for example:
@@ -1031,7 +1031,7 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
 
     This class only concerns relations on the full matrix monoid. In practice,
     we should win a factor d^2/2 where d is the dimension.
-    
+
     Such matrices are completely determined by the entries (0,0) and (0,1) (that
     are stored in the attributes ``self._diag`` and ``self._nondiag``).
 
@@ -1108,7 +1108,7 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
         if type(self) is not type(other):
             return SymbolicMaxPlusMatrix.__mul__(self, other)
 
-        assert self._n == other._n and self._d == other._d 
+        assert self._n == other._n and self._d == other._d
 
         data = []
         for j in range(2):
@@ -1169,9 +1169,9 @@ def occurrences(w, u):
 
 def extremal_occurrences(w, u):
     r"""
-    Return the set of extremal occurrences of ``u`` in ``w``.
+    Return the set of 1-extremal occurrences of ``u`` in ``w``.
 
-    An occurrence is extremal if the letters can not move inside the occurrence.
+    An occurrence is 1-extremal if the letters can not move inside the occurrence.
     This is a subset of all occurrences of ``u`` in ``w`` but *much* that
     defines the same convex hull.
 
@@ -1213,7 +1213,7 @@ def extremal_occurrences(w, u):
     letters = set(w)
     n = len(w)
 
-    # find next left and next right occurrences of letters
+    # 1. find next left and next right occurrences of letters
     next_left = [None]*n
     next_right = [None]*n
     last = {letter: -1 for letter in letters}
@@ -1225,6 +1225,7 @@ def extremal_occurrences(w, u):
         next_right[n-i-1] = last[letter]
         last[letter] = n-i-1
 
+    # 2. run through w
     for i,letter in enumerate(w):
         for j in range(len(u)-1,0,-1):
             if letter == u[j]:
@@ -1243,6 +1244,189 @@ def extremal_occurrences(w, u):
             pos[0].append((-1,i))
 
     return [x[1:] for x in pos[-1] if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= n]
+
+def extremal_occurrences2(w, u, verbose=False):
+    r"""
+    Return the set of extremal occurrences of ``u`` in ``w``.
+
+    An occurrence is extremal if the blocks can not move inside the occurrence.
+    This is a subset of all occurrences of ``u`` in ``w`` but *much* that
+    defines the same convex hull.
+
+    EXAMPLES::
+
+        sage: extremal_occurrences2('aaaaa', 'aaa')
+        [(0, 1, 2), (0, 1, 4), (0, 3, 4), (2, 3, 4)]
+        sage: extremal_occurrences2('abababa', 'ab')
+        [(0, 1), (0, 5), (4, 5)]
+        sage: extremal_occurrences2('aabaabaabaa', 'ab')
+        [(0, 2), (1, 2), (0, 8), (7, 8)]
+
+    Note the difference with `extremal_occurrences`::
+
+        sage: extremal_occurrences('aaaaa', 'aaa')
+        [(0, 1, 2), (0, 2, 3), (1, 2, 3), (0, 1, 4), (1, 2, 4), (0, 3, 4), (2, 3, 4)]
+        sage: extremal_occurrences('abababa', 'ab')
+        [(0, 1), (2, 3), (0, 5), (4, 5)]
+        sage: extremal_occurrences('aabaabaabaa', 'ab')
+        [(0, 2), (1, 2), (4, 5), (0, 8), (7, 8)]
+
+    Some more tests::
+
+        sage: extremal_occurrences2('aaabcdefghaaa', 'aa')
+        [(0, 1), (2, 10), (0, 12), (11, 12)]
+        sage: extremal_occurrences2('bcdef', 'a')
+        []
+        sage: extremal_occurrences2('bacadeaf', 'a')
+        [(1,), (6,)]
+
+    Some check for equality of polyhedra::
+
+        sage: w = 'aaabbbaaabbbaaabbb'
+        sage: u = 'aaab'
+        sage: o0 = occurrences(w,u)
+        sage: o1 = extremal_occurrences(w,u)
+        sage: o2 = extremal_occurrences2(w,u)
+        sage: len(o0), len(o1), len(o2)
+        (189, 29, 23)
+        sage: Polyhedron(o0) == Polyhedron(o1) == Polyhedron(o2)
+        True
+        sage: u = 'aabaa'
+        sage: o0 = occurrences(w,u)
+        sage: o1 = extremal_occurrences(w,u)
+        sage: o2 = extremal_occurrences2(w,u)
+        sage: len(o0), len(o1), len(o2)
+        (270, 60, 42)
+        sage: Polyhedron(o0) == Polyhedron(o1) == Polyhedron(o2)
+        True
+
+        sage: for w in ('abbaab', 'aabbaabb', 'abababababababab',
+                        'abbaaabbbaaaabbbaab',
+        ....:           'aaaabbbbaaaabbbbaaaa'):
+        ....:     for n in (1,2,3,4):
+        ....:         for u in product('ab', repeat=n):
+        ....:             P0 = Polyhedron(occurrences(w,u))
+        ....:             P1 = Polyhedron(extremal_occurrences(w,u))
+        ....:             P2 = Polyhedron(extremal_occurrences2(w,u))
+        ....:             assert P0 == P1 == P2
+    """
+    # 1. Preprocessing of u: we compute the set of its factors inside a suffix
+    # trie. To each factor of u corresponds a number in {0, 1, ..., n-1} where n
+    # is the number of factors. The used variables are
+    #  tf: the transition function (describe what happens when adding a letter)
+    #  sl: the suffix link (describe what happens when removing the left letter)
+    #  lengths: the length of factors
+    from sage.combinat.words.suffix_trees import SuffixTrie
+    alphabet = sorted(set(u))
+    W = Words(alphabet)
+    S = SuffixTrie(W(u, check=False))
+    sl = S._suffix_link    # suffix link
+    assert sl[0] == -1
+    sl[0] = None           # replace -1 by None
+    tf = {}                # transition function
+    for (r,letter),s in S._transition_function.iteritems():
+        tf[(r,letter[0])] = s
+    if verbose:
+        print "sl = {}".format(sl)
+        print "tf = {}".format(tf)
+    lengths  = [None]*len(sl)
+    lengths[0] = 0      # lengths of the factors
+    todo = [0]
+    while todo:
+        s0 = todo.pop()
+        for letter in alphabet:
+            t = (s0,letter)
+            if t in tf:
+                s1 = tf[t]
+                lengths[s1] = lengths[s0] + 1
+                todo.append(s1)
+    if verbose:
+        print "lengths = {}".format(lengths)
+
+
+    # 2. run through w
+    state = 0  # maximal suffix of u at the current position
+    fact_occ = [-1] * len(sl)  # occurrences of factors of u
+    pos = [[] for _ in range(len(u))]  # extremal subword occurrences of u
+                                       # are stored as
+                                       # [lb, (i0,j0,f0), (i1,j1,f1), ...]
+                                       # where:
+                                       #   lb: whether the last block is left
+                                       #   blocked
+                                       #   i0: starting point of a factor
+                                       #   j0: endpoint of a factor
+                                       #   f0: the index of the factor in the
+                                       #       suffix trie
+    for iw,letter in enumerate(w):
+        if verbose:
+            print "iw = {} letter={}".format(iw,letter)
+            print "fact_occ = {}".format(fact_occ)
+            print "pos"
+            for ll in range(len(pos)):
+                print "    {}: {}".format(ll,pos[ll])
+        # a. compute the maximum state that can be extended as well as the new
+        #    state after having read letter
+        old_state = state
+        new_state = tf.get((state,letter))
+        while state and new_state is None:
+            state = sl[state]
+            new_state = tf.get((state,letter))
+        if new_state is None:
+            new_state = 0
+        if verbose:
+            print "state = {}, new_state = {}".format(state, new_state)
+
+        # b. process subword occurrences
+        for length in range(len(u)-1,0,-1):
+            if verbose:
+                print "  length={}".format(length)
+            if letter == u[length]:
+                k = 0
+                while k < len(pos[length-1]):
+                    x = pos[length-1][k]
+                    i0, j0, s0 = x[-1]
+                    j1 = x[-2][1] if len(x) > 2 else 0
+                    lb = x[0]
+                    if verbose: print "  x={}  lb={}  j1={}".format(x,lb,j1)
+                    if j0 == iw:
+                        # case when the last block can be continued
+                        xx = x[:-1]
+                        ss = tf[(s0,letter)]
+                        xx.append((i0, j0+1, ss))
+                        pos[length].append(xx)
+                        xx[0] = xx[0] or fact_occ[ss] < j1 + lengths[ss]
+                        k += 1
+                        if verbose: print "  continue last block {}->{}".format(s0,ss)
+                    elif lb or fact_occ[s0] == j0:
+                        # case when the last block is either blocked on the left
+                        # or on the right
+                        xx = x[:]
+                        ss = tf[(0,letter)]
+                        xx.append((iw, iw+1, ss))
+                        xx[0] = fact_occ[ss] < j0 + 1
+                        pos[length].append(xx)
+                        k += 1
+                        if verbose: print "  new block {}".format(ss)
+                    else:
+                        if verbose: print "  delete x"
+                        # we remove x
+                        del pos[length-1][k]
+
+        if letter == u[0]:
+            ss = tf[(0,letter)]
+            xx = [fact_occ[ss] == -1, (iw,iw+1,ss)]
+            pos[0].append(xx)
+
+        # update the last occurrences of factors of u
+        state = new_state
+        s = state
+        while s is not None:
+            fact_occ[s] = iw+1
+            s = sl[s]
+        if verbose: print
+
+    return [sum((tuple(range(i,j)) for (i,j,k) in x[1:]),()) for x in pos[-1] if x[0] or fact_occ[x[-1][2]] == x[-1][1]]
+
 
 def extremal_mid_occurrences(p, s, u):
     r"""
@@ -1270,7 +1454,7 @@ def extremal_mid_occurrences(p, s, u):
 def ppl_polytope(pts):
     r"""
     Build a ppl polytope (i.e. a ``C_Polyhedron``).
-    
+
     This seems to be twice faster as Sage function... there is something wrong
     in Sage class for polyhedra.
     """
