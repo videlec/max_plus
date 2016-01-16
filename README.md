@@ -132,8 +132,11 @@ There are currently few functions to check some relations combinatorially in `B^
 
 - `def occurrences(w, u)`: return the occurrences of `u` in `w`
 
-- `def extremal_occurrences(w, u)`: return the extremal occurrences of `u` in
+- `def extremal_occurrences(w, u)`: return the 1-extremal occurrences of `u` in
   `w` (the convex hull of this set is the same as all occurrences)
+
+- `def extremal_occurrences2(w,u)`: (experimental) return the extremal
+  occurrences of `u` in `w`
 
 - `def extremal_mid_occurrences(p, s, u)`: return the occurrences of `u` in
   `p*s` where the occurrence uses the joker letter `*`.
