@@ -105,8 +105,14 @@ from sage.misc.misc import SAGE_TMP
 from sage.structure.sage_object import SageObject
 from sage.structure.element import generic_power
 
-from sage.libs.ppl import Variable, C_Polyhedron, point, Generator_System, Linear_Expression
+try:
+    from ppl import (Variable, C_Polyhedron, point, Generator_System,
+         Linear_Expression, Constraint_System, MIP_Problem)
+except ImportError:
+    from sage.libs.ppl import (Variable, C_Polyhedron, point, Generator_System,
+         Linear_Expression, Constraint_System, MIP_Problem)
 
+from sage.numerical.mip import MIPSolverException
 from sage.geometry.polyhedron.parent import Polyhedra
 from sage.modules.free_module import FreeModule
 from sage.rings.integer_ring import ZZ
@@ -1427,6 +1433,49 @@ def extremal_occurrences2(w, u, verbose=False):
 
     return [sum((tuple(range(i,j)) for (i,j,k) in x[1:]),()) for x in pos[-1] if x[0] or fact_occ[x[-1][2]] == x[-1][1]]
 
+def barycentric_coordinates(pts, q):
+    r"""
+    Return rational barycentric coordinates of ``q`` with respect to ``pts`` if
+    they exist.
+
+    If ``q`` is not in the convex hull of ``pts``, this function returns
+    ``None``.
+
+    EXAMPLES::
+
+        sage: F = FreeModule(ZZ,3)
+        sage: v0 = F((2,3,6))
+        sage: v1 = F((2,3,18))
+        sage: v2 = F((15,16,18))
+        sage: m = F((8,9,13))
+        sage: p = barycentric_coordinates([v0,v1,v2], m)
+        sage: p
+        [5/12, 19/156, 6/13]
+        sage: p[0]*v0 + p[1]*v1 + p[2]*v2 == m
+        True
+
+        sage: barycentric_coordinates([v0,v1], m) is None
+        True
+    """
+    if not pts:
+        return
+    N = len(pts)
+    dim = len(q)
+    pts = list(pts)
+    assert all(len(p) == dim for p in pts)
+    x = [Variable(i) for i in range(N)]
+    cs = Constraint_System()
+    cs.insert(sum(x[i] for i in range(N)) == 1)
+    for i in range(N):
+        cs.insert(x[i] >= 0)
+    for i in range(dim):
+        cs.insert(sum(x[j]*pts[j][i] for j in range(N)) == q[i])
+    m = MIP_Problem(N, cs, 0)
+    try:
+        pt = m.optimizing_point()
+    except ValueError:
+        return
+    return [QQ((pt.coefficient(x[i]),pt.divisor())) for i in range(N)]
 
 def extremal_mid_occurrences(p, s, u):
     r"""
@@ -1522,6 +1571,17 @@ def is_sv_identity(p, s, d, prefix=()):
         for o in extremal_mid_occurrences(p, s, u):
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
+                return False
+    return True
+
+def is_sv_identity2(p, s, d, prefix=()):
+    pref = tuple(prefix)
+    n = len(p)
+    for q in product('xy', repeat=d-1-len(prefix)):
+        u = prefix+q
+        avoid = extremal_occurrences(p+'*'+s, u)
+        for o in extremal_mid_occurrences(p, s, u):
+            if barycentric_coordinates(avoid, o) is None:
                 return False
     return True
 

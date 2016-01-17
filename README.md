@@ -203,6 +203,28 @@ Here are some examples
 	computation with 4 cpus performed in 4.71341395378 seconds
 	True
 
+## Experimental
+
+There is an implementation of barycentric decomposition with PPL Linear
+programming. In order to use it you need to install the [pplpy
+package](https://pypi.python.org/pypi/pplpy/). It is essentially a fork of some
+files in Sage with several bug fixes and improvements. To install it just do
+
+    $ sudo pip install pplpy
+
+Once this is done, you can use the following function
+
+- `barycentric_coordinates(pts, q)`: return the barycentric coordinates of the point `q` with
+  respect to the points `pts`. If `q` does not belong to the convex hull of `pts` the value
+  `None` is returned instead
+
+(if you did not installed the package, running this function will crash Sage!)
+
+For example
+
+    sage: barycentric_coordinates([(2,3,6),(2,3,18),(15,16,18)], (8,9,13))
+	[5/12, 19/156, 6/13]
+
 ## Contact
 
 Any comment or remark is welcome at vincentDOTdelecroixATlabriDOTfr
