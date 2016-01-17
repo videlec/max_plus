@@ -210,7 +210,7 @@ programming. In order to use it you need to install the [pplpy
 package](https://pypi.python.org/pypi/pplpy/). It is essentially a fork of some
 files in Sage with several bug fixes and improvements. To install it just do
 
-    $ sudo pip install pplpy
+    $ sage -pip install pplpy
 
 Once this is done, you can use the following function
 
