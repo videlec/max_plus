@@ -135,8 +135,8 @@ There are currently few functions to check some relations combinatorially in `B^
 - `def extremal_occurrences(w, u)`: return the 1-extremal occurrences of `u` in
   `w` (the convex hull of this set is the same as all occurrences)
 
-- `def extremal_occurrences2(w,u)`: (experimental) return the extremal
-  occurrences of `u` in `w`
+- `def letter_extremal_occurrences(w, u)`: return the extremal occurrences of
+  `u` in `w` (the convex hull of this set is the same as all occurrences)
 
 - `def extremal_mid_occurrences(p, s, u)`: return the occurrences of `u` in
   `p*s` where the occurrence uses the joker letter `*`.
@@ -144,12 +144,15 @@ There are currently few functions to check some relations combinatorially in `B^
 To check identities you can use the following functions (note that identities
 must be written with the letters 'x' and 'y'):
 
-- `is_sv_identity(p, s, d)`: check whether `(pxs,pys)` is an identity in `B^{sv}_d`.
+- `is_sv_identity(p, s, d, prefix, skip_common_factors)`: check whether `(pxs,pys)` is an identity in `B^{sv}_d`.
 
-- `is_sv_identity_parallel(p, s, d, prefix_length)`: the same as above but
-  with parallelization. The argument `prefix_length` is used to chunk the
-  subwords into different jobs: if it is set to `k` then there will be
-  `2^k` jobs which correspond to the `2^k` possible prefixes.
+- `is_sv_identity_parallel(p, s, d, prefix_length, ncpus, verbose,
+  skip_common_factors, logfile)`: the same as above but with parallelization.
+  The argument `prefix_length` is used to chunk the subwords into different
+  jobs: if it is set to `k` then there will be `2^k` jobs which correspond to
+  the `2^k` possible prefixes. The argument `logfile` can be set to either
+  `sys.stdout` or a string in which case details about the execution will be
+  written in a file with that name.
 
 Here are some examples
 
@@ -175,32 +178,25 @@ Here are some examples
     False
 
 	sage: p,s = vincent_sv_prefix_suffix(7)
-	sage: is_sv_identity_parallel(p, s, 7, 3, verbose=True)
-	PoolWorker-17: new job at 16:43:7
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'x', 'x'))
-	PoolWorker-18: new job at 16:43:7
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'x', 'y'))
-	PoolWorker-19: new job at 16:43:7
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'y', 'x'))
-	PoolWorker-20: new job at 16:43:8
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('x', 'y', 'y'))
-	PoolWorker-19: job done in 1.26115489006 seconds
-	PoolWorker-19: new job at 16:43:9
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'x', 'x'))
-	PoolWorker-20: job done in 1.93957805634 seconds
-	PoolWorker-20: new job at 16:43:9
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'x', 'y'))
-	PoolWorker-18: job done in 2.48127698898 seconds
-	PoolWorker-18: new job at 16:43:10
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'y', 'x'))
-	PoolWorker-17: job done in 2.97481107712 seconds
-	PoolWorker-17: new job at 16:43:10
-	  ('xyyxxxyyyyxxxxxyyyyyyxxxxxx', 'yyyyyyxxxxxxyyyyyxxxxyyyxxy', 7, ('y', 'y', 'y'))
-	PoolWorker-20: job done in 1.38204503059 seconds
-	PoolWorker-19: job done in 2.0873029232 seconds
-	PoolWorker-18: job done in 1.68425393105 seconds
-	PoolWorker-17: job done in 1.7091588974 seconds
-	computation with 4 cpus performed in 4.71341395378 seconds
+	sage: is_sv_identity_parallel(p, s, 7, 3, logfile=sys.stdout)
+	u = xxxxyx
+	num ext. occ.: 371
+	num faces    : 16
+	num verts    : 58
+	polytope computation in 0.0998837947845secs
+
+	u = xxxyxx
+	num ext. occ.: 289
+	num faces    : 11
+	num verts    : 30
+	polytope computation in 0.0397710800171secs
+	...
+	u = yxyyyy
+	num ext. occ.: 371
+	num faces    : 16
+	num verts    : 58
+	polytope computation in 0.0290420055389secs
+
 	True
 
 ## Experimental

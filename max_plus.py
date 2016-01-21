@@ -105,6 +105,9 @@ from sage.misc.misc import SAGE_TMP
 from sage.structure.sage_object import SageObject
 from sage.structure.element import generic_power
 
+from sage.combinat.words.words import FiniteWords
+from sage.combinat.words.suffix_trees import SuffixTrie
+
 try:
     from ppl import (Variable, C_Polyhedron, point, Generator_System,
          Linear_Expression, Constraint_System, MIP_Problem)
@@ -1173,85 +1176,7 @@ def occurrences(w, u):
 
     return pos[-1] if not pos2[0] else (pos[-1], pos2[-1])
 
-def extremal_occurrences(w, u):
-    r"""
-    Return the set of 1-extremal occurrences of ``u`` in ``w``.
-
-    An occurrence is 1-extremal if the letters can not move inside the occurrence.
-    This is a subset of all occurrences of ``u`` in ``w`` but *much* that
-    defines the same convex hull.
-
-    EXAMPLES::
-
-        sage: extremal_occurrences('aabb','ab')
-        [(0, 2), (1, 2), (0, 3), (1, 3)]
-        sage: extremal_occurrences('aaabbb','ab')
-        [(0, 3), (2, 3), (0, 5), (2, 5)]
-
-        sage: p = 'xyyxxxyyy'
-        sage: s = 'xxxyyyxxy'
-        sage: o1 = occurrences(p+'x'+s, 'xyx')
-        sage: o1
-        [(0, 1, 3), (0, 2, 3), (0, 1, 4), ...,   (11, 15, 17), (12, 15, 17)]
-        sage: len(o1)
-        138
-        sage: o2 = extremal_occurrences(p+'x'+s, 'xyx')
-        sage: o2
-        [(0, 1, 3), (0, 2, 3), (5, 6, 9), ...,  (0, 15, 17), (12, 15, 17)]
-        sage: len(o2)
-        13
-        sage: Polyhedron(o1) == Polyhedron(o2)
-        True
-
-        sage: for w in ('abbaab', 'aabbaabb', 'abbaaabbbaaaabbbaab',
-        ....:           'aaaabbbbaaaabbbbaaaa'):
-        ....:     for n in (1,2,3,4):
-        ....:         for u in product('ab', repeat=n):
-        ....:             P1 = Polyhedron(occurrences(w,u))
-        ....:             P2 = Polyhedron(extremal_occurrences(w,u))
-        ....:             assert P1 == P2
-    """
-    if len(u) == 0:
-        return [()]
-
-    pos = [[] for _ in range(len(u))]
-
-    letters = set(w)
-    n = len(w)
-
-    # 1. find next left and next right occurrences of letters
-    next_left = [None]*n
-    next_right = [None]*n
-    last = {letter: -1 for letter in letters}
-    for i,letter in enumerate(w):
-        next_left[i] = last[letter]
-        last[letter] = i
-    last = {letter: n for letter in letters}
-    for i,letter in enumerate(reversed(w)):
-        next_right[n-i-1] = last[letter]
-        last[letter] = n-i-1
-
-    # 2. run through w
-    for i,letter in enumerate(w):
-        for j in range(len(u)-1,0,-1):
-            if letter == u[j]:
-                for x in pos[j-1]:
-                    if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= i:
-                        pos[j].append(x + (i,))
-            else:
-                k = 0
-                while k < len(pos[j-1]):
-                    x = pos[j-1][k]
-                    if next_left[x[-1]] > x[-2] and next_right[x[-1]] < i:
-                        del pos[j-1][k]
-                    else:
-                        k += 1
-        if letter == u[0]:
-            pos[0].append((-1,i))
-
-    return [x[1:] for x in pos[-1] if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= n]
-
-def extremal_occurrences2(w, u, verbose=False):
+def extremal_occurrences(w, u, verbose=False):
     r"""
     Return the set of extremal occurrences of ``u`` in ``w``.
 
@@ -1261,29 +1186,29 @@ def extremal_occurrences2(w, u, verbose=False):
 
     EXAMPLES::
 
-        sage: extremal_occurrences2('aaaaa', 'aaa')
+        sage: extremal_occurrences('aaaaa', 'aaa')
         [(0, 1, 2), (0, 1, 4), (0, 3, 4), (2, 3, 4)]
-        sage: extremal_occurrences2('abababa', 'ab')
+        sage: extremal_occurrences('abababa', 'ab')
         [(0, 1), (0, 5), (4, 5)]
-        sage: extremal_occurrences2('aabaabaabaa', 'ab')
+        sage: extremal_occurrences('aabaabaabaa', 'ab')
         [(0, 2), (1, 2), (0, 8), (7, 8)]
 
     Note the difference with `extremal_occurrences`::
 
-        sage: extremal_occurrences('aaaaa', 'aaa')
+        sage: letter_extremal_occurrences('aaaaa', 'aaa')
         [(0, 1, 2), (0, 2, 3), (1, 2, 3), (0, 1, 4), (1, 2, 4), (0, 3, 4), (2, 3, 4)]
-        sage: extremal_occurrences('abababa', 'ab')
+        sage: letter_extremal_occurrences('abababa', 'ab')
         [(0, 1), (2, 3), (0, 5), (4, 5)]
-        sage: extremal_occurrences('aabaabaabaa', 'ab')
+        sage: letter_extremal_occurrences('aabaabaabaa', 'ab')
         [(0, 2), (1, 2), (4, 5), (0, 8), (7, 8)]
 
     Some more tests::
 
-        sage: extremal_occurrences2('aaabcdefghaaa', 'aa')
+        sage: extremal_occurrences('aaabcdefghaaa', 'aa')
         [(0, 1), (2, 10), (0, 12), (11, 12)]
-        sage: extremal_occurrences2('bcdef', 'a')
+        sage: extremal_occurrences('bcdef', 'a')
         []
-        sage: extremal_occurrences2('bacadeaf', 'a')
+        sage: extremal_occurrences('bacadeaf', 'a')
         [(1,), (6,)]
 
     Some check for equality of polyhedra::
@@ -1291,40 +1216,42 @@ def extremal_occurrences2(w, u, verbose=False):
         sage: w = 'aaabbbaaabbbaaabbb'
         sage: u = 'aaab'
         sage: o0 = occurrences(w,u)
-        sage: o1 = extremal_occurrences(w,u)
-        sage: o2 = extremal_occurrences2(w,u)
+        sage: o1 = letter_extremal_occurrences(w,u)
+        sage: o2 = extremal_occurrences(w,u)
         sage: len(o0), len(o1), len(o2)
-        (189, 29, 23)
+        (315, 41, 25)
         sage: Polyhedron(o0) == Polyhedron(o1) == Polyhedron(o2)
         True
         sage: u = 'aabaa'
         sage: o0 = occurrences(w,u)
-        sage: o1 = extremal_occurrences(w,u)
-        sage: o2 = extremal_occurrences2(w,u)
+        sage: o1 = letter_extremal_occurrences(w,u)
+        sage: o2 = extremal_occurrences(w,u)
         sage: len(o0), len(o1), len(o2)
         (270, 60, 42)
         sage: Polyhedron(o0) == Polyhedron(o1) == Polyhedron(o2)
         True
 
-        sage: for w in ('abbaab', 'aabbaabb', 'abababababababab',
-                        'abbaaabbbaaaabbbaab',
+        sage: for w in ('aaaabbbb', 'abbaab', 'aabbaabb', 'abababababababab',
+        ....:           'abbaaabbbaaaabbbaab',
         ....:           'aaaabbbbaaaabbbbaaaa'):
         ....:     for n in (1,2,3,4):
         ....:         for u in product('ab', repeat=n):
         ....:             P0 = Polyhedron(occurrences(w,u))
-        ....:             P1 = Polyhedron(extremal_occurrences(w,u))
-        ....:             P2 = Polyhedron(extremal_occurrences2(w,u))
+        ....:             P1 = Polyhedron(letter_extremal_occurrences(w,u))
+        ....:             P2 = Polyhedron(extremal_occurrences(w,u))
         ....:             assert P0 == P1 == P2
     """
+    if not u:
+        return [()]
+
     # 1. Preprocessing of u: we compute the set of its factors inside a suffix
     # trie. To each factor of u corresponds a number in {0, 1, ..., n-1} where n
     # is the number of factors. The used variables are
     #  tf: the transition function (describe what happens when adding a letter)
     #  sl: the suffix link (describe what happens when removing the left letter)
     #  lengths: the length of factors
-    from sage.combinat.words.suffix_trees import SuffixTrie
     alphabet = sorted(set(u))
-    W = Words(alphabet)
+    W = FiniteWords(alphabet)
     S = SuffixTrie(W(u, check=False))
     sl = S._suffix_link    # suffix link
     assert sl[0] == -1
@@ -1423,7 +1350,8 @@ def extremal_occurrences2(w, u, verbose=False):
             xx = [fact_occ[ss] == -1, (iw,iw+1,ss)]
             pos[0].append(xx)
 
-        # update the last occurrences of factors of u
+        # update the last occurrences of factors of u and switch to the new
+        # state
         state = new_state
         s = state
         while s is not None:
@@ -1432,6 +1360,87 @@ def extremal_occurrences2(w, u, verbose=False):
         if verbose: print
 
     return [sum((tuple(range(i,j)) for (i,j,k) in x[1:]),()) for x in pos[-1] if x[0] or fact_occ[x[-1][2]] == x[-1][1]]
+
+def letter_extremal_occurrences(w, u):
+    r"""
+    Return the set of letter-extremal occurrences of ``u`` in ``w``.
+
+    An occurrence is letter-extremal if the letters can not move inside the occurrence.
+    This is a subset of all occurrences of ``u`` in ``w`` but *much* that
+    defines the same convex hull.
+
+    You should actually look at :func:`letter_extremal_occurrences` which is
+    even smarter.
+
+    EXAMPLES::
+
+        sage: extremal_occurrences('aabb','ab')
+        [(0, 2), (1, 2), (0, 3), (1, 3)]
+        sage: extremal_occurrences('aaabbb','ab')
+        [(0, 3), (2, 3), (0, 5), (2, 5)]
+
+        sage: p = 'xyyxxxyyy'
+        sage: s = 'xxxyyyxxy'
+        sage: o1 = occurrences(p+'x'+s, 'xyx')
+        sage: o1
+        [(0, 1, 3), (0, 2, 3), (0, 1, 4), ...,   (11, 15, 17), (12, 15, 17)]
+        sage: len(o1)
+        138
+        sage: o2 = extremal_occurrences(p+'x'+s, 'xyx')
+        sage: o2
+        [(0, 1, 3), (0, 2, 3), (5, 6, 9), ...,  (0, 15, 17), (12, 15, 17)]
+        sage: len(o2)
+        11
+        sage: Polyhedron(o1) == Polyhedron(o2)
+        True
+
+        sage: for w in ('abbaab', 'aabbaabb', 'abbaaabbbaaaabbbaab',
+        ....:           'aaaabbbbaaaabbbbaaaa'):
+        ....:     for n in (1,2,3,4):
+        ....:         for u in product('ab', repeat=n):
+        ....:             P1 = Polyhedron(occurrences(w,u))
+        ....:             P2 = Polyhedron(extremal_occurrences(w,u))
+        ....:             assert P1 == P2
+    """
+    if len(u) == 0:
+        return [()]
+
+    pos = [[] for _ in range(len(u))]
+
+    letters = set(w)
+    n = len(w)
+
+    # 1. find next left and next right occurrences of letters
+    next_left = [None]*n
+    next_right = [None]*n
+    last = {letter: -1 for letter in letters}
+    for i,letter in enumerate(w):
+        next_left[i] = last[letter]
+        last[letter] = i
+    last = {letter: n for letter in letters}
+    for i,letter in enumerate(reversed(w)):
+        next_right[n-i-1] = last[letter]
+        last[letter] = n-i-1
+
+    # 2. run through w
+    for i,letter in enumerate(w):
+        for j in range(len(u)-1,0,-1):
+            if letter == u[j]:
+                for x in pos[j-1]:
+                    if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= i:
+                        pos[j].append(x + (i,))
+            else:
+                k = 0
+                while k < len(pos[j-1]):
+                    x = pos[j-1][k]
+                    if next_left[x[-1]] > x[-2] and next_right[x[-1]] < i:
+                        del pos[j-1][k]
+                    else:
+                        k += 1
+        if letter == u[0]:
+            pos[0].append((-1,i))
+
+    return [x[1:] for x in pos[-1] if next_left[x[-1]] <= x[-2] or next_right[x[-1]] >= n]
 
 def barycentric_coordinates(pts, q):
     r"""
@@ -1448,13 +1457,13 @@ def barycentric_coordinates(pts, q):
         sage: v1 = F((2,3,18))
         sage: v2 = F((15,16,18))
         sage: m = F((8,9,13))
-        sage: p = barycentric_coordinates([v0,v1,v2], m)
-        sage: p
+        sage: p = barycentric_coordinates([v0,v1,v2], m)  # not tested
+        sage: p                                           # not tested
         [5/12, 19/156, 6/13]
-        sage: p[0]*v0 + p[1]*v1 + p[2]*v2 == m
+        sage: p[0]*v0 + p[1]*v1 + p[2]*v2 == m            # not tested
         True
 
-        sage: barycentric_coordinates([v0,v1], m) is None
+        sage: barycentric_coordinates([v0,v1], m) is None  # not tested
         True
     """
     if not pts:
@@ -1512,12 +1521,12 @@ def ppl_polytope(pts):
         gs.insert(point(Linear_Expression(p,0)))
     return C_Polyhedron(gs)
 
-def is_sv_identity(p, s, d, prefix=()):
+def is_sv_identity(p, s, d, prefix=(), skip_common_factors=True, status=False):
     r"""
     Check if ``(pxs, pys)`` is a B^{sv} identity in dimension ``d``.
 
     This method go through all subwords of length ``d-1`` and for each of them
-    see whether the some polytopes coincide.
+    see whether some polytopes coincide.
 
     INPUT:
 
@@ -1525,8 +1534,19 @@ def is_sv_identity(p, s, d, prefix=()):
 
     - ``d`` -- dimension
 
-    - ``p`` -- an optional prefix (mostly used for parallelization, see the
+    - ``prefix`` -- an optional prefix (mostly used for parallelization, see the
       function ``is_sv_identity_parallel`` below).
+
+    - ``skip_common_factors`` -- (default is ``False``) whether to skip the
+      computation of the polytope for common factors of ``p`` and ``s``
+
+    - ``status`` -- if ``True``, then instead of returning a boolean, returns a
+      pair ``(boolean, status_string)`` where ``status_string`` gives some
+      details about the computation.
+
+    OUTPUT:
+
+    Either a boolean or a pair ``(boolean, status_string)`` if ``status=True``.
 
     EXAMPLES::
 
@@ -1536,6 +1556,39 @@ def is_sv_identity(p, s, d, prefix=()):
         True
         sage: is_sv_identity(p, s, 4)
         False
+        sage: ans, info = is_sv_identity(p, s, 3, status=True)
+        sage: print info    # only one factor tested!
+        u = yy
+        num ext. occ.: 4
+        num faces    : 3
+        num verts    : 3
+        polytope computation in ...secs
+        sage: ans, info = is_sv_identity(p, s, 3, skip_common_factors=False, status=True)
+        sage: print info    # all factors are tested
+        u = xx
+        num ext. occ.: 6
+        num faces    : 4
+        num verts    : 4
+        polytope computation in ...
+        <BLANKLINE>
+        u = xy
+        num ext. occ.: 4
+        num faces    : 4
+        num verts    : 4
+        polytope computation in ...
+        <BLANKLINE>
+        u = yx
+        num ext. occ.: 4
+        num faces    : 4
+        num verts    : 4
+        polytope computation in ...
+        <BLANKLINE>
+        u = yy
+        num ext. occ.: 4
+        num faces    : 3
+        num verts    : 3
+        polytope computation in ...
+        <BLANKLINE>
 
         sage: p,s = vincent_sv_prefix_suffix(4)
         sage: is_sv_identity(p, s, 4)
@@ -1561,29 +1614,41 @@ def is_sv_identity(p, s, d, prefix=()):
         sage: is_sv_identity(p, s, 5)
         False
     """
+    if status:
+        output = ''
+    # compute the common factors of p and s
+    if skip_common_factors:
+        from sage.combinat.words.words import FiniteWords
+        F = FiniteWords('xy')
+        facts = set(tuple(f) for f in F(p).factor_set(d-1)).intersection(
+                    (tuple(f) for f in F(s).factor_set(d-1)))
+
+    # now iterate through all words `u` with given prefix
     pref = tuple(prefix)
     n = len(p)
     for q in product('xy', repeat=d-1-len(prefix)):
         u = prefix+q
+        if skip_common_factors and u in facts:
+            # ignore `u` that have a factor occurrence in both p and s
+            continue
+
+        # compute the polytope of occurrences and check that it contains the
+        # "middle occurrences"
         avoid = extremal_occurrences(p+'*'+s, u)
+        t0 = time()
         P = ppl_polytope(avoid)
-        # now iterate through occurrences of u in p*s that passes through *
+        if status:
+            output += 'u = {}\n'.format(''.join(u))
+            output += 'num ext. occ.: {}\n'.format(len(avoid))
+            output += 'num faces    : {}\n'.format(len(P.minimized_constraints()))
+            output += 'num verts    : {}\n'.format(len(P.minimized_generators()))
+            output += 'polytope computation in {}secs\n'.format(time()-t0)
+            output += '\n'
         for o in extremal_mid_occurrences(p, s, u):
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
-                return False
-    return True
-
-def is_sv_identity2(p, s, d, prefix=()):
-    pref = tuple(prefix)
-    n = len(p)
-    for q in product('xy', repeat=d-1-len(prefix)):
-        u = prefix+q
-        avoid = extremal_occurrences(p+'*'+s, u)
-        for o in extremal_mid_occurrences(p, s, u):
-            if barycentric_coordinates(avoid, o) is None:
-                return False
-    return True
+                return (False,output) if status else False
+    return (True,output) if status else True
 
 def parallel_unfold(args):
     r"""
@@ -1605,7 +1670,8 @@ def parallel_unfold(args):
         sys.stdout.flush()
     return ans
 
-def is_sv_identity_parallel(p, s, d, prefix_length, ncpus=None, verbose=False):
+def is_sv_identity_parallel(p, s, d, prefix_length, ncpus=None, verbose=False,
+        skip_common_factors=True, logfile=None):
     r"""
     Check identity using parallelization features
 
@@ -1623,6 +1689,12 @@ def is_sv_identity_parallel(p, s, d, prefix_length, ncpus=None, verbose=False):
     - ``verbose`` -- (optional, default ``False``) whether some additional
       information about the workers will be printed
 
+    - ``skip_common_factors`` -- (optional, default ``True``) whether to also
+      test factors that are common to both ``p`` and ``s``
+
+    - ``logfile`` -- can be a string that specifies a filename for writing
+      information about each occurrence polytope or sys.stdout
+
     EXAMPLES::
 
         sage: p,s = vincent_sv_prefix_suffix(5)
@@ -1630,25 +1702,39 @@ def is_sv_identity_parallel(p, s, d, prefix_length, ncpus=None, verbose=False):
         True
 
         sage: p,s = vincent_sv_prefix_suffix(6)
-        sage: is_sv_identity_parallel(p, s, 6, 4) # not tested (~40 secs)
+        sage: is_sv_identity_parallel(p, s, 6, 4) # not tested
+        True
 
-        sage: p,s = vincent_sv_prefix_suffix(7)
-        sage: len(p)
-        27
+    The following will write its output in a file named 'logfile.txt'::
+
+        sage: is_sv_identity_parallel(p, s, 6, 4, logfile='logfile.txt') # not tested
+
+    And for live information you can either turn on the ``verbose`` option (for
+    a per job information) or set the ``logfile`` option to ``sys.stdout`` (for
+    a per polytope information)::
+
+        sage: is_sv_identity_parallel(p, s, 6, 4, verbose=True)  # not tested
+        sage: import sys
+        sage: is_sv_identity_parallel(p, s, 6, 4, logfile=sys.stdout)  # not tested
     """
+    close = False
+    if isinstance(logfile, str):
+        close = True
+        logfile = open(logfile, 'w')
     if ncpus is None:
         ncpus = mp.cpu_count()
     pool = mp.Pool(ncpus)
-    tasks = ((verbose,is_sv_identity,p,s,d,prefix) for prefix in product('xy', repeat=prefix_length))
-    t0 = time()
-    for ans in pool.imap_unordered(parallel_unfold, tasks):
+    tasks = ((verbose,is_sv_identity,p,s,d,prefix,skip_common_factors,True) for prefix in product('xy', repeat=prefix_length))
+    for ans,status in pool.imap_unordered(parallel_unfold, tasks):
+        if logfile is not None:
+            logfile.write(status)
+            logfile.flush()
         if ans is False:
             break
     pool.terminate()
     pool.join()
-    if verbose:
-        print "computation with {} cpus performed in {} seconds".format(ncpus,
-                time() -t0)
+    if close:
+        logfile.close()
     return ans
 
 def vincent_sv_prefix_suffix(d):
@@ -1710,9 +1796,9 @@ def get_convex_hull_engine(nvar, convex_hull=None):
     """
     if isinstance(convex_hull, ConvexHull):
         return convex_hull
-    elif convex_hull == 'ppl_raw':
+    elif convex_hull is None or convex_hull == 'ppl_raw':
         return ConvexHullPPL(nvar)
-    elif convex_hull is None or convex_hull == 'ppl':
+    elif convex_hull == 'ppl':
         return ConvexHullPolyhedra(nvar, 'ppl')
     elif convex_hull == 'cdd':
         return ConvexHullPolyhedra(nvar, 'cdd')
@@ -1732,6 +1818,9 @@ class ConvexHull(object):
     - ``__call__(self, pts)``: return the convex hull of the list ``pts``
     """
     _name = 'none'
+    def __eq__(self, other):
+        return type(self) is type(other)
+
     def __ne__(self, other):
         return not self == ohter
 
@@ -1776,6 +1865,9 @@ class ConvexHullPPL(ConvexHull):
         self.vars = [Variable(i) for i in range(dim)]
         self.V = FreeModule(ZZ, self.dim)
 
+    def __eq__(self, other):
+        return type(self) is type(other) and self.dim == other.dim 
+
     def __call__(self, pts):
         if pts:
             gs = Generator_System()
@@ -1801,9 +1893,6 @@ class ConvexHullPalp(ConvexHull):
 
     def __eq__(self, other):
         return type(self) is type(other) and self._free_module == other._free_module
-
-    def __ne__(self, other):
-        return type(self) is not type(other) or self._free_module != other._free_module
 
     def __call__(self, pts):
         filename = tmp_filename()
