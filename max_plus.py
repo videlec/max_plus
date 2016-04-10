@@ -105,7 +105,10 @@ from sage.misc.misc import SAGE_TMP
 from sage.structure.sage_object import SageObject
 from sage.structure.element import generic_power
 
-from sage.combinat.words.words import FiniteWords
+try:
+    from sage.combinat.words.words import FiniteWords
+except ImportError:
+    from sage.combinat.words.words import Words as FiniteWords
 from sage.combinat.words.suffix_trees import SuffixTrie
 
 try:
@@ -1618,7 +1621,6 @@ def is_sv_identity(p, s, d, prefix=(), skip_common_factors=True, status=False):
         output = ''
     # compute the common factors of p and s
     if skip_common_factors:
-        from sage.combinat.words.words import FiniteWords
         F = FiniteWords('xy')
         facts = set(tuple(f) for f in F(p).factor_set(d-1)).intersection(
                     (tuple(f) for f in F(s).factor_set(d-1)))
