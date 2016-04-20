@@ -3,19 +3,25 @@
 ## Introduction
 
 To run the library you need to install Sage (http://sagemath.org). Then clone
-this repository (or download the files `max_plus.py` and `int_max_plus.pyx`).
-Go to the directory where you cloned or downloaded the file. Start Sage and run
+this repository and just install it as a standard Python package:
 
-    sage: %runfile max_plus.py
+    $ sage -python setup.py install
+
+To check that it works just start Sage and try to load `max_plus` as follows
+
+    sage: import max_plus
+
+If you do not get error message with the above line, then you are done.
 
 ## Symbolic and integer max plus matrices
 
-Once you are able to load the file `max_plus.py`, you can create symbolic
-matrices with the following functions
+The max plus symbolic module define a certain number of functions
 
-    symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch, sym)
-	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch, sym)
-    symbolic_max_plus_matrices(d, n, ch, sym)
+    symbolic_max_plus_matrices_band(d, n, diag, surdiag, ch, typ)
+	symbolic_max_plus_matrices_upper(d, n, diag, surdiag, ch, typ)
+    symbolic_max_plus_matrices(d, n, ch, typ)
+    symbolic_max_plus_identity(d, nvar, ch)
+
 
 for respectively band, upper triangular and full matrices. The arguments are
 
@@ -33,15 +39,17 @@ for respectively band, upper triangular and full matrices. The arguments are
 - `ch` - (optional) set the convex hull engine (could be one of 'ppl', 'cdd'
   or 'PALP'). It defaults to 'ppl' which seems to be the fastest.
 
-- `sym` - (optional, default to `True`) specifies the implementation: if `sym`
-  is `True` the matrices do not store all the coefficients (only two in the case
+- `typ` - (optional, default to `sym`) specifies the implementation: if `'sym'`
+  the matrices do not store all the coefficients (only two in the case
   of full matrices and `d` in the case of triangular ones). The multiplication
   in these case should be a little bit faster (by a factor `d^2` for dense
-  matrix but much less for triangular ones). This should be set to `False` only
+  matrix but much less for triangular ones). This should be set to `'full'` only
   to debug the code or to play with `diag=c` or `surdiag=c` that are not
   compatible with this option.
 
 For example you can do
+
+	sage: from max_plus import *
 
     sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'z', 'v')
     sage: x
@@ -98,10 +106,8 @@ And with full 3x3 matrices
 	[ max(x6+x8, x3+x7, x0+x6) max(x7+x8, x4+x7, x1+x6)   max(2x8, x5+x7, x2+x6) ]
 
 From a symbolic matrix you can obtain an integer max plus matrix using the
-method `eval`. For that you first need to compile `int_max_plus.pyx`
+method `eval`:: 
 
-    sage: %runfile int_max_plus.pyx
-    Compiling ./int_max_plus.pyx...
     sage: x,y = symbolic_max_plus_matrices_band(3, 2, 'z', 'v')
     sage: xv = x.eval((1,-1,0,3))
     sage: xv
@@ -128,7 +134,7 @@ matrices.
 
 ## Combinatorics
 
-There are currently few functions to check some relations combinatorially in `B^{sv}_d`.
+There are currently some functions to check relations in `B^{sv}_d` and `B^{vv}_d`.
 
 - `def occurrences(w, u)`: return the occurrences of `u` in `w`
 
@@ -156,29 +162,32 @@ must be written with the letters 'x' and 'y'):
 
 Here are some examples
 
+	sage: from max_plus import *
+
     sage: p = 'xyxxyy'
     sage: s = 'xxyyxy'
-    sage: is_sv_identity(p, s, 3)
+    sage: is_sv_identity(p+'x'+s, p+'y'+s, 3)
     True
 
     sage: p = 'xyyxxxyyyyxxxx'
     sage: s = 'yyyyxxxxyyyxxy'
-    sage: %time is_sv_identity(p, s, 5)
-	CPU times: user 136 ms, sys: 4 ms, total: 140 ms
-	Wall time: 130 ms
+    sage: %time is_sv_identity(p+'x'+s, p+'y'+s, 5)
+	CPU times: user 48 ms, sys: 12 ms, total: 60 ms
+	Wall time: 55.7 ms
 	True
 
 	sage: p = 'xyyxxxyyyyxxxxxyyyyy'
 	sage: s = 'xxxxxyyyyyxxxxyyyxxy'
-	sage: %time is_sv_identity(p, s, 6)
-	CPU times: user 812 ms, sys: 8 ms, total: 820 ms
-	Wall time: 786 ms
+	sage: %time is_sv_identity(p+'x'+s, p+'y'+s, 6)
+	CPU times: user 276 ms, sys: 8 ms, total: 284 ms
+	Wall time: 259 ms
 	True
-    sage: is_sv_identity(p, s, 7)
+	True
+    sage: is_sv_identity(p+'x'+s, p+'y'+s, 7)
     False
 
 	sage: p,s = vincent_sv_prefix_suffix(7)
-	sage: is_sv_identity_parallel(p, s, 7, 3, logfile=sys.stdout)
+	sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 7, 3, logfile=sys.stdout)
 	u = xxxxyx
 	num ext. occ.: 371
 	num faces    : 16
@@ -199,27 +208,6 @@ Here are some examples
 
 	True
 
-## Experimental
-
-There is an implementation of barycentric decomposition with PPL Linear
-programming. In order to use it you need to install the [pplpy
-package](https://pypi.python.org/pypi/pplpy/). It is essentially a fork of some
-files in Sage with several bug fixes and improvements. To install it just do
-
-    $ sage -pip install pplpy
-
-Once this is done, you can use the following function
-
-- `barycentric_coordinates(pts, q)`: return the barycentric coordinates of the point `q` with
-  respect to the points `pts`. If `q` does not belong to the convex hull of `pts` the value
-  `None` is returned instead
-
-(if you did not installed the package, running this function will crash Sage!)
-
-For example
-
-    sage: barycentric_coordinates([(2,3,6),(2,3,18),(15,16,18)], (8,9,13))
-	[5/12, 19/156, 6/13]
 
 ## Contact
 

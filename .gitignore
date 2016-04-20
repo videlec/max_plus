@@ -1,2 +1,7 @@
 *.pyc
-relations/*
+*.swp
+max_plus/*.c
+max_plus/*.so
+home/
+identities/
+build/
