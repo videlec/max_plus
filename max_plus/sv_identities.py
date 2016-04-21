@@ -2,19 +2,21 @@ r"""
 Identities for matrices in `B^{sv}_d`.
 """
 
+from __future__ import print_function, division, absolute_import
+
 from time import time
 import itertools
 import math
 import sys
 
 
-from sage_import import *
-from combinat import (extremal_occurrences,
+from .sage_import import *
+from .combinat import (extremal_occurrences,
                       prefix_suffix_all_subwords,
                       iterate_over_holes,
                       has_all_subwords)
-from perm_lex_order import PermLexOrder
-from convex_hull import ppl_polytope
+from .perm_lex_order import PermLexOrder
+from .convex_hull import ppl_polytope
 
 ##############################
 # Global immutable constants #
@@ -349,7 +351,7 @@ def fill_sv(u, d, alphabet=None, verbose=False):
         alphabet = set(u)
     is_trivial,v = prefix_suffix_all_subwords(u, d-1)
     if is_trivial:
-        if verbose: print "trivial"
+        if verbose: print("trivial")
         return v,True
     for m in itertools.product(alphabet, repeat=d-1):
         fill_sv_with_random_lex_samples(u, v, m, W01)
@@ -528,10 +530,10 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001111001 11001011001
         11001111010 11001011010
     """
-    from max_plus_int import (random_integer_max_plus_matrices_band,
+    from .max_plus_int import (random_integer_max_plus_matrices_band,
             filter_sv_relation)
 
-    from word import product_start_stop
+    from .word import product_start_stop
 
     a = int(math.sqrt(sys.maxint)/2)
     elements = [random_integer_max_plus_matrices_band(d, -a, a, ord('s'), ord('v')) for _ in range(nb_mats)]

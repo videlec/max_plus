@@ -1,9 +1,14 @@
-from sage_import import *
+r"""
+Identities in `B^{vv}_d`
+"""
+from __future__ import print_function, division, absolute_import
 
 import itertools
 from time import time
-from combinat import occurrences, runs, has_all_subwords
-from convex_hull import ppl_polytope
+
+from .sage_import import *
+from .combinat import occurrences, runs, has_all_subwords
+from .convex_hull import ppl_polytope
 
 def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
     r"""

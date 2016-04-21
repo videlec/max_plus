@@ -1,6 +1,8 @@
+from __future__ import print_function, division, absolute_import
+
 import itertools
 
-from sage_import import *
+from .sage_import import *
 
 #########################
 # Combinatorial methods #
@@ -314,8 +316,8 @@ def extremal_occurrences(w, u, W=None, verbose=False):
     for (r,letter),s in S._transition_function.iteritems():
         tf[(r,letter[0])] = s
     if verbose:
-        print "sl = {}".format(sl)
-        print "tf = {}".format(tf)
+        print("sl = {}".format(sl))
+        print("tf = {}".format(tf))
     lengths  = [None]*len(sl)
     lengths[0] = 0      # lengths of the factors
     todo = [0]
@@ -328,7 +330,7 @@ def extremal_occurrences(w, u, W=None, verbose=False):
                 lengths[s1] = lengths[s0] + 1
                 todo.append(s1)
     if verbose:
-        print "lengths = {}".format(lengths)
+        print("lengths = {}".format(lengths))
 
 
     # 2. run through w
@@ -346,11 +348,11 @@ def extremal_occurrences(w, u, W=None, verbose=False):
                                        #       suffix trie
     for iw,letter in enumerate(w):
         if verbose:
-            print "iw = {} letter={}".format(iw,letter)
-            print "fact_occ = {}".format(fact_occ)
-            print "pos"
+            print("iw = {} letter={}".format(iw,letter))
+            print("fact_occ = {}".format(fact_occ))
+            print("pos")
             for ll in range(len(pos)):
-                print "    {}: {}".format(ll,pos[ll])
+                print("    {}: {}".format(ll,pos[ll]))
         # a. compute the maximum state that can be extended as well as the new
         #    state after having read letter
         old_state = state
@@ -361,12 +363,12 @@ def extremal_occurrences(w, u, W=None, verbose=False):
         if new_state is None:
             new_state = 0
         if verbose:
-            print "state = {}, new_state = {}".format(state, new_state)
+            print("state = {}, new_state = {}".format(state, new_state))
 
         # b. process subword occurrences
         for length in range(len(u)-1,0,-1):
             if verbose:
-                print "  length={}".format(length)
+                print("  length={}".format(length))
             if letter == u[length]:
                 k = 0
                 while k < len(pos[length-1]):
@@ -374,7 +376,7 @@ def extremal_occurrences(w, u, W=None, verbose=False):
                     i0, j0, s0 = x[-1]
                     j1 = x[-2][1] if len(x) > 2 else 0
                     lb = x[0]
-                    if verbose: print "  x={}  lb={}  j1={}".format(x,lb,j1)
+                    if verbose: print("  x={}  lb={}  j1={}".format(x,lb,j1))
                     if j0 == iw:
                         # case when the last block can be continued
                         xx = x[:-1]
@@ -383,7 +385,7 @@ def extremal_occurrences(w, u, W=None, verbose=False):
                         pos[length].append(xx)
                         xx[0] = xx[0] or fact_occ[ss] < j1 + lengths[ss]
                         k += 1
-                        if verbose: print "  continue last block {}->{}".format(s0,ss)
+                        if verbose: print("  continue last block {}->{}".format(s0,ss))
                     elif lb or fact_occ[s0] == j0:
                         # case when the last block is either blocked on the left
                         # or on the right
@@ -393,9 +395,9 @@ def extremal_occurrences(w, u, W=None, verbose=False):
                         xx[0] = fact_occ[ss] < j0 + 1
                         pos[length].append(xx)
                         k += 1
-                        if verbose: print "  new block {}".format(ss)
+                        if verbose: print("  new block {}".format(ss))
                     else:
-                        if verbose: print "  delete x"
+                        if verbose: print("  delete x")
                         # we remove x
                         del pos[length-1][k]
 
@@ -411,7 +413,7 @@ def extremal_occurrences(w, u, W=None, verbose=False):
         while s is not None:
             fact_occ[s] = iw+1
             s = sl[s]
-        if verbose: print
+        if verbose: print()
 
     return [sum((tuple(range(i,j)) for (i,j,k) in x[1:]),()) for x in pos[-1] if x[0] or fact_occ[x[-1][2]] == x[-1][1]]
 

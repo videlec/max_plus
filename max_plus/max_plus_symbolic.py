@@ -94,6 +94,7 @@ belong to a same given subspace of rank 5 (where we have 8 variables)::
     - `intersection_assign` method for intersection
     - `relation_with` for containment
 """
+from __future__ import print_function, division, absolute_import
 
 import itertools
 import multiprocessing as mp
@@ -103,8 +104,8 @@ import os
 import sys
 from time import time
 
-from sage_import import *
-from convex_hull import get_convex_hull_engine
+from .sage_import import *
+from .convex_hull import get_convex_hull_engine
 
 ##########################################
 # Main function helper to build matrices #
