@@ -2,16 +2,24 @@
 
 ## Introduction
 
-To run the library you need to install Sage (http://sagemath.org). Then clone
-this repository and just install it as a standard Python package:
+To run the library you need to install Sage (http://sagemath.org). If you
+have Sage, you need to clone this repository (using `git`) and install
+it running
 
     $ sage -python setup.py install
+
+If you do not administrative access to your Sage installation, then do
+
+    $ sage -python setup.py build_ext --inplace
 
 To check that it works just start Sage and try to load `max_plus` as follows
 
     sage: import max_plus
 
 If you do not get error message with the above line, then you are done.
+
+Note that if you used the second installation method (`build_ext --inplace`)
+then this module is available only from the repository `max_plus`.
 
 ## Symbolic and integer max plus matrices
 

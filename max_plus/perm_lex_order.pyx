@@ -104,6 +104,8 @@ cdef class PermLexOrder:
 
         TESTS::
 
+            sage: from max_plus.perm_lex_order import PermLexOrder
+
             sage: p = PermLexOrder([2,3,1,0], [0,0,0,0])
             sage: p
             Perm lexicographic order 2- 3- 1- 0-

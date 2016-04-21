@@ -15,7 +15,7 @@ def product_start_stop(tuple start, tuple stop):
     EXAMPLES::
 
         sage: from max_plus.word import product_start_stop
-        sage: for w in product_start_stop([0,0,0], [1,1,1]): print w
+        sage: for w in product_start_stop((0,0,0), (1,1,1)): print w
         (0, 0, 0)
         (0, 0, 1)
         (0, 1, 0)

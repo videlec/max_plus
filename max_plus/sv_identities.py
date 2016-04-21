@@ -439,10 +439,18 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001110110 11001010110
         11001111001 11001011001
         11001111010 11001011010
+        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
+        -1
+        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
+        -1
+        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
+        -1
+        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
+        -1
 
         sage: for i in sv_candidates(11, 3,
-        ....:     u_start = [1]*2 + [0]*9,
-        ....:     u_stop  = [1]*2 + [0,0] + [1]*7):
+        ....:     u_start = (1,)*2 + (0,)*9,
+        ....:     u_stop  = (1,)*2 + (0,0) + (1,)*7):
         ....:     if is_sv_identity(i[0], i[1], 3):
         ....:         print_identity(i)
         11001100110 11001000110
