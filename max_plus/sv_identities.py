@@ -98,7 +98,6 @@ def fill_sv_with_random_lex_samples(u, v, m, W=None, n_max=5):
         n += 1
         p.randomize()
 
-
 def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True, status=False):
     r"""
     Check if ``(left, right)`` is a B^{sv} identity in dimension ``d``.
@@ -233,12 +232,12 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
     right = W(right)
 
     if left == right:
-        return True
+        return (True, 'equal') if status else True
 
     if len(left) != len(right) or \
        not has_all_subwords(left, d-1) or \
        not has_all_subwords(right, d-1):
-       return False
+       return (False, 'subwords') if status else False
 
     n = len(left)
 
@@ -254,10 +253,10 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
     assert left.has_prefix(p) and right.has_prefix(p)
     assert left.has_suffix(s) and right.has_suffix(s)
     if not has_all_subwords(p, d-1) or not has_all_subwords(s, d-1):
-        return False
+        return (False, 'subwords') if status else False
 
     if left.factor_set(d-1) != right.factor_set(d-1):
-        return False
+        return (False, 'factor set') if status else False
 
     facts = p.factor_set(d-1).intersection(s.factor_set(d-1))
 
@@ -417,7 +416,7 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
         True
     """
     import multiprocessing as mp
-    from misc import parallel_unfold
+    from .misc import parallel_unfold
 
     close = False
     if isinstance(logfile, str):
@@ -427,16 +426,22 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
         ncpus = mp.cpu_count()
     pool = mp.Pool(ncpus)
 
-    if prefix_length is None:
-        from math import log
-        prefix_length = int(round(log(ncpus) / log(2)))
-
     if W is None:
         alphabet = sorted(set(left).union(right))
         W = FiniteWords(alphabet)
     else:
         alphabet = W.alphabet()
+
+    left = W(left)
+    right = W(right)
     
+    if len(left) != len(right):
+        return False
+
+    if prefix_length is None:
+        from math import log
+        prefix_length = min(1 + int(log(ncpus) / log(2)), d-1)
+
     tasks = ((verbose,is_sv_identity,left,right,d,W,prefix,check_common_factors,True) \
             for prefix in W.iterate_by_length(prefix_length))
     for ans,status in pool.imap_unordered(parallel_unfold, tasks):

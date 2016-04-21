@@ -103,7 +103,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
     n = len(left)
 
     if left == right:
-        return True
+        return (True, 'equal') if status else True
 
     if n != len(right) or \
        left.count(a) != right.count(a) or \
@@ -112,7 +112,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
        not has_all_subwords(left, d-1) or \
        not has_all_subwords(right, d-1) or \
        left.factor_set(d-1) != right.factor_set(d-1):
-        return False
+        return (False, 'letter count, subwords, factors') if status else False
 
     # we need 2(d-1) runs in common prefix/suffix
     lruns = runs(left)
@@ -120,26 +120,26 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
     if len(lruns) < 4*(d-1) or len(rruns) < 4*(d-1) or \
         lruns[:2*(d-1)] != rruns[:2*(d-1)] or \
         lruns[-2*(d-1):] != rruns[-2*(d-1):]:
-        return False
+        return (False,'runs') if status else False
 
     # maximal run should appear in same first and last positions
     ilmax = max(lruns)
     irmax = max(rruns)
     if ilmax != irmax:
-        return False
+        return (False,'max run') if status else False
     il = 0
     while lruns[il] != ilmax: il += 1
     ir = 0
     while rruns[ir] != ilmax: ir += 1
     if sum(lruns[:il]) != sum(rruns[:ir]):
-        return False
+        return (False,'max run') if status else False
 
     il = len(lruns) - 1
     while lruns[il] != ilmax: il -= 1
     ir = len(rruns) - 1
     while rruns[ir] != irmax: ir -= 1
     if sum(lruns[il:]) != sum(rruns[ir:]):
-        return False
+        return (False,'max run') if status else False
 
     if status:
         output = ''
@@ -213,7 +213,7 @@ def is_vv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
       information about each occurrence polytope or sys.stdout
     """
     import multiprocessing as mp
-    from misc import parallel_unfold
+    from .misc import parallel_unfold
 
     close = False
     if isinstance(logfile, str):
@@ -223,15 +223,21 @@ def is_vv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
         ncpus = mp.cpu_count()
     pool = mp.Pool(ncpus)
 
-    if prefix_length is None:
-        from math import log
-        prefix_length = int(round(log(ncpus) / log(2)))
-
     if W is None:
         alphabet = sorted(set(left).union(right))
         W = FiniteWords(alphabet)
     else:
         alphabet = W.alphabet()
+
+    left = W(left)
+    right = W(right)
+
+    if len(left) != len(right):
+        return False
+
+    if prefix_length is None:
+        from math import log
+        prefix_length = min(1 + int(log(ncpus) / log(2)), d-1)
 
     tasks =((verbose,is_vv_identity,left,right,d,W,prefix,True) \
             for prefix in W.iterate_by_length(prefix_length))
