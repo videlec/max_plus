@@ -1,3 +1,5 @@
+import itertools
+
 from sage_import import *
 
 #########################

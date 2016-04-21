@@ -26,6 +26,23 @@ cdef class PermLexOrder:
     cdef int n
 
     def __init__(self, perm=None, min_o_max=None, n=None):
+        r"""
+        INPUT:
+
+        - ``perm`` -- a permutation on `\{0, 1, ..., n\}`
+
+        - ``min_o_max`` -- a list of ``n`` booleans
+
+        - ``n`` -- an optional integer
+
+        TESTS::
+
+            sage: from max_plus.perm_lex_order import PermLexOrder
+            sage: PermLexOrder([3,0,1], [1,0,1])  # indirect doctest
+            Perm lexicographic order 3+ 0- 1+
+            sage: PermLexOrder(n=4)
+            Perm lexicographic order 0+ 1+ 2+ 3+
+        """
         if perm is None:
             self.n = int(n)
             perm = range(n)
@@ -46,17 +63,54 @@ cdef class PermLexOrder:
         free(self._p)
 
     def perm(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus.perm_lex_order import PermLexOrder
+            sage: PermLexOrder(n=4).perm()
+            [0, 1, 2, 3]
+            sage: PermLexOrder([3,0,1,2], [1,0,1,0]).perm()
+            [3, 0, 1, 2]
+        """
         return [self._p[i] for i in range(self.n)]
 
     def o(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus.perm_lex_order import PermLexOrder
+            sage: PermLexOrder(n=4).o()
+            [1, 1, 1, 1]
+            sage: PermLexOrder([3,2,0,1], [1,0,1,0]).o()
+            [1, 0, 1, 0]
+        """
         return [self._o[i] for i in range(self.n)]
 
     def __repr__(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus.perm_lex_order import PermLexOrder
+            sage: PermLexOrder(n=3)   # indirect doctest
+            Perm lexicographic order 0+ 1+ 2+
+        """
         return "Perm lexicographic order {}".format(
                   ' '.join('{}+'.format(i) if j else '{}-'.format(i) \
                            for (i,j) in zip(self.perm(), self.o())))
 
     def set_lex(self):
+        r"""
+        Set this order to the lexicographic one
+
+        TESTS::
+
+            sage: p = PermLexOrder([2,3,1,0], [0,0,0,0])
+            sage: p
+            Perm lexicographic order 2- 3- 1- 0-
+            sage: p.set_lex()
+            sage: p
+            Perm lexicographic order 0- 1- 2- 3-
+        """
         cdef int i
         for i in range(self.n):
             self._p[i] = i
@@ -89,20 +143,32 @@ cdef class PermLexOrder:
     def lt(self, tuple x, tuple y):
         r"""
         Check whether ``x`` is lesser than ``y``.
+
+        EXAMPLES::
+
+            sage: from max_plus.perm_lex_order import PermLexOrder
+            sage: p = PermLexOrder([3,0,1,2], [1,1,1,1])
+            sage: p.lt((0,1,3,2), (0,3,3,2))
+            True
+            sage: p.lt((1,1,1,0), (1,1,0,1))
+            True
+            sage: p.lt((2,2,2,2), (2,2,2,1))
+            False
+
+            sage: p = PermLexOrder([1,3,0,2], [1,0,0,1])
+            sage: p.lt((2,0,2,2), (2,2,2,2))
+            False
+            sage: p.lt((2,2,2,0), (2,2,2,2))
+            True
         """
         cdef int i,j
         for i in range(self.n):
             j = self._p[i]
-            if self._o[j]:
-                if x[j] < y[j]:
-                    return True
-                elif x[j] > y[j]:
-                    return False
-            else:
-                if x[j] > y[j]:
-                    return True
-                elif x[j] < y[j]:
-                    return False
+            if x[j] < y[j]:
+                return bool(self._o[j])
+            elif x[j] > y[j]:
+                return not self._o[j]
+
         return False
 
     def cmp(self, x, y):

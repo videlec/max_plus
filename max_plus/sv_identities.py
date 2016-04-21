@@ -6,7 +6,9 @@ from time import time
 import itertools
 
 from sage_import import *
-from combinat import extremal_occurrences, prefix_suffix_all_subwords
+from combinat import (extremal_occurrences,
+                      prefix_suffix_all_subwords,
+                      iterate_over_holes)
 from perm_lex_order import PermLexOrder
 from convex_hull import ppl_polytope
 
@@ -394,23 +396,84 @@ def vincent_sv_prefix_suffix(d):
     s = sletter * (d-1) + s
     return p,s
 
-def sv_candidates(n, d):
+def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
     r"""
     Iterator through the candidates for identities.
-    """
-    elements = [random_integer_max_plus_matrices_band(d, -2**32,
-        2**32, ord('s'), ord('v')) for _ in range(1000)]
 
-    for u in itertools.product(t01, repeat=n):
+    There is some randomness involved in the generation. Two runs of this
+    function might be different!
+
+    EXAMPLES::
+
+        sage: from max_plus import *
+
+        sage: def print_identity(i):
+        ....:     print ''.join(map(str,i[0])) + ' ' + ''.join(map(str,i[1]))
+
+        sage: for i in sv_candidates(5, 2):
+        ....:     if is_sv_identity(i[0], i[1], 2):
+        ....:         print_identity(i)
+        01110 01010
+        10101 10001
+        10110 10010
+
+        sage: for i in sv_candidates(11, 3):
+        ....:     if is_sv_identity(i[0], i[1], 3):
+        ....:         print_identity(i)
+        00110101100 00110001100
+        01011111010 01011011010
+        01100100110 01100000110
+        01100101100 01100001100
+        01101111010 01101011010
+        10011100110 10011000110
+        10011101100 10011001100
+        10011110110 10011010110
+        10011111001 10011011001
+        10011111010 10011011010
+        10100100101 10100000101
+        10100100110 10100000110
+        10100101100 10100001100
+        11001100110 11001000110
+        11001101100 11001001100
+        11001110011 11001010011
+        11001110110 11001010110
+        11001111001 11001011001
+        11001111010 11001011010
+
+        sage: for i in sv_candidates(11, 3,
+        ....:     u_start = [1]*2 + [0]*9,
+        ....:     u_stop  = [1]*2 + [0,0] + [1]*7):
+        ....:     if is_sv_identity(i[0], i[1], 3):
+        ....:         print_identity(i)
+        11001100110 11001000110
+        11001101100 11001001100
+        11001110011 11001010011
+        11001110110 11001010110
+        11001111001 11001011001
+        11001111010 11001011010
+    """
+    from max_plus_int import (random_integer_max_plus_matrices_band,
+            filter_sv_relation)
+
+    from word import product_start_stop
+
+    elements = [random_integer_max_plus_matrices_band(d, -2**32,
+        2**32, ord('s'), ord('v')) for _ in range(nb_mats)]
+
+    if u_start is None:
+        u_start = (0,)*n
+    if u_stop is None:
+        u_stop = (1,)*n
+
+    for u in product_start_stop(u_start, u_stop):
         if u[::-1] > u:
             continue
         v, no_hole = fill_sv(u, d, alphabet=t01)
         if no_hole:
             continue
         holes = [i for i in range(len(v)) if v[i] is None]
+        tu = tuple(u)
         for i in filter_sv_relation(
-                   ((u,v) for v in iterate_over_holes(u, v, holes, t01)),
+                   ((tu,v) for v in iterate_over_holes(u, v, holes, t01)),
                    n, d, elements):
             yield i
-
-

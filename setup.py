@@ -24,17 +24,13 @@ setup(name='max_plus',
       ext_modules=[
         Extension('max_plus.max_plus_int',
                 sources = [os.path.join('max_plus', 'max_plus_int.pyx')],
-                include_dirs = [
-                      SAGE_SRC,
-                      os.path.join(SAGE_SRC, 'sage', 'ext')
-                      ],
+                include_dirs = [SAGE_SRC],
             ),
         Extension('max_plus.perm_lex_order',
                 sources = [os.path.join('max_plus', 'perm_lex_order.pyx')],
-                include_dirs = [
-                      SAGE_SRC,
-                      os.path.join(SAGE_SRC, 'sage', 'ext')
-                      ],
+            ),
+        Extension('max_plus.word',
+                sources = [os.path.join('max_plus', 'word.pyx')],
             ),
         ],
         cmdclass = {'build_ext': build_ext}

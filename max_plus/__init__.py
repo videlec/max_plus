@@ -13,10 +13,8 @@ from max_plus_int import (
 from sv_identities import (
     is_sv_identity,
     is_sv_identity_parallel,
-    vincent_sv_prefix_suffix)
+    vincent_sv_prefix_suffix,
+    sv_candidates)
 
 from vv_identities import (
     is_vv_identity,)
-
-from perm_lex_order import (
-    PermLexOrder,)
