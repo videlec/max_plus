@@ -19,7 +19,11 @@ To check that it works just start Sage and try to load `max_plus` as follows
 If you do not get error message with the above line, then you are done.
 
 Note that if you used the second installation method (`build_ext --inplace`)
-then this module is available only from the repository `max_plus`.
+then this module is available only from the repository `max_plus`. On the other
+hand, if you used the first method, you should _not_ start Sage from the
+repository `max_plus`.
+
+If you update the repository (using `git pull`) you need to repeat this step.
 
 ## Symbolic and integer max plus matrices
 
