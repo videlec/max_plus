@@ -506,7 +506,9 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
 
     EXAMPLES::
 
-        sage: from max_plus import *
+        sage: from max_plus.sv_identities import (
+        ....:     sv_candidates,
+        ....:     is_sv_identity)
 
         sage: def print_identity(i):
         ....:     print ''.join(map(str,i[0])) + ' ' + ''.join(map(str,i[1]))
@@ -584,4 +586,40 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         for i in filter_sv_relation(
                    ((tu,v) for v in iterate_over_holes(u, v, holes, t01) if has_all_subwords(v, d-1)),
                    n, d, elements):
+            yield i
+
+def sv_identities(n, d, u_start=None, u_stop=None, nb_mats=1000):
+    r"""
+    Iterator through the identities in `B^{sv}_d` of length ``n`` (up to
+    symmetry).
+
+    EXAMPLES::
+
+        sage: from max_plus import *
+
+        sage: for i in sv_identities(6, 2):
+        ....:     print i
+        ((0, 1, 1, 0, 1, 0), (0, 1, 0, 0, 1, 0))
+        ((0, 1, 1, 0, 1, 0), (0, 1, 0, 1, 1, 0))
+        ((0, 1, 1, 1, 0, 0), (0, 1, 0, 1, 0, 0))
+        ((0, 1, 1, 1, 1, 0), (0, 1, 0, 0, 1, 0))
+        ((0, 1, 1, 1, 1, 0), (0, 1, 0, 1, 1, 0))
+        ((0, 1, 1, 1, 1, 0), (0, 1, 1, 0, 1, 0))
+        ((1, 0, 0, 1, 1, 0), (1, 0, 0, 0, 1, 0))
+        ((1, 0, 1, 0, 0, 1), (1, 0, 0, 0, 0, 1))
+        ((1, 0, 1, 0, 0, 1), (1, 0, 0, 1, 0, 1))
+        ((1, 0, 1, 0, 1, 0), (1, 0, 0, 0, 1, 0))
+        ((1, 0, 1, 0, 1, 0), (1, 0, 0, 1, 1, 0))
+        ((1, 0, 1, 1, 0, 0), (1, 0, 0, 1, 0, 0))
+        ((1, 0, 1, 1, 0, 1), (1, 0, 0, 0, 0, 1))
+        ((1, 0, 1, 1, 0, 1), (1, 0, 0, 1, 0, 1))
+        ((1, 0, 1, 1, 0, 1), (1, 0, 1, 0, 0, 1))
+        ((1, 0, 1, 1, 1, 0), (1, 0, 0, 0, 1, 0))
+        ((1, 0, 1, 1, 1, 0), (1, 0, 0, 1, 1, 0))
+        ((1, 0, 1, 1, 1, 0), (1, 0, 1, 0, 1, 0))
+        ((1, 1, 0, 1, 0, 1), (1, 1, 0, 0, 0, 1))
+        ((1, 1, 0, 1, 1, 0), (1, 1, 0, 0, 1, 0))
+    """
+    for i in sv_candidates(n, d):
+        if is_sv_identity(i[0], i[1], d):
             yield i

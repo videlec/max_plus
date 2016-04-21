@@ -30,7 +30,6 @@ The max plus symbolic module define a certain number of functions
     symbolic_max_plus_matrices(d, n, ch, typ)
     symbolic_max_plus_identity(d, nvar, ch)
 
-
 for respectively band, upper triangular and full matrices. The arguments are
 
 - `d` - the dimension
@@ -142,31 +141,31 @@ matrices.
 
 ## Combinatorics
 
-There are currently some functions to check relations in `B^{sv}_d` and `B^{vv}_d`.
+To check identities you can use the following functions:
 
-- `def occurrences(w, u)`: return the occurrences of `u` in `w`
+- `is_sv_identity(left, right, d, W, prefix, check_common_factors)`: check whether `(left, right)` is an identity in `B^{sv}_d`.
 
-- `def extremal_occurrences(w, u)`: return the 1-extremal occurrences of `u` in
-  `w` (the convex hull of this set is the same as all occurrences)
-
-- `def letter_extremal_occurrences(w, u)`: return the extremal occurrences of
-  `u` in `w` (the convex hull of this set is the same as all occurrences)
-
-- `def extremal_mid_occurrences(p, s, u)`: return the occurrences of `u` in
-  `p*s` where the occurrence uses the joker letter `*`.
-
-To check identities you can use the following functions (note that identities
-must be written with the letters 'x' and 'y'):
-
-- `is_sv_identity(p, s, d, prefix, skip_common_factors)`: check whether `(pxs,pys)` is an identity in `B^{sv}_d`.
-
-- `is_sv_identity_parallel(p, s, d, prefix_length, ncpus, verbose,
-  skip_common_factors, logfile)`: the same as above but with parallelization.
+- `is_sv_identity_parallel(left, right, d, W, prefix_length, ncpus, verbose,
+  check_common_factors, logfile)`: the same as above but with parallelization.
   The argument `prefix_length` is used to chunk the subwords into different
   jobs: if it is set to `k` then there will be `2^k` jobs which correspond to
   the `2^k` possible prefixes. The argument `logfile` can be set to either
   `sys.stdout` or a string in which case details about the execution will be
   written in a file with that name.
+
+You can also list identities (as tuple over `{0,1}`) with:
+
+- `def sv_identities(n, d, u_start, u_stop, nb_mats)`: where
+
+  - `n` -- length of the identity
+
+  - `d` -- dimension
+
+  - `u_start` -- an optional start
+
+  - `u_stop` -- an optional stop
+
+  - `nb_mats` -- the number of matrices used to numerical rejection
 
 Here are some examples
 
@@ -216,6 +215,24 @@ Here are some examples
 
 	True
 
+    sage: for i in sv_identities(11, 3):
+    ....:     print i
+	((0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0), (0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0))
+	((0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0), (0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0))
+	((0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0), (0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0))
+	((0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0), (0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0))
+	((1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0), (1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0))
+	((1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0), (1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0))
+	((1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1), (1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1))
+	((1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0), (1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0))
+	((1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1), (1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1))
+	((1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0), (1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0))
+	((1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0), (1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0))
+	((1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0), (1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0))
+	((1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0), (1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0))
+	((1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1), (1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1))
+	((1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1), (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1))
+	((1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0), (1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0))
 
 ## Contact
 
