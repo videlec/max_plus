@@ -54,7 +54,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         sage: print info
         u = 00
         num ext. occ.: 45
-        num int. occ.: 10
+        num int. occ.: 20
         num faces    : 13
         num verts    : 16
         polytope computation in ...secs
@@ -62,7 +62,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         <BLANKLINE>
         u = 01
         num ext. occ.: 50
-        num int. occ.: 11
+        num int. occ.: 21
         num faces    : 12
         num verts    : 15
         polytope computation in ...secs
@@ -70,7 +70,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         <BLANKLINE>
         u = 10
         num ext. occ.: 50
-        num int. occ.: 10
+        num int. occ.: 21
         num faces    : 12
         num verts    : 15
         polytope computation in ...secs
@@ -78,7 +78,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         <BLANKLINE>
         u = 11
         num ext. occ.: 45
-        num int. occ.: 10
+        num int. occ.: 20
         num faces    : 13
         num verts    : 16
         polytope computation in ...secs
@@ -86,6 +86,11 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
 
         sage: all(is_vv_identity(t(i[0]), t(i[1]), 3, W=F) for i in sv_identities(11, 3))
         True
+
+        sage: u = (0,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0)
+        sage: v = (0,1,1,1,0,0,1,0,1,1,0,0,1,0,1,0)
+        sage: is_vv_identity(u,v,3)
+        False
     """
     if W is None:
         alphabet = sorted(set(left).union(right))
@@ -154,12 +159,12 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         # TODO: count the number of points in extremal_mid_occurrences and add
         # it to status
         # similarly, if there is a bad descent word, add it
-        left_occ = set(tuple(left[:i].count(a) for i in occ) + \
+        left_occ = set([tuple(left[:i].count(a) for i in occ) + \
                        tuple(left[:i].count(b) for i in occ) \
-                       for occ in occurrences(left, u))
-        right_occ = set(tuple(right[:i].count(a) for i in occ) + \
+                       for occ in occurrences(left, u)])
+        right_occ = set([tuple(right[:i].count(a) for i in occ) + \
                        tuple(right[:i].count(b) for i in occ) \
-                       for occ in occurrences(right, u))
+                       for occ in occurrences(right, u)])
 
         inter = left_occ.intersection(right_occ)
         if not inter:
@@ -168,7 +173,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
                 output += 'no int. occ.'
             continue
 
-        union = left_occ.difference(right_occ)
+        union = left_occ.symmetric_difference(right_occ)
         if status:
             t0 = time()
         P = ppl_polytope(inter)
@@ -180,6 +185,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
             output += 'num verts    : {}\n'.format(len(P.minimized_generators()))
             output += 'polytope computation in {}secs\n'.format(time()-t0)
             t0 = time()
+
         for o in union:
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
