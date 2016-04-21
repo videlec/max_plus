@@ -4,6 +4,9 @@ Identities for matrices in `B^{sv}_d`.
 
 from time import time
 import itertools
+import math
+import sys
+
 
 from sage_import import *
 from combinat import (extremal_occurrences,
@@ -530,8 +533,8 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
 
     from word import product_start_stop
 
-    elements = [random_integer_max_plus_matrices_band(d, -2**32,
-        2**32, ord('s'), ord('v')) for _ in range(nb_mats)]
+    a = int(math.sqrt(sys.maxint)/2)
+    elements = [random_integer_max_plus_matrices_band(d, -a, a, ord('s'), ord('v')) for _ in range(nb_mats)]
 
     if u_start is None:
         u_start = (0,)*n

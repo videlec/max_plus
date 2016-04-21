@@ -234,7 +234,7 @@ def filter_sv_relation(iterator,
         ....:             if m1 == m2:
         ....:                 break
         ....:             yield (p + m1 + s, p + m2 + s)
-        sage: elements = [random_integer_max_plus_matrices_band(4, -2**30, 2**30, ord('s'), ord('v')) for _ in range(100)]
+        sage: elements = [random_integer_max_plus_matrices_band(4, -2**10, 2**10, ord('s'), ord('v')) for _ in range(100)]
         sage: it = filter_sv_relation(my_iterator(), 19, 4, elements)
         sage: it.next()  # random
         ((0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0),
@@ -260,8 +260,6 @@ def filter_sv_relation(iterator,
         ....:     assert s1 == s2, "\nm1={}\n\nm2={}".format(
         ....:                elements[0][0].list(),
         ....:                elements[0][1].list())
-
-
     """
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int * r1     # C copy of left part of relations
