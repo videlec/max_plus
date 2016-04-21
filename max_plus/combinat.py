@@ -372,16 +372,20 @@ def prefix_suffix_all_subwords(left, r):
         (False, ['a', 'b', 'a', 'a', 'b', None, None, None, 'b', 'a', 'b', 'a'])
         sage: prefix_suffix_all_subwords(list('bbaabababa'), 2)
         (False, ['b', 'b', 'a', 'a', 'b', None, 'b', 'a', 'b', 'a'])
+        sage: prefix_suffix_all_subwords(list('abbababbab'), 2)
+        (False, ['a', 'b', 'b', 'a', None, 'a', 'b', 'b', 'a', 'b'])
+        sage: prefix_suffix_all_subwords(list('abbababbaab'), 2)
+        (False, ['a', 'b', 'b', 'a', None, None, None, 'b', 'a', 'a', 'b'])
     """
     n = len(left)
 
     # minimal prefix
     i = 0
     k = 0
-    while i < n-1 and k < r:
+    while i < n and k < r:
         i0 = i
         i += 1
-        while i < n-1 and left[i] == left[i0]:
+        while i < n and left[i] == left[i0]:
             i += 1
         k += 1
         i += 1

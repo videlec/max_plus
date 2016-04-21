@@ -44,6 +44,22 @@ def fill_sv_with_random_lex_samples(u, v, m, W=None, n_max=5):
         [0, 1, 1, 0, 0, None, 1, 1, 0, 0, 1]
         sage: v[5] is None
         True
+
+    TESTS::
+
+        sage: for u in ((0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0),
+        ....:           (1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+        ....:           (1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0),
+        ....:           (0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0),
+        ....:           (1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0),
+        ....:           (1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0)):
+        ....:     for _ in range(100):
+        ....:         v = [None] * 11
+        ....:         fill_sv_with_random_lex_samples(u, v, [0,0], n_max=50)
+        ....:         fill_sv_with_random_lex_samples(u, v, [0,1], n_max=50)
+        ....:         fill_sv_with_random_lex_samples(u, v, [1,0], n_max=50)
+        ....:         fill_sv_with_random_lex_samples(u, v, [1,1], n_max=50)
+        ....:         assert v[5] is None, "u = {}".format(u)
     """
     k = len(m)
     if W is None:
@@ -60,20 +76,72 @@ def fill_sv_with_random_lex_samples(u, v, m, W=None, n_max=5):
         raise ValueError("u = {}, v = {}, m = {}".format(u, v, m))
     for i in range(len(occ)):
         o = occ[i]
-        oo = [o[0]] + [o[j+1]-o[j] for j in range(len(o)-1)] + [-o[-1]]
-        occ[i] = tuple(oo) + o
+        assert len(o) == k, "o = {} m = {}".format(o, m)
+        occ[i] = (o[0],) + tuple([o[j+1]-o[j] for j in range(k-1)]) + o
+        assert len(occ[i]) == 2*k
 
-    p = PermLexOrder(n=k+1)
+    p = PermLexOrder(n=k)
     n = 0
     while n < n_max:
         o_min_max = p.min_max(occ)
         for pos in o_min_max:
-            for i in pos[k+1:]:
+            for i in pos[k:]:
                 if v[i] is None:
                     n = 0
                     v[i] = u[i]
         n += 1
         p.randomize()
+
+def has_all_subwords(w, r):
+    r"""
+    EXAMPLES::
+
+        sage: from max_plus.sv_identities import has_all_subwords
+        sage: W = FiniteWords([0,1])
+        sage: for w in W.iterate_by_length(4):
+        ....:     print w, has_all_subwords(w, 2)
+        0000 False
+        0001 False
+        0010 False
+        0011 False
+        0100 False
+        0101 True
+        0110 True
+        0111 False
+        1000 False
+        1001 True
+        1010 True
+        1011 False
+        1100 False
+        1101 False
+        1110 False
+        1111 False
+
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(4))
+        0
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(5))
+        0
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(6))
+        8
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(7))
+        40
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(8))
+        128
+    """
+    n = len(w)
+    i = 0
+    k = 0
+    while i < n and k < r:
+        i0 = i
+        i += 1
+        while i < n and w[i] == w[i0]:
+            i += 1
+        if i == n:
+            return False
+        k += 1
+        i += 1
+
+    return k == r
 
 def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True, status=False):
     r"""
@@ -119,7 +187,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: print info    # only one factor tested!
         u = yy
         num ext. occ.: 3
-        num int. occ.: 1
+        num int. occ.: 6
         num faces    : 3
         num verts    : 3
         polytope computation in ...secs
@@ -129,25 +197,25 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: print info    # all factors are tested
         u = xx
         num ext. occ.: 5
-        num int. occ.: 0
+        num int. occ.: 6
         num faces    : 4
         num verts    : 4
         ...
         u = xy
         num ext. occ.: 4
-        num int. occ.: 0
+        num int. occ.: 4
         num faces    : 4
         num verts    : 4
         ...
         u = yx
         num ext. occ.: 4
-        num int. occ.: 0
+        num int. occ.: 4
         num faces    : 4
         num verts    : 4
         ...
         u = yy
         num ext. occ.: 3
-        num int. occ.: 1
+        num int. occ.: 6
         num faces    : 3
         num verts    : 3
         ...
@@ -182,34 +250,56 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         True
         sage: is_sv_identity(u, v, 5)
         False
+
+        sage: for u in [(0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0),
+        ....:           (1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0),
+        ....:           (1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1),
+        ....:           (1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1)]:
+        ....:     v = u[:5] + (1,) + u[-5:]     
+        ....:     test1 = is_sv_identity(u,v,3,check_common_factors=True)
+        ....:     test2 = is_sv_identity(u,v,3,check_common_factors=False)
+        ....:     if test1 != test2:
+        ....:         raise RuntimeError("u = {}, test1 = {}, test2 = {}".format(
+        ....:                        u,test1,test2))
     """
-    n = len(left)
-    if n != len(right):
-        raise RuntimeError("the two sides must have same length")
-
-    if status:
-        output = ''
-
     if W is None:
-        alphabet = sorted(set(left))
+        alphabet = sorted(set().union(left,right))
         W = FiniteWords(alphabet)
 
     left = W(left)
     right = W(right)
 
-    # compute the common factors of p and s
-    if check_common_factors:
-        # compute common prefix and suffix
-        i = 0
-        while left[i] == right[i]:
-            i += 1
-        p = left[:i]
-        i = n-1
-        while left[i] == right[i]:
-            i -= 1
-        s = left[i:]
-        facts = set(f for f in p.factor_set(d-1)).intersection(
-                    (f for f in s.factor_set(d-1)))
+    if left == right:
+        return True
+
+    if len(left) != len(right) or \
+       not has_all_subwords(left, d-1) or \
+       not has_all_subwords(right, d-1):
+       return False
+
+    n = len(left)
+
+    # compute common prefix and suffix
+    i = 0
+    while left[i] == right[i]:
+        i += 1
+    p = left[:i]
+    i = n-1
+    while left[i] == right[i]:
+        i -= 1
+    s = left[i+1:]
+    assert left.has_prefix(p) and right.has_prefix(p)
+    assert left.has_suffix(s) and right.has_suffix(s)
+    if not has_all_subwords(p, d-1) or not has_all_subwords(s, d-1):
+        return False
+
+    if left.factor_set(d-1) != right.factor_set(d-1):
+        return False
+
+    facts = p.factor_set(d-1).intersection(s.factor_set(d-1))
+
+    if status:
+        output = ''
 
     # now iterate through all words `u` with given prefix
     pref = W(prefix)
@@ -231,7 +321,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         if not inter:
             raise ValueError("void intersection:\n left = {}\n right = {}\n u = {}\n left_occ = {}\n right_occ = {}".format(
                 left, right, u, left_occ, right_occ))
-        union = left_occ.difference(right_occ)
+        union = left_occ.union(right_occ)
 
         if status:
             t0 = time()
@@ -255,7 +345,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
             output += '\n'
     return (True,output) if status else True
 
-def fill_sv(u, d, alphabet=None):
+def fill_sv(u, d, alphabet=None, verbose=False):
     r"""
     Iterator through the candidates compatible with ``u`` for a (s,v)-relation
     in `B^{sv}_d`
@@ -283,12 +373,23 @@ def fill_sv(u, d, alphabet=None):
         False
         sage: v[9] is None
         True
+
+    TESTS::
+
+        sage: for u in ((0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0),
+        ....:           (0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0),
+        ....:           (1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0),
+        ....:           (1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0),
+        ....:           (1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+        ....:           (1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0)):
+        ....:     assert fill_sv(u, 3, (0,1), verbose=True)[0][5] is None
     """
     n = len(u)
     if alphabet is None:
         alphabet = set(u)
     is_trivial,v = prefix_suffix_all_subwords(u, d-1)
     if is_trivial:
+        if verbose: print "trivial"
         return v,True
     for m in itertools.product(alphabet, repeat=d-1):
         fill_sv_with_random_lex_samples(u, v, m, W01)
@@ -424,10 +525,8 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         01011111010 01011011010
         01100100110 01100000110
         01100101100 01100001100
-        01101111010 01101011010
         10011100110 10011000110
         10011101100 10011001100
-        10011110110 10011010110
         10011111001 10011011001
         10011111010 10011011010
         10100100101 10100000101
@@ -436,17 +535,17 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001100110 11001000110
         11001101100 11001001100
         11001110011 11001010011
-        11001110110 11001010110
         11001111001 11001011001
         11001111010 11001011010
-        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
-        -1
-        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
-        -1
-        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
-        -1
-        sage: sum(is_sv_identity(i[0], i[1], 3) for i in sv_candidates(11,3))
-        -1
+
+        sage: l = [[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=True)] \
+        ....:      for _ in range(5)]
+        sage: l.extend([[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=False)] \ 
+        ....:      for _ in range(5)])
+        sage: for i in range(len(l)):
+        ....:     for j in range(i):
+        ....:         if l[i] != l[j]:
+        ....:             print set(l[i]).symmetric_difference(l[j])
 
         sage: for i in sv_candidates(11, 3,
         ....:     u_start = (1,)*2 + (0,)*9,
@@ -456,7 +555,6 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001100110 11001000110
         11001101100 11001001100
         11001110011 11001010011
-        11001110110 11001010110
         11001111001 11001011001
         11001111010 11001011010
     """
@@ -476,12 +574,14 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
     for u in product_start_stop(u_start, u_stop):
         if u[::-1] > u:
             continue
+        if not has_all_subwords(u, d-1):
+            continue
         v, no_hole = fill_sv(u, d, alphabet=t01)
         if no_hole:
             continue
         holes = [i for i in range(len(v)) if v[i] is None]
         tu = tuple(u)
         for i in filter_sv_relation(
-                   ((tu,v) for v in iterate_over_holes(u, v, holes, t01)),
+                   ((tu,v) for v in iterate_over_holes(u, v, holes, t01) if has_all_subwords(v, d-1)),
                    n, d, elements):
             yield i

@@ -27,6 +27,11 @@ cdef int_max_plus_mat_set_identity(size_t n, long ** data):
     for i in range(n):
         data[i][i] = 0
 
+cdef int_max_plus_mat_set(size_t n, long ** res, long ** m):
+    cdef size_t i
+    for i in range(n*n):
+        res[0][i] = m[0][i]
+
 def integer_max_plus_matrix_identity(size_t dim):
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim)
     int_max_plus_mat_set_identity(ans.n, ans.data)
@@ -229,52 +234,58 @@ def filter_sv_relation(iterator,
         ....:             if m1 == m2:
         ....:                 break
         ....:             yield (p + m1 + s, p + m2 + s)
-        sage: elements = [random_integer_max_plus_matrices_band(4, -2**30, 2**30, ord('s'), ord('v')) for _ in range(10)]
+        sage: elements = [random_integer_max_plus_matrices_band(4, -2**30, 2**30, ord('s'), ord('v')) for _ in range(100)]
         sage: it = filter_sv_relation(my_iterator(), 19, 4, elements)
         sage: it.next()  # random
         ((0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0),
          (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0))
+
+    TESTS::
+
+        sage: from max_plus.sv_identities import is_sv_identity
+        sage: def my_iterator():
+        ....:     W = [(0,0,1,1,0),(0,1,1,0,0),(1,0,0,1,1),(1,1,0,0,1)]
+        ....:     for p in W:
+        ....:         for s in W:
+        ....:             yield (p+(0,)+s, p+(1,)+s)
+        ....:     p = (0,1,0,1,1) 
+        ....:     S = [(1,0,0,1,1), (1,1,0,0,1), (1,1,0,1,0)]        
+        ....:     for s in S:
+        ....:         yield (p+(0,)+s, p+(1,)+s)
+
+        sage: for _ in range(1000):
+        ....:     elements = [random_integer_max_plus_matrices_band(3, -2**10, 2**10, ord('s'), ord('v'))]
+        ....:     s1 = set(my_iterator())
+        ....:     s2 = set(filter_sv_relation(my_iterator(), 11, 3, elements))
+        ....:     assert s1 == s2, "\nm1={}\n\nm2={}".format(
+        ....:                elements[0][0].list(),
+        ....:                elements[0][1].list())
+
+
     """
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int * r1     # C copy of left part of relations
     cdef int * r2     # C copy of right part of relations
 
-    cdef size_t i
+    cdef int i
     cdef tuple t1,t2
 
     cdef list p_mats
     cdef list s_mats
 
-    cdef IntegerMaxPlusMatrix m11,m12,m21,m22,e0,e1
+    cdef IntegerMaxPlusMatrix m1,m2,mt,e0,e1
+
+    assert n > 0
 
     r1 = <int *> mem.allocarray(2*n,  sizeof(int))
     r2 = r1 + n
 
-    m11 = new_integer_max_plus_matrix(dim)
-    m12 = new_integer_max_plus_matrix(dim)
-    m21 = new_integer_max_plus_matrix(dim)
-    m22 = new_integer_max_plus_matrix(dim)
+    m1 = new_integer_max_plus_matrix(dim)
+    m2 = new_integer_max_plus_matrix(dim)
+    mt = new_integer_max_plus_matrix(dim)
 
-    for e0,e1 in elements:
-        int_max_plus_mat_set_identity(dim, m11.data)
-        int_max_plus_mat_set_identity(dim, m21.data)
-
-        for i in range(n):
-            if r1[i] == 0:
-                int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e0.data)
-            else:
-                int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e1.data)
-            m11,m12 = m12,m11
-
-        for i in range(n):
-            if r2[i] == 0:
-                int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e0.data)
-            else:
-                int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e1.data)
-            m21,m22 = m22,m21
-
-        if m11 != m21:
-            break
+    int_max_plus_mat_set_identity(dim, m1.data)
+    int_max_plus_mat_set_identity(dim, m2.data)
 
     for t in iterator:
         t1,t2 = t
@@ -288,24 +299,31 @@ def filter_sv_relation(iterator,
             assert 0 <= r2[i] <= 1
 
         for e0,e1 in elements:
-            int_max_plus_mat_set_identity(dim, m11.data)
-            int_max_plus_mat_set_identity(dim, m21.data)
-
-            for i in range(n):
+            # product for t1
+            if r1[0] == 0:
+                int_max_plus_mat_set(dim, m1.data, e0.data)
+            else:
+                int_max_plus_mat_set(dim, m1.data, e1.data)
+            for i in range(1, n):
+                m1,mt = mt,m1
                 if r1[i] == 0:
-                    int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e0.data)
+                    int_max_plus_mat_prod_upper(dim, m1.data, mt.data, e0.data)
                 else:
-                    int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e1.data)
-                m11,m12 = m12,m11
+                    int_max_plus_mat_prod_upper(dim, m1.data, mt.data, e1.data)
 
-            for i in range(n):
+            # product for t2
+            if r2[0] == 0:
+                int_max_plus_mat_set(dim, m2.data, e0.data)
+            else:
+                int_max_plus_mat_set(dim, m2.data, e1.data)
+            for i in range(1, n):
+                m2,mt = mt,m2
                 if r2[i] == 0:
-                    int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e0.data)
+                    int_max_plus_mat_prod_upper(dim, m2.data, mt.data, e0.data)
                 else:
-                    int_max_plus_mat_prod_upper(dim, m22.data, m21.data, e1.data)
-                m21,m22 = m22,m21
+                    int_max_plus_mat_prod_upper(dim, m2.data, mt.data, e1.data)
 
-            if m11 != m21:
+            if m1 != m2:
                 break
 
         else:
@@ -385,6 +403,10 @@ cdef class IntegerMaxPlusMatrix:
         if i < 0 or i >= self.n or j < 0 or j >= self.n:
             raise ValueError("index out of range")
         return self.data[i][j]
+
+    def list(self):
+        cdef int i
+        return [self.data[0][i] for i in range(self.n*self.n)]
 
     def is_upper(self):
         return self.upper == 1

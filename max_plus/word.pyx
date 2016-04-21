@@ -52,7 +52,7 @@ def product_start_stop(tuple start, tuple stop):
 
     cdef Py_ssize_t j
     while w <= stop:
-        yield w
+        yield w[:]
         
         j = n-1
         while j >= 0 and PyInt_AS_LONG(<object>PyTuple_GET_ITEM(w, j)) == 1:
