@@ -17,4 +17,5 @@ from sv_identities import (
     sv_identities)
 
 from vv_identities import (
-    is_vv_identity,)
+    is_vv_identity,
+    is_vv_identity_parallel)

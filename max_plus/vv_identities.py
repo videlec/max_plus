@@ -2,7 +2,7 @@ from sage_import import *
 
 import itertools
 from time import time
-from combinat import extremal_occurrences, runs, has_all_subwords
+from combinat import occurrences, runs, has_all_subwords
 from convex_hull import ppl_polytope
 
 def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
@@ -48,34 +48,34 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         sage: ans, info = is_vv_identity(u, v, 3, W=F, status=True)
         sage: print info
         u = 00
-        num ext. occ.: 9
-        num int. occ.: 2
-        num faces    : 9
-        num verts    : 9
+        num ext. occ.: 45
+        num int. occ.: 10
+        num faces    : 13
+        num verts    : 16
         polytope computation in ...secs
         containance test in ...secs
         <BLANKLINE>
         u = 01
-        num ext. occ.: 4
-        num int. occ.: 0
-        num faces    : 5
-        num verts    : 4
+        num ext. occ.: 50
+        num int. occ.: 11
+        num faces    : 12
+        num verts    : 15
         polytope computation in ...secs
         containance test in ...secs
         <BLANKLINE>
         u = 10
-        num ext. occ.: 4
-        num int. occ.: 0
-        num faces    : 5
-        num verts    : 4
+        num ext. occ.: 50
+        num int. occ.: 10
+        num faces    : 12
+        num verts    : 15
         polytope computation in ...secs
         containance test in ...secs
         <BLANKLINE>
         u = 11
-        num ext. occ.: 9
-        num int. occ.: 1
-        num faces    : 9
-        num verts    : 9
+        num ext. occ.: 45
+        num int. occ.: 10
+        num faces    : 13
+        num verts    : 16
         polytope computation in ...secs
         containance test in ...secs
 
@@ -151,14 +151,19 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         # similarly, if there is a bad descent word, add it
         left_occ = set(tuple(left[:i].count(a) for i in occ) + \
                        tuple(left[:i].count(b) for i in occ) \
-                       for occ in extremal_occurrences(left, u))
+                       for occ in occurrences(left, u))
         right_occ = set(tuple(right[:i].count(a) for i in occ) + \
                        tuple(right[:i].count(b) for i in occ) \
-                       for occ in extremal_occurrences(right, u))
+                       for occ in occurrences(right, u))
 
         inter = left_occ.intersection(right_occ)
-        union = left_occ.difference(right_occ)
+        if not inter:
+            if status:
+                output += 'u = {}\n'.format(join(map(str,u)))
+                output += 'no int. occ.'
+            continue
 
+        union = left_occ.difference(right_occ)
         if status:
             t0 = time()
         P = ppl_polytope(inter)
@@ -180,4 +185,60 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
             output += 'containance test in {}secs\n'.format(time()-t0)
             output += '\n'
     return (True,output) if status else True
+
+def is_vv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=None, verbose=False, logfile=None):
+    r"""
+    Check identity using parallelization features
+
+    INPT:
+
+    - ``left``, ``right`` -- the identity to check
+
+    - ``d`` -- the dimension of the space
+
+    - ``prefix_length`` -- length of the prefix
+
+    - ``ncpus`` -- (optional, default the number of cpus on the computer) number
+      of cpus to use
+
+    - ``verbose`` -- (optional, default ``False``) whether some additional
+      information about the workers will be printed
+
+    - ``logfile`` -- can be a string that specifies a filename for writing
+      information about each occurrence polytope or sys.stdout
+    """
+    import multiprocessing as mp
+    from misc import parallel_unfold
+
+    close = False
+    if isinstance(logfile, str):
+        close = True
+        logfile = open(logfile, 'w')
+    if ncpus is None:
+        ncpus = mp.cpu_count()
+    pool = mp.Pool(ncpus)
+
+    if prefix_length is None:
+        from math import log
+        prefix_length = int(round(log(ncpus) / log(2)))
+
+    if W is None:
+        alphabet = sorted(set(left).union(right))
+        W = FiniteWords(alphabet)
+    else:
+        alphabet = W.alphabet()
+
+    tasks =((verbose,is_vv_identity,left,right,d,W,prefix,True) \
+            for prefix in W.iterate_by_length(prefix_length))
+    for ans,status in pool.imap_unordered(parallel_unfold, tasks):
+        if logfile is not None:
+            logfile.write(status)
+            logfile.flush()
+        if ans is False:
+            break
+    pool.terminate()
+    pool.join()
+    if close:
+        logfile.close()
+    return ans
 

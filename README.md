@@ -141,17 +141,30 @@ matrices.
 
 ## Combinatorics
 
-To check identities you can use the following functions:
+To check identities you can use the following functions
 
-- `is_sv_identity(left, right, d, W, prefix, check_common_factors)`: check whether `(left, right)` is an identity in `B^{sv}_d`.
+    is_sv_identity(left, right, d, W, prefix, check_common_factors)
+    is_vv_identity(left, right, d, W, prefix, status)
+    is_sv_identity_parallel(left, right, d, W, prefix_length, ncpus, verbose, check_common_factors, logfile)
+    is_vv_identity_parallel(left, right, d, W=None, prefix_length, ncpus, verbose, logfile)
 
-- `is_sv_identity_parallel(left, right, d, W, prefix_length, ncpus, verbose,
-  check_common_factors, logfile)`: the same as above but with parallelization.
-  The argument `prefix_length` is used to chunk the subwords into different
-  jobs: if it is set to `k` then there will be `2^k` jobs which correspond to
-  the `2^k` possible prefixes. The argument `logfile` can be set to either
-  `sys.stdout` or a string in which case details about the execution will be
-  written in a file with that name.
+Where the arguments are as follows:
+
+ - `left` and `right` is the identity to check
+
+ - `d` is the dimension
+
+ - `W` is an optional set of finite words
+
+ - `prefix` is an optional prefix that turns `is_XX_identity` into a partial stest (this is indirectly used in the parallel versions)
+
+ - `prefix_length` is used to chunk the subwords into different jobs: if it is
+   set to `k` then there will be `2^k` jobs which correspond to the `2^k`
+   possible prefixes.
+
+ - the argument `logfile` can be set to either `sys.stdout` or a string in
+   which case details about the execution will be written in a file with that
+   name.
 
 You can also list identities (as tuple over `{0,1}`) with:
 
@@ -194,7 +207,7 @@ Here are some examples
     False
 
 	sage: p,s = vincent_sv_prefix_suffix(7)
-	sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 7, 3, logfile=sys.stdout)
+	sage: is_sv_identity_parallel(p+'x'+s, p+'y'+s, 7, prefix_length=3, logfile=sys.stdout)
 	u = xxxxyx
 	num ext. occ.: 371
 	num faces    : 16
@@ -213,6 +226,16 @@ Here are some examples
 	num verts    : 58
 	polytope computation in 0.0290420055389secs
 
+	True
+	sage: W = FiniteWords([0,1])
+	sage: p = W((0,0,1,1,0))
+    sage: s = W((0,0,1,0,1))
+    sage: u = p + W([0]) + s
+	sage: v = p + W([1]) + s
+    sage: is_sv_identity_parallel(u, v, 3, W=W, prefix_length=2)
+	True
+    sage: t = WordMorphism({0:[0,1], 1:[1,0]}, domain=W)
+    sage: is_vv_identity_parallel(t(u), t(v), 3, W=W, prefix_length=2)
 	True
 
     sage: for i in sv_identities(11, 3):

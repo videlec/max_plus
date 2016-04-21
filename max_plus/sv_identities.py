@@ -212,6 +212,13 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         ....:     if test1 != test2:
         ....:         raise RuntimeError("u = {}, test1 = {}, test2 = {}".format(
         ....:                        u,test1,test2))
+
+        sage: u = (0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0)
+        sage: v = u[:5] + (1,) + u[-5:]
+        sage: ans,info = is_sv_identity(u, v, 3, status=True)
+        sage: u = (0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0)
+        sage: v = u[:5] + (1,) + u[-5:]
+        sage: ans,info = is_sv_identity(u, v, 3, status=True)
     """
     if W is None:
         alphabet = sorted(set().union(left,right))
@@ -270,15 +277,14 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
 
         inter = left_occ.intersection(right_occ)
         if not inter:
-            raise ValueError("void intersection:\n left = {}\n right = {}\n u = {}\n left_occ = {}\n right_occ = {}".format(
-                left, right, u, left_occ, right_occ))
+            raise RuntimeError("THIS SHOULD NOT HAPPEN!")
         union = left_occ.union(right_occ)
 
         if status:
             t0 = time()
         P = ppl_polytope(inter)
         if status:
-            output += 'u = {}\n'.format(''.join(u))
+            output += 'u = {}\n'.format(''.join(map(str,u)))
             output += 'num ext. occ.: {}\n'.format(len(inter))
             output += 'num int. occ.: {}\n'.format(len(union))
             output += 'num faces    : {}\n'.format(len(P.minimized_constraints()))
@@ -289,7 +295,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
                 if status:
-                    output += 'bad occurrence {}\n'.format(o, ''.join(left[i] for i in o))
+                    output += 'bad occurrence {}\n'.format(o, ''.join(str(left[i]) for i in o))
                 return (False,output) if status else False
         if status:
             output += 'containance test in {}secs\n'.format(time()-t0)
@@ -392,15 +398,18 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
 
     The following will write its output in a file named 'logfile.txt'::
 
-        sage: is_sv_identity_parallel(u, v, 6, 4, logfile='logfile.txt') # not tested
+        sage: is_sv_identity_parallel(u, v, 6, prefix_length=4, logfile='logfile.txt') # not tested
+        True
 
     And for live information you can either turn on the ``verbose`` option (for
     a per job information) or set the ``logfile`` option to ``sys.stdout`` (for
     a per polytope information)::
 
-        sage: is_sv_identity_parallel(u, v, 6, 4, verbose=True)  # not tested
+        sage: is_sv_identity_parallel(u, v, 6, prefix_length=4, verbose=True)  # not tested
+        True
         sage: import sys
-        sage: is_sv_identity_parallel(u, v, 6, 4, logfile=sys.stdout)  # not tested
+        sage: is_sv_identity_parallel(u, v, 6, prefix_length=4, logfile=sys.stdout)  # not tested
+        True
     """
     import multiprocessing as mp
     from misc import parallel_unfold
@@ -417,9 +426,14 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
         from math import log
         prefix_length = int(round(log(ncpus) / log(2)))
 
-    W = FiniteWords('xy')
-
-    tasks = ((verbose,is_sv_identity,left,right,d,W,prefix,check_common_factors,True) for prefix in itertools.product('xy', repeat=prefix_length))
+    if W is None:
+        alphabet = sorted(set(left).union(right))
+        W = FiniteWords(alphabet)
+    else:
+        alphabet = W.alphabet()
+    
+    tasks = ((verbose,is_sv_identity,left,right,d,W,prefix,check_common_factors,True) \
+            for prefix in W.iterate_by_length(prefix_length))
     for ans,status in pool.imap_unordered(parallel_unfold, tasks):
         if logfile is not None:
             logfile.write(status)
