@@ -5,6 +5,84 @@ from sage_import import *
 #########################
 # Combinatorial methods #
 #########################
+def runs(w):
+    r"""
+    EXAMPLES::
+
+    sage: from max_plus.combinat import runs
+    sage: runs([0,0,1,1,1,0])
+    [2, 3, 1]
+    sage: runs([])
+    []
+    sage: runs([0]*10)
+    [10]
+    """
+    ans = []
+    if not w:
+        return ans
+
+    n = len(w)
+    i = 0
+    while i < n:
+        a = w[i]
+        j = i+1
+        while j < n and w[j] == a:
+            j += 1
+        ans.append(j-i)
+        i = j
+    return ans
+
+def has_all_subwords(w, r):
+    r"""
+    EXAMPLES::
+
+        sage: from max_plus.sv_identities import has_all_subwords
+        sage: W = FiniteWords([0,1])
+        sage: for w in W.iterate_by_length(4):
+        ....:     print w, has_all_subwords(w, 2)
+        0000 False
+        0001 False
+        0010 False
+        0011 False
+        0100 False
+        0101 True
+        0110 True
+        0111 False
+        1000 False
+        1001 True
+        1010 True
+        1011 False
+        1100 False
+        1101 False
+        1110 False
+        1111 False
+
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(4))
+        0
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(5))
+        0
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(6))
+        8
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(7))
+        40
+        sage: sum(has_all_subwords(w,3) for w in W.iterate_by_length(8))
+        128
+    """
+    n = len(w)
+    i = 0
+    k = 0
+    while i < n and k < r:
+        i0 = i
+        i += 1
+        while i < n and w[i] == w[i0]:
+            i += 1
+        if i == n:
+            return False
+        k += 1
+        i += 1
+
+    return k == r
+
 def occurrences(w, u):
     r"""
     Return the set of occurrences of ``u`` in ``w`` (as subword).
