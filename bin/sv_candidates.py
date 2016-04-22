@@ -1,7 +1,3 @@
-# PARAMETERS
-n = 11
-d = 3
-
 ##########################
 # BEGINING OF THE SCRIPT #
 ##########################
@@ -10,6 +6,12 @@ import sage.all
 import sys
 import os
 
+if len(sys.argv) != 3:
+    raise RuntimeError("usage: sv_candidates n d")
+n = int(sys.argv[1])
+d = int(sys.argv[2])
+
+assert n > 0 and d > 0
 
 def word_rank(u):
     return sum(2**i for i,j in enumerate(u) if j)
