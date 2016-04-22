@@ -27,7 +27,7 @@ W01 = FiniteWords(t01)
 
 def fill_sv_with_random_lex_samples(u, v, m, W=None, n_max=5):
     r"""
-    Try to fill position of ``v`` with random occurrences of ``m`` in ``u`` 
+    Try to fill position of ``v`` with random occurrences of ``m`` in ``u``
 
     EXAMPLES::
 
@@ -142,7 +142,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: print info    # only one factor tested!
         u = yy
         num ext. occ.: 3
-        num int. occ.: 6
+        num int. occ.: 3
         num faces    : 3
         num verts    : 3
         polytope computation in ...secs
@@ -152,25 +152,25 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: print info    # all factors are tested
         u = xx
         num ext. occ.: 5
-        num int. occ.: 6
+        num int. occ.: 1
         num faces    : 4
         num verts    : 4
         ...
         u = xy
         num ext. occ.: 4
-        num int. occ.: 4
+        num int. occ.: 0
         num faces    : 4
         num verts    : 4
         ...
         u = yx
         num ext. occ.: 4
-        num int. occ.: 4
+        num int. occ.: 0
         num faces    : 4
         num verts    : 4
         ...
         u = yy
         num ext. occ.: 3
-        num int. occ.: 6
+        num int. occ.: 3
         num faces    : 3
         num verts    : 3
         ...
@@ -210,7 +210,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         ....:           (1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0),
         ....:           (1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1),
         ....:           (1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1)]:
-        ....:     v = u[:5] + (1,) + u[-5:]     
+        ....:     v = u[:5] + (1,) + u[-5:]
         ....:     test1 = is_sv_identity(u,v,3,check_common_factors=True)
         ....:     test2 = is_sv_identity(u,v,3,check_common_factors=False)
         ....:     if test1 != test2:
@@ -223,6 +223,12 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: u = (0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0)
         sage: v = u[:5] + (1,) + u[-5:]
         sage: ans,info = is_sv_identity(u, v, 3, status=True)
+
+        sage: for u,v in [((0,0),(0,0)), ((0,),(0,0)), ((0,0,0),(0,1,0)), ((0,),(1,1)),
+        ....:     ((0,1,1,0),(1,0,0,1)), ((0,1,0,1,0),(0,1,1,1,0)),
+        ....:     ((0,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0),(0,1,1,1,0,0,1,0,1,1,0,0,1,0,1,0))]:
+        ....:     ans,info = is_sv_identity(u,v,3,status=True)
+        ....:     assert isinstance(ans, bool) and isinstance(info,str), 'u = {}  v = {}'.format(u,v)
     """
     if W is None:
         alphabet = sorted(set().union(left,right))
@@ -230,6 +236,14 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
 
     left = W(left)
     right = W(right)
+
+    if len(alphabet) <= 1:
+        if len(left) == len(right):
+            return (True, 'equal') if status else True
+        else:
+            return (False, 'one letter different lengths') if status else False
+    if len(alphabet) != 2:
+        raise ValueError("must be on two letters, got {}".format(alphabet))
 
     if left == right:
         return (True, 'equal') if status else True
@@ -282,27 +296,30 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         inter = left_occ.intersection(right_occ)
         if not inter:
             raise RuntimeError("THIS SHOULD NOT HAPPEN!")
-        union = left_occ.union(right_occ)
 
-        if status:
-            t0 = time()
+        sym_diff = left_occ.symmetric_difference(right_occ)
+        t0 = time()
         P = ppl_polytope(inter)
+        t0 = time() - t0
         if status:
             output += 'u = {}\n'.format(''.join(map(str,u)))
             output += 'num ext. occ.: {}\n'.format(len(inter))
-            output += 'num int. occ.: {}\n'.format(len(union))
+            output += 'num int. occ.: {}\n'.format(len(sym_diff))
             output += 'num faces    : {}\n'.format(len(P.minimized_constraints()))
             output += 'num verts    : {}\n'.format(len(P.minimized_generators()))
-            output += 'polytope computation in {}secs\n'.format(time()-t0)
-            t0 = time()
-        for o in union:
+            output += 'polytope computation in {}secs\n'.format(t0)
+        t0 = time()
+        for o in sym_diff:
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
+                t0 = time() - t0
                 if status:
-                    output += 'bad occurrence {}\n'.format(o, ''.join(str(left[i]) for i in o))
+                    output += 'bad occurrence {} in {}secs\n'.format(o,
+                            ''.join(str(left[i]) for i in o), t0)
                 return (False,output) if status else False
+        t0 = time() - t0
         if status:
-            output += 'containance test in {}secs\n'.format(time()-t0)
+            output += 'containance test in {}secs\n'.format(t0)
             output += '\n'
     return (True,output) if status else True
 
@@ -434,7 +451,7 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
 
     left = W(left)
     right = W(right)
-    
+
     if len(left) != len(right):
         return False
 
@@ -517,7 +534,7 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
 
         sage: l = [[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=True)] \
         ....:      for _ in range(5)]
-        sage: l.extend([[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=False)] \ 
+        sage: l.extend([[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=False)] \
         ....:      for _ in range(5)])
         sage: for i in range(len(l)):
         ....:     for j in range(i):

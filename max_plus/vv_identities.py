@@ -37,6 +37,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         sage: is_vv_identity(u, v, 4)
         True
 
+
         sage: u = (p+'x'+s).replace('x','a').replace('y','b')
         sage: v = (p+'y'+s).replace('x','a').replace('y','b')
         sage: is_vv_identity(u, v, 4)
@@ -91,6 +92,13 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         sage: v = (0,1,1,1,0,0,1,0,1,1,0,0,1,0,1,0)
         sage: is_vv_identity(u,v,3)
         False
+
+
+        sage: for u,v in [((0,0),(0,0)), ((0,), (0,0)), ((0,0,0),(0,1,0)), ((0,),(1,1)),
+        ....:     ((0,1,1,0),(1,0,0,1)), ((0,1,0,1,0),(0,1,1,1,0)),
+        ....:     ((0,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0),(0,1,1,1,0,0,1,0,1,1,0,0,1,0,1,0))]:
+        ....:     ans,info = is_vv_identity(u,v,3,status=True)
+        ....:     assert isinstance(ans, bool) and isinstance(info,str), 'u = {}  v = {}'.format(u,v)
     """
     if W is None:
         alphabet = sorted(set(left).union(right))
@@ -98,13 +106,18 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
     else:
         alphabet = W.alphabet()
 
-    if len(alphabet) != 2:
-        raise ValueError("must be on two letters")
-
-    a,b = alphabet
-
     left = W(left)
     right = W(right)
+
+    if len(alphabet) <= 1:
+        if len(left) == len(right):
+            return (True,'equal') if status else True
+        else:
+            return (False, 'one letter different lengths') if status else False
+    if len(alphabet) != 2:
+        raise ValueError("must be on two letters, got {}".format(alphabet))
+
+    a,b = alphabet
     n = len(left)
 
     if left == right:
@@ -173,27 +186,29 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
                 output += 'no int. occ.'
             continue
 
-        union = left_occ.symmetric_difference(right_occ)
-        if status:
-            t0 = time()
+        sym_diff = left_occ.symmetric_difference(right_occ)
+        t0 = time()
         P = ppl_polytope(inter)
+        t0 = time() - t0
         if status:
             output += 'u = {}\n'.format(''.join(map(str,u)))
             output += 'num ext. occ.: {}\n'.format(len(inter))
-            output += 'num int. occ.: {}\n'.format(len(union))
+            output += 'num int. occ.: {}\n'.format(len(sym_diff))
             output += 'num faces    : {}\n'.format(len(P.minimized_constraints()))
             output += 'num verts    : {}\n'.format(len(P.minimized_generators()))
-            output += 'polytope computation in {}secs\n'.format(time()-t0)
-            t0 = time()
-
-        for o in union:
+            output += 'polytope computation in {}secs\n'.format(t0)
+        t0 = time()
+        for o in sym_diff:
             pt = C_Polyhedron(point(Linear_Expression(o,0)))
             if not P.contains(pt):
+                t0 = time() - t0
                 if status:
-                    output += 'bad occurrence {}\n'.format(o, ''.join(left[i] for i in o))
+                    output += 'bad occurrence {} in {}secs\n'.format(o,
+                            ''.join(str(left[i]) for i in o), t0)
                 return (False,output) if status else False
+        t0 = time() - t0
         if status:
-            output += 'containance test in {}secs\n'.format(time()-t0)
+            output += 'containance test in {}secs\n'.format(t0)
             output += '\n'
     return (True,output) if status else True
 
