@@ -233,6 +233,8 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
     if W is None:
         alphabet = sorted(set().union(left,right))
         W = FiniteWords(alphabet)
+    else:
+        alphabet = W.alphabet()
 
     left = W(left)
     right = W(right)
