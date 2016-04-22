@@ -61,11 +61,14 @@ JOB_ID = os.getenv('SLURM_JOB_ID')
 if JOB_ID is None:
     raise RuntimeError("no job id")
 
-descr = '# SV_CANDIDATES n={} d={} u_start={} u_stop={} #'.format(
+descr = '# sv candidates n={} d={} u_start={} u_stop={} #'.format(
         n, d, u_start, u_stop)
-slurm = '# JOB_ID: {}'.format(JOB_ID)
-slurm += ' '*(len(descr)-len(slurm)-1) + '#'
-
+slurm  = '# JOB_ID: {}'.format(JOB_ID)
+slurm += ' '*(len(descr)-len(slurm)-1) + '#\n'
+t = '# NTASKS: {}'.format(nb_tasks)
+slurm += t + ' '*(len(descr)-len(t)-1) + '#\n'
+t = '# PROCID: {}'.format(i)
+slurm += t + ' '*(len(descr)-len(t)-1) + '#'
 print '#'*len(descr)
 print descr
 print slurm
