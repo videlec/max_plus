@@ -192,9 +192,9 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         False
 
         sage: x,y = symbolic_max_plus_matrices_band(5, 2, 's', 'v')
-        sage: p = x*y*y*x*x*x*y*y*y*y*x*x*x*x  # ~0.5sec
-        sage: s = y*y*y*y*x*x*x*x*y*y*y*x*x*y  # ~0.5sec
-        sage: p*x*s == p*y*s                   # ~6secs
+        sage: p = x*y*y*x*x*x*y*y*y*y*x*x*x*x  # long time - 1 sec
+        sage: s = y*y*y*y*x*x*x*x*y*y*y*x*x*y  # long time - 1 sec
+        sage: p*x*s == p*y*s                   # long time - 6 secs
         True
 
         sage: p = 'xxxyyxyxx'
@@ -532,15 +532,6 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001111001 11001011001
         11001111010 11001011010
 
-        sage: l = [[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=True)] \
-        ....:      for _ in range(5)]
-        sage: l.extend([[i for i in sv_candidates(12,3) if is_sv_identity(i[0], i[1], 3, check_common_factors=False)] \
-        ....:      for _ in range(5)])
-        sage: for i in range(len(l)):
-        ....:     for j in range(i):
-        ....:         if l[i] != l[j]:
-        ....:             print set(l[i]).symmetric_difference(l[j])
-
         sage: for i in sv_candidates(11, 3,
         ....:     u_start = (1,)*2 + (0,)*9,
         ....:     u_stop  = (1,)*2 + (0,0) + (1,)*7):
@@ -551,6 +542,17 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
         11001110011 11001010011
         11001111001 11001011001
         11001111010 11001011010
+
+        sage: l = [[i for i in sv_candidates(12,3) \
+        ....:      if is_sv_identity(i[0], i[1], 3, check_common_factors=True)] \
+        ....:      for _ in range(5)]                                               # long time
+        sage: l.extend([[i for i in sv_candidates(12,3) \
+        ....:      if is_sv_identity(i[0], i[1], 3, check_common_factors=False)] \
+        ....:      for _ in range(5)])                                              # long time
+        sage: for i in range(len(l)):                                               # long time
+        ....:     for j in range(i):
+        ....:         if l[i] != l[j]:
+        ....:             print set(l[i]).symmetric_difference(l[j])
     """
     from .max_plus_int import (random_integer_max_plus_matrices_band,
             filter_sv_relation)
