@@ -491,7 +491,7 @@ def vincent_sv_prefix_suffix(d):
     s = sletter * (d-1) + s
     return p,s
 
-def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=1000):
+def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
     r"""
     Iterator through the candidates for identities.
 
