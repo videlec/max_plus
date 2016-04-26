@@ -26,7 +26,6 @@ def get_task(i, start, end, k):
     else:
         out = (start + (q+1)*r + q*(i-r), start + (q+1)*r + q*(i-r+1) - 1)
 
-    print "get_task({}, {}, {}, {}) -> {}".format(i, start, end, k, out)
     return out
 
 def write_line(f, s):
