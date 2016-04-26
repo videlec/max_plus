@@ -141,23 +141,23 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         return (False,'runs') if status else False
 
     # maximal run should appear in same first and last positions
-    ilmax = max(lruns)
-    irmax = max(rruns)
-    if ilmax != irmax:
-        return (False,'max run') if status else False
-    il = 0
-    while lruns[il] != ilmax: il += 1
-    ir = 0
-    while rruns[ir] != ilmax: ir += 1
-    if sum(lruns[:il]) != sum(rruns[:ir]):
-        return (False,'max run') if status else False
-
-    il = len(lruns) - 1
-    while lruns[il] != ilmax: il -= 1
-    ir = len(rruns) - 1
-    while rruns[ir] != irmax: ir -= 1
-    if sum(lruns[il:]) != sum(rruns[ir:]):
-        return (False,'max run') if status else False
+    #ilmax = max(lruns)
+    #irmax = max(rruns)
+    #if ilmax != irmax:
+    #    return (False,'max run') if status else False
+    #il = 0
+    #while lruns[il] != ilmax: il += 1
+    #ir = 0
+    #while rruns[ir] != ilmax: ir += 1
+    #if sum(lruns[:il]) != sum(rruns[:ir]):
+    #    return (False,'max run') if status else False
+    #
+    #il = len(lruns) - 1
+    #while lruns[il] != ilmax: il -= 1
+    #ir = len(rruns) - 1
+    #while rruns[ir] != irmax: ir -= 1
+    #if sum(lruns[il:]) != sum(rruns[ir:]):
+    #    return (False,'max run') if status else False
 
     if status:
         output = ''
