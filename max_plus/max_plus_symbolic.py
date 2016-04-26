@@ -188,12 +188,18 @@ def symbolic_max_plus_matrices(d, n, ch=None, typ='sym'):
     """
     d = int(d)
     n = int(n)
+    if d <= 0:
+        raise ValueError("d (= {}) must be postive".format(d))
+
     nvar = n * d * d
 
     V = FreeModule(ZZ, nvar)
     B = ((b,) for b in V.basis())
 
     matrices = []
+
+    if d == 1:
+        typ = 'full'
 
     if typ == 'sym' or typ == 'quick':
         z = [0]*nvar
@@ -372,9 +378,9 @@ def symbolic_max_plus_matrices_band(d, n,
                 mat[k][k+1] = (next(B),)
 
         if typ == 'sym':
-            matrices.append(SymbolicSymmetricMaxPlusUpperMatrix(d, nvar, mat[0], ch))
+            matrices.append(SymbolicSymmetricMaxPlusUpperMatrix(d, nvar, tuple(mat[0]), ch))
         elif typ == 'full':
-            matrices.append(SymbolicMaxPlusMatrix(d, nvar, mat, ch))
+            matrices.append(SymbolicMaxPlusMatrix(d, nvar, tuple(mat), ch))
         else:
             raise ValueError("typ must be 'sym' or 'full'")
 
@@ -590,15 +596,36 @@ class SymbolicMaxPlusMatrix(SageObject):
             raise ValueError
         self._data = data
 
-        if check:
-            self._data = tuple((tuple(x) for x in data))
-            for i,row in enumerate(self._data):
-                if len(row) != d:
-                    raise ValueError("wrong {}-th row size".format(i))
-                for p in row:
-                    assert isinstance(p, tuple), "got p={}".format(p)
-
         self.convex_hull = get_convex_hull_engine(self._nvars, ch)
+
+        if check:
+            self._data = tuple(tuple(tuple(map(self.convex_hull.V,data[i][j])) \
+                      for j in range(d)) \
+                      for i in range(d))
+            for i in range(self._d):
+                for j in range(self._d):
+                    row = self._data[i][j]
+                    for v in row: v.set_immutable()
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus import *
+            sage: a,b = symbolic_max_plus_matrices(2,2,typ='full')
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            TypeError
+            sage: a,b = symbolic_max_plus_matrices(1,2,typ='full')
+            sage: hash(a) == hash(b)
+            False
+            sage: hash(a*b*a) == hash(b*a*a) == hash(a*a*b)
+            True
+        """
+        if self._d == 1:
+            return hash(self._data)
+        raise TypeError
 
     def convex_hull_engine(self):
         r"""
@@ -664,7 +691,7 @@ class SymbolicMaxPlusMatrix(SageObject):
                     vertices.update(l)
                 new_data[i][j] = self.convex_hull(vertices)
 
-        return SymbolicMaxPlusMatrix(d, self._nvars, new_data, self.convex_hull)
+        return SymbolicMaxPlusMatrix(d, self._nvars, tuple(new_data), self.convex_hull)
 
     def list(self):
         r"""
@@ -992,7 +1019,22 @@ class SymbolicSymmetricMaxPlusUpperMatrix(SymbolicMaxPlusMatrix):
         self._nvars = nvars      # number of variables
         self._row = row          # the terms (0,i)
 
+        for data in self._row:
+            for v in data:
+                v.set_immutable()
+
         self.convex_hull = get_convex_hull_engine(self._nvars, ch)
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus import *
+            sage: a,b = symbolic_max_plus_matrices_band(2,2,'s','v')
+            sage: hash(a*b*a*a*b) == hash(a*b*b*a*b) 
+            True
+        """
+        return hash(self._row)
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -1051,8 +1093,8 @@ class SymbolicSymmetricMaxPlusUpperMatrix(SymbolicMaxPlusMatrix):
                 vertices.update(l)
             row.append(self.convex_hull(vertices))
 
-        return SymbolicSymmetricMaxPlusUpperMatrix(self._d, self._nvars, row, self.convex_hull)
-
+        return SymbolicSymmetricMaxPlusUpperMatrix(self._d, self._nvars,
+                tuple(row), self.convex_hull)
 
 class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
     r"""
@@ -1092,6 +1134,24 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
         self._nvars = n*d*d      # number of variables
 
         self.convex_hull = get_convex_hull_engine(self._nvars, ch)
+
+        for v in self._diag:
+            v.set_immutable()
+        for v in self._nondiag:
+            v.set_immutable()
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus import *
+            sage: a,b = symbolic_max_plus_matrices(2,2)
+            sage: hash(a) == hash(b)
+            False
+            sage: hash(a*b) == hash(b*a)
+            False
+        """
+        return hash(self._diag) ^ hash(self._nondiag)
 
     def __eq__(self, other):
         r"""
