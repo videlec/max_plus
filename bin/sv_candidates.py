@@ -105,7 +105,7 @@ if __name__ == '__main__':
     # we further divide it according to the number of cpus available
     i_start, i_stop = get_task(i, 2**(n-1), 2**n-1, nb_tasks)
     tasks = []
-    nb_subtasks = 5*ncpus
+    nb_subtasks = min(2*ncpus, i_stop-i_start-1)
     for j in xrange(nb_subtasks):
         i0,i1 = get_task(j, i_start, i_stop, nb_subtasks)
         tasks.append((n, d, i0, i1, outdir, jobid))
