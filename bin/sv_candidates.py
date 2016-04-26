@@ -45,7 +45,6 @@ def run_task(arg):
     n, d, i_start, i_stop, outdir, jobid = arg
 
     import sage.all
-    from time import time
     from max_plus.sv_identities import sv_candidates
 
     u_start = word_unrank(i_start, n)
@@ -77,6 +76,7 @@ if __name__ == '__main__':
     import sys
     import os
     import multiprocessing as mp
+    from time import time
 
     if len(sys.argv) != 3:
         raise RuntimeError("usage: sv_candidates n d")
