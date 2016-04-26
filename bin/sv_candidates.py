@@ -42,7 +42,7 @@ def write_line(f, s):
         f.write('#\n')
 
 def run_task(arg):
-    n, d, i_start, i_stop, outdir, jobid = arg
+    n, d, (i_start, i_stop), outdir, jobid = arg
 
     import sage.all
     from max_plus.sv_identities import sv_candidates
