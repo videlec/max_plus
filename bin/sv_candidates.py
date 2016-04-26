@@ -42,6 +42,7 @@ def run_task(arg):
     n, d, i_start, i_stop, outdir, jobid = arg
 
     import sage.all
+    from time import time
     from max_plus.sv_identities import sv_candidates
 
     u_start = word_unrank(i_start, n)
@@ -63,6 +64,7 @@ def run_task(arg):
     write_line(f, None)
     for u in sv_candidates(n, d, u_start, u_stop):
         f.write('{} {}\n'.format(word_nice_str(u[0]), word_nice_str(u[1])))
+        f.flush()
     write_line(f, None)
     write_line(f, 'END')
     write_line(f, None)
@@ -104,8 +106,11 @@ if __name__ == '__main__':
     # (i_start, i_stop) is the interval allocated to this task
     # we further divide it according to the number of cpus available
     i_start, i_stop = get_task(i, 2**(n-1), 2**n-1, nb_tasks)
+    print "TASK {} (from {} to {})".format(i, i_start, i_stop)
+    t0 = time()
+
     tasks = []
-    nb_subtasks = min(2*ncpus, i_stop-i_start-1)
+    nb_subtasks = min(ncpus**2, i_stop-i_start-1)
     for j in xrange(nb_subtasks):
         i0,i1 = get_task(j, i_start, i_stop, nb_subtasks)
         tasks.append((n, d, i0, i1, outdir, jobid))
@@ -113,5 +118,9 @@ if __name__ == '__main__':
     pool = mp.Pool(ncpus)
     for _ in pool.imap_unordered(run_task, tasks):
         pass
+
     pool.terminate()
     pool.join()
+
+    t0 = time() - t0
+    print "TASK {} done in {} secs".format(i, t0)
