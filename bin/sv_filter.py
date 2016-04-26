@@ -40,13 +40,19 @@ if n_errors:
     print "-> {} malformated lines".format(n_errors)
 if not_finished:
     print "-> {} computation not terminated".format(not_finished)
+if n_errors or not_finished:
+    output = None
+else:
+    output = open(os.path.join('sv_identities/{}_{}'.format(d,n)), 'w')
+
 num=0
-output = open(os.path.join('sv_identities/{}_{}'.format(d,n)), 'w')
 for t1,t2 in candidates:
     if is_sv_identity(t1,t2,d):
         rel = '{} = {}'.format(''.join(map(str,t1)),''.join(map(str,t2)))
-        output.write(rel + '\n')
+        if output is not None:
+            output.write(rel + '\n')
         print rel
         num += 1
 print '{} identities'.format(num)
-output.close()
+if output is not None:
+    output.close()

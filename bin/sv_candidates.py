@@ -21,6 +21,9 @@ def get_task(i, start, end, k):
     q = (end-start+1) // k
     r = (end-start+1) % k
 
+    if end >= start:
+        raise ValueError("end (={}) is greater or equal than start (={})".format(end,start))
+
     if i < r:
         out = (start + (q+1)*i, start + (q+1)*(i+1) - 1)
     else:
@@ -110,15 +113,13 @@ if __name__ == '__main__':
     t0 = time()
 
     tasks = []
-    nb_subtasks = min(ncpus**2, i_stop-i_start-1)
-    for j in xrange(nb_subtasks):
-        i0,i1 = get_task(j, i_start, i_stop, nb_subtasks)
-        tasks.append((n, d, i0, i1, outdir, jobid))
+    nb_subtasks = min(2**ncpus, i_stop-i_start-1)
+    tasks = ((n, d, get_task(j, i_start, i_stop, nb_subtasks), outdir, jobid) \
+             for j in xrange(nb_subtasks))
 
     pool = mp.Pool(ncpus)
     for _ in pool.imap_unordered(run_task, tasks):
         pass
-
     pool.terminate()
     pool.join()
 
