@@ -109,19 +109,19 @@ if __name__ == '__main__':
     # (i_start, i_stop) is the interval allocated to this task
     # we further divide it according to the number of cpus available
     i_start, i_stop = get_task(i, 2**(n-1), 2**n-1, nb_tasks)
-    print "TASK {} (from {} to {})".format(i, i_start, i_stop)
-    t0 = time()
 
     tasks = []
-    nb_subtasks = min(2**ncpus, i_stop-i_start-1)
+    nb_subtasks = min(ncpus**2, i_stop-i_start-1)
+    print "TASK {} cut into {} subtasks (from {} to {})".format(i, nb_subtasks, i_start, i_stop)
     tasks = ((n, d, get_task(j, i_start, i_stop, nb_subtasks), outdir, jobid) \
              for j in xrange(nb_subtasks))
 
+    t0 = time()
     pool = mp.Pool(ncpus)
     for _ in pool.imap_unordered(run_task, tasks):
         pass
     pool.terminate()
     pool.join()
-
     t0 = time() - t0
+
     print "TASK {} done in {} secs".format(i, t0)
