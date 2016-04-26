@@ -23,6 +23,7 @@ for filename in os.listdir(indir):
                     assert len(t0) == len(t1) == n, (t0, t1)
                     candidates.append((map(int,t0), map(int,t1)))
                 line = f.readline()
+candidates.sort()
 print "done"
 print 'n = {}  d = {}'.format(n,d)
 print '{} candidates'.format(len(candidates))
