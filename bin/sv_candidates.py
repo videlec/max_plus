@@ -21,8 +21,8 @@ def get_task(i, start, end, k):
     q = (end-start+1) // k
     r = (end-start+1) % k
 
-    if end >= start:
-        raise ValueError("end (={}) is greater or equal than start (={})".format(end,start))
+    if end < start:
+        raise ValueError("end (={}) is smaller or equal than start (={})".format(end,start))
 
     if i < r:
         out = (start + (q+1)*i, start + (q+1)*(i+1) - 1)
