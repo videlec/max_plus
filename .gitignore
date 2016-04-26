@@ -3,5 +3,5 @@
 max_plus/*.c
 max_plus/*.so
 home/
-identities/
+sv_candidates/
 build/
