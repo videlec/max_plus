@@ -100,6 +100,10 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         ....:     ans,info = is_vv_identity(u,v,3,status=True)
         ....:     assert isinstance(ans, bool) and isinstance(info,str), 'u = {}  v = {}'.format(u,v)
     """
+    d = int(d)
+    if d <= 1:
+        raise ValueError("d (={}) must be greater than 1")
+
     if W is None:
         alphabet = sorted(set(left).union(right))
         W = FiniteWords(alphabet)
@@ -140,6 +144,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         lruns[-2*(d-1):] != rruns[-2*(d-1):]:
         return (False,'runs') if status else False
 
+    # NOTE: the following is wrong for d=2
     # maximal run should appear in same first and last positions
     #ilmax = max(lruns)
     #irmax = max(rruns)

@@ -4,9 +4,7 @@ Full identities
 
 from .max_plus_symbolic import symbolic_max_plus_matrices
 
-def full_identities(d, n, verbose=False):
-    r"""
-    """
+def full_candidates(d, n, verbose=False):
     a,b = symbolic_max_plus_matrices(d,2)
     m = [a]
     i = [0]
@@ -15,12 +13,14 @@ def full_identities(d, n, verbose=False):
         for _ in xrange(n-len(i)):
             i.append(0)
             m.append(m[-1] * a)
-        if m[-1] in d:
+
+        h = hash(m[-1])
+        if h in d:
             if verbose:
-                print "NEW IDENTITY: {} = {}".format(d[m[-1]][0], i)
-            d[m[-1]].append(i[:])
+                print "POTENTIAL IDENTITY: {} = {}".format(d[h][0], i)
+            d[h].append(i[:])
         else:
-            d[m[-1]] = [i[:]]
+            d[h] = [i[:]]
 
         while i[-1] == 1:
             i.pop()
