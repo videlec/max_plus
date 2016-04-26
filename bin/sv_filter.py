@@ -44,7 +44,9 @@ num=0
 output = open(os.path.join('sv_identities/{}_{}'.format(d,n)), 'w')
 for t1,t2 in candidates:
     if is_sv_identity(t1,t2,d):
-        output.write('{} {}\n'.format(''.join(map(str,t1)),''.join(map(str,t2))))
+        rel = '{} = {}'.format(''.join(map(str,t1)),''.join(map(str,t2)))
+        output.write(rel + '\n')
+        print rel
         num += 1
 print '{} identities'.format(num)
 output.close()
