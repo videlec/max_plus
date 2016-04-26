@@ -28,7 +28,7 @@ print "done"
 print 'n = {}  d = {}'.format(n,d)
 print '{} candidates'.format(len(candidates))
 num=0
-output = open(os.path.join('sv_identities/{}_{}'.format(n,d)), 'w')
+output = open(os.path.join('sv_identities/{}_{}'.format(d,n)), 'w')
 for t1,t2 in candidates:
     if is_sv_identity(t1,t2,d):
         output.write('{} {}\n'.format(''.join(map(str,t1)),''.join(map(str,t2))))
