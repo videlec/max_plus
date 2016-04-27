@@ -85,7 +85,7 @@ def has_all_subwords(w, r):
 
     return k == r
 
-def occurrences(w, u):
+def occurrences(w, u, W=None):
     r"""
     Return the set of occurrences of ``u`` in ``w`` (as subword).
 

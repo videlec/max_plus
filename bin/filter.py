@@ -1,14 +1,22 @@
 import sage.all
 import sys
 import os
-from max_plus import is_sv_identity
 
-if len(sys.argv) != 3:
-    raise ValueError
-n = int(sys.argv[1])
-d = int(sys.argv[2])
 
-indir = 'sv_candidates/{}/{}'.format(d,n)
+if len(sys.argv) != 4:
+    raise ValueError("usage: filter sv|vv n d")
+typ = sys.argv[1]
+n = int(sys.argv[2])
+d = int(sys.argv[3])
+
+if typ == 'sv':
+    from max_plus import is_sv_identity_parallel as is_identity
+elif typ == 'vv':
+    from max_plus import is_vv_identity_parallel as is_identity
+else:
+    raise ValueError("typ must either be 'sv' or 'vv'")
+
+indir = '{}_candidates/{}/{}'.format(typ,d,n)
 
 candidates = []
 files = os.listdir(indir)
@@ -43,12 +51,12 @@ if not_finished:
 if n_errors or not_finished:
     output = None
 else:
-    output = open(os.path.join('sv_identities/{}_{}'.format(d,n)), 'w')
+    output = open(os.path.join('{}_identities/{}_{}'.format(typ,d,n)), 'w')
 
 num=0
 for t1,t2 in candidates:
-    if is_sv_identity(t1,t2,d):
-        rel = '{} = {}'.format(''.join(map(str,t1)),''.join(map(str,t2)))
+    if is_identity(t1,t2,d):
+        rel = '{} {}'.format(''.join(map(str,t1)),''.join(map(str,t2)))
         if output is not None:
             output.write(rel + '\n')
         print rel

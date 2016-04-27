@@ -42,10 +42,15 @@ def write_line(f, s):
         f.write('#\n')
 
 def run_task(arg):
-    n, d, (i_start, i_stop), outdir, jobid = arg
+    typ, n, d, (i_start, i_stop), outdir, jobid = arg
 
     import sage.all
-    from max_plus.sv_identities import sv_candidates
+    if typ == 'sv':
+        from max_plus.sv_identities import sv_candidates as candidates
+    elif typ == 'vv':
+        from max_plus.vv_identities import vv_candidates as candidates
+    else:
+        raise ValueError("typ should either be sv or vv")
 
     u_start = word_unrank(i_start, n)
     u_stop = word_unrank(i_stop, n)
@@ -56,7 +61,7 @@ def run_task(arg):
     f = open(os.path.join(outdir, '{}-{}'.format(s_start, s_stop)), 'w')
 
     write_line(f, None)
-    write_line(f, 'sv candidates n={} d={}'.format(n,d))
+    write_line(f, '{} candidates n={} d={}'.format(typ,n,d))
     write_line(f, 'u_start: {} ({})'.format(s_start, i_start))
     write_line(f, 'u_stop : {} ({})'.format(s_stop, i_stop))
     write_line(f, 'JOB_ID : {}'.format(jobid))
@@ -64,7 +69,7 @@ def run_task(arg):
     write_line(f, 'PROCID : {}'.format(i))
     write_line(f, p.name)
     write_line(f, None)
-    for u in sv_candidates(n, d, u_start, u_stop):
+    for u in candidates(n, d, u_start, u_stop):
         f.write('{} {}\n'.format(word_nice_str(u[0]), word_nice_str(u[1])))
         f.flush()
     write_line(f, None)
@@ -78,10 +83,11 @@ if __name__ == '__main__':
     import multiprocessing as mp
     from time import time
 
-    if len(sys.argv) != 3:
-        raise RuntimeError("usage: sv_candidates n d")
-    n = int(sys.argv[1])
-    d = int(sys.argv[2])
+    if len(sys.argv) != 4:
+        raise RuntimeError("usage: candidates sv|vv n d")
+    typ = sys.argv[1]
+    n = int(sys.argv[2])
+    d = int(sys.argv[3])
 
     assert n > 0 and d > 0
 
@@ -104,7 +110,7 @@ if __name__ == '__main__':
 
     ncpus = mp.cpu_count()
 
-    outdir = os.path.join('sv_candidates', str(d), str(n))
+    outdir = os.path.join('{}_candidates'.format(typ), str(d), str(n))
 
     # (i_start, i_stop) is the interval allocated to this task
     # we further divide it according to the number of cpus available
@@ -113,7 +119,7 @@ if __name__ == '__main__':
     tasks = []
     nb_subtasks = min(ncpus**2, i_stop-i_start-1)
     print "TASK {} cut into {} subtasks (from {} to {})".format(i, nb_subtasks, i_start, i_stop)
-    tasks = ((n, d, get_task(j, i_start, i_stop, nb_subtasks), outdir, jobid) \
+    tasks = ((typ, n, d, get_task(j, i_start, i_stop, nb_subtasks), outdir, jobid) \
              for j in xrange(nb_subtasks))
 
     t0 = time()

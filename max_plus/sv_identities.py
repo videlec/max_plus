@@ -557,7 +557,7 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
         ....:             print set(l[i]).symmetric_difference(l[j])
     """
     from .max_plus_int import (random_integer_max_plus_matrices_band,
-            filter_sv_relation)
+            filter_upper_relation)
 
     from .word import product_start_stop
 
@@ -579,12 +579,12 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
             continue
         holes = [i for i in range(len(v)) if v[i] is None]
         tu = tuple(u)
-        for i in filter_sv_relation(
+        for i in filter_upper_relation(
                    ((tu,v) for v in iterate_over_holes(u, v, holes, t01) if has_all_subwords(v, d-1)),
                    n, d, elements):
             yield i
 
-def sv_identities(n, d, u_start=None, u_stop=None, nb_mats=1000):
+def sv_identities_iterator(n, d, u_start=None, u_stop=None, nb_mats=1000):
     r"""
     Iterator through the identities in `B^{sv}_d` of length ``n`` (up to
     symmetry).

@@ -5,10 +5,21 @@ from __future__ import print_function, division, absolute_import
 
 import itertools
 from time import time
+import math
+import sys
 
 from .sage_import import *
-from .combinat import occurrences, runs, has_all_subwords
+from .combinat import (occurrences,
+                       runs,
+                       has_all_subwords,
+                       iterate_over_holes,
+                       prefix_suffix_all_subwords)
 from .convex_hull import ppl_polytope
+
+from .perm_lex_order import PermLexOrder
+
+t01 = (0,1)
+W01 = FiniteWords(t01)
 
 def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
     r"""
@@ -279,3 +290,116 @@ def is_vv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
         logfile.close()
     return ans
 
+def fill_vv_with_random_lex_samples(u, v, m, W=None, n_max=5):
+    r"""
+    Try to fill position of ``v`` with random occurrences of ``m`` in ``u``
+
+    EXAMPLES::
+
+        sage: from max_plus.vv_identities import fill_vv_with_random_lex_samples
+        sage: 
+    """
+    k = len(m)
+    if W is None:
+        alphabet = sorted(set(u))
+        W = FiniteWords(alphabet)
+    else:
+        alphabet = W.alphabet()
+
+    a,b = alphabet
+
+    # this is a list of tuple of positions
+    # we will map (i0, i1, i2, i3) to
+    # (i0, i1-i0, i2-i1, i3-i2, -i3)
+    occ = occurrences(u, m, W)
+    if not occ:
+        raise ValueError("u = {}, v = {}, m = {}, k = {}".format(u, v, m, k))
+
+    for i in range(len(occ)):
+        o = occ[i]
+        assert len(o) == k, "o = {} m = {} k = {}".format(o, m, k)
+        occ[i] = (u[:o[0]].count(a),) + \
+                tuple(u[o[j]:o[j+1]].count(a) for j in range(k-1)) + \
+                 (u[:o[0]].count(b),) + \
+                tuple(u[o[j]:o[j+1]].count(b) for j in range(k-1)) + \
+                o
+        assert len(occ[i]) == 3*k
+
+    p = PermLexOrder(n=2*k)
+    n = 0
+    while n < n_max:
+        o_min_max = p.min_max(occ)
+        for pos in o_min_max:
+            for i in pos[2*k:]:
+                if v[i] is None:
+                    n = 0
+                    v[i] = u[i]
+        n += 1
+        p.randomize()
+
+def fill_vv(u, d, alphabet=None, verbose=False):
+    r"""
+    Iterator through the candidates compatible with ``u`` for a (s,v)-relation
+    in `B^{vv}_d`
+
+    Return a pair ``(v, is_full)``.
+    """
+    n = len(u)
+    if alphabet is None:
+        alphabet = set(u)
+
+    # we have 2*(d-1) runs in common at both ends
+    r = runs(u)
+    if len(r) < 4*(d-1) + 2:
+        return u,True
+
+    v = [None] * n
+    for i in range(sum(r[:2*(d-1)])+1):
+        v[i] = u[i]
+    for i in range(sum(r[-2*(d-1):])+1):
+        v[-i-1] = u[-i-1]
+    if all(k is not None for k in v):
+        return u,True
+
+    # fill with extremal lex occurrences
+    for m in itertools.product(alphabet, repeat=d-1):
+        fill_vv_with_random_lex_samples(u, v, m, W01)
+        if all(k is not None for k in v):
+            return u,True
+
+    return v,False
+
+def vv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
+    r"""
+    Iterator through the candidates for identities.
+
+    There is some randomness involved in the generation. Two runs of this
+    function might be different!
+    """
+    from .max_plus_int import (random_integer_max_plus_matrices_band,
+            filter_upper_relation)
+
+    from .word import product_start_stop
+
+    a = int(math.sqrt(sys.maxint)/2)
+    elements = [random_integer_max_plus_matrices_band(d, -a, a, ord('v'), ord('v')) for _ in range(nb_mats)]
+
+    if u_start is None:
+        u_start = (0,)*n
+    if u_stop is None:
+        u_stop = (1,)*n
+
+    for u in product_start_stop(u_start, u_stop):
+        if u[::-1] > u:
+            continue
+        if not has_all_subwords(u, d-1):
+            continue
+        v, no_hole = fill_vv(u, d, alphabet=t01)
+        if no_hole:
+            continue
+        holes = [i for i in range(len(v)) if v[i] is None]
+        tu = tuple(u)
+        for i in filter_upper_relation(
+                   ((tu,v) for v in iterate_over_holes(u, v, holes, t01) if has_all_subwords(v, d-1)),
+                   n, d, elements):
+            yield i

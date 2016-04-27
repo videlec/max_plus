@@ -204,7 +204,7 @@ cdef inline void prod_mat_upper(IntegerMaxPlusMatrix m11, IntegerMaxPlusMatrix m
             int_max_plus_mat_prod_upper(dim, m12.data, m11.data, e1.data)
         m11,m12 = m12,m11
 
-def filter_sv_relation(iterator,
+def filter_upper_relation(iterator,
         int n, int dim, list elements):
     r"""
     Filter ``iterator`` with candidates discarded by numerical computations.
