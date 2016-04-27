@@ -1,4 +1,5 @@
 from sage.misc.misc import SAGE_TMP
+from sage.misc.misc_c import prod
 from sage.misc.temporary_file import tmp_filename
 
 from sage.geometry.polyhedron.parent import Polyhedra

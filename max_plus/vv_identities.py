@@ -96,7 +96,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         polytope computation in ...secs
         containance test in ...secs
 
-        sage: all(is_vv_identity(t(i[0]), t(i[1]), 3, W=F) for i in sv_identities(11, 3))
+        sage: all(is_vv_identity(t(i[0]), t(i[1]), 3, W=F) for i in sv_identities_iterator(11, 3))
         True
 
         sage: u = (0,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0)
@@ -297,7 +297,6 @@ def fill_vv_with_random_lex_samples(u, v, m, W=None, n_max=5):
     EXAMPLES::
 
         sage: from max_plus.vv_identities import fill_vv_with_random_lex_samples
-        sage: 
     """
     k = len(m)
     if W is None:

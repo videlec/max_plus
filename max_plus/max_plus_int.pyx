@@ -110,16 +110,28 @@ def is_relation(tuple t1, tuple t2, list elements, bint upper=False):
 
     EXAMPLES::
 
-        sage: from max_plus import *
+        sage: from max_plus.max_plus_int import (
+        ....:    random_integer_max_plus_matrix,
+        ....:    random_integer_max_plus_matrices_band,
+        ....:    is_relation)
 
         sage: elts = [random_integer_max_plus_matrices_band(3, 0, 10000, ord('s'), ord('v'))
         ....:            for _ in range(10)]
         sage: u = (0,0,1,0,1,1)
         sage: is_relation(u + (0,) + u, u + (1,) + u, elts, True)
         True
+        sage: is_relation(u + (0,) + u, u + (1,) + u, elts, False)
+        True
         sage: u = (0,1)
         sage: is_relation(u + (0,) + u, u + (1,) + u, elts, True)
         False
+
+        sage: u = (0,0,1,1,1,0,0,0,1,0,1,0,1,1,1,0,0)
+        sage: v = (0,0,1,1,1,0,1,0,1,0,0,0,1,1,1,0,0)
+        sage: elts = [(random_integer_max_plus_matrix(2,-1000,1000,0.01), random_integer_max_plus_matrix(2,-1000,1000,0.01)) \
+        ....:     for _ in range(100)]
+        sage: is_relation(u, v, elts, False)
+        True
     """
     cdef int n1, n2   # lengths of the relation
     cdef size_t dim   # matrix dimension
@@ -223,7 +235,8 @@ def filter_upper_relation(iterator,
 
     EXAMPLES::
 
-        sage: from max_plus.max_plus_int import filter_sv_relation, random_integer_max_plus_matrices_band
+        sage: from max_plus.max_plus_int import filter_upper_relation,  random_integer_max_plus_matrices_band
+
 
         sage: from itertools import product
         sage: def my_iterator():
@@ -235,7 +248,7 @@ def filter_upper_relation(iterator,
         ....:                 break
         ....:             yield (p + m1 + s, p + m2 + s)
         sage: elements = [random_integer_max_plus_matrices_band(4, -2**10, 2**10, ord('s'), ord('v')) for _ in range(100)]
-        sage: it = filter_sv_relation(my_iterator(), 19, 4, elements)
+        sage: it = filter_upper_relation(my_iterator(), 19, 4, elements)
         sage: it.next()  # random
         ((0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0),
          (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0))
@@ -256,7 +269,7 @@ def filter_upper_relation(iterator,
         sage: for _ in range(1000):
         ....:     elements = [random_integer_max_plus_matrices_band(3, -2**10, 2**10, ord('s'), ord('v'))]
         ....:     s1 = set(my_iterator())
-        ....:     s2 = set(filter_sv_relation(my_iterator(), 11, 3, elements))
+        ....:     s2 = set(filter_upper_relation(my_iterator(), 11, 3, elements))
         ....:     assert s1 == s2, "\nm1={}\n\nm2={}".format(
         ....:                elements[0][0].list(),
         ....:                elements[0][1].list())
@@ -394,6 +407,33 @@ cdef class IntegerMaxPlusMatrix:
                     self.data[i][j] = data[n*i + j]
 
         self.upper = upper
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+            sage: m1 = IntegerMaxPlusMatrix(2, [0,1,2,3])
+            sage: m2 = IntegerMaxPlusMatrix(2, [1,0,2,3])
+            sage: m3 = IntegerMaxPlusMatrix(2, [3,2,1,0])
+            sage: hash(m1) != hash(m3) and hash(m1) != hash(m2) and hash(m2) != hash(m3)
+            True
+
+            sage: m1 = IntegerMaxPlusMatrix(2, [0,1,2,3])
+            sage: m2 = IntegerMaxPlusMatrix(2, [0,1,2,3])
+            sage: m3 = IntegerMaxPlusMatrix(2, [0,1,2,3])
+            sage: hash(m1) == hash(m2) == hash(m3)
+            True
+        """
+        cdef int i
+        cdef long mult = 1000003L
+        cdef long x,y
+        x = 0x345678L
+        for i in range(self.n * self.n):
+            y = self.data[0][i]
+            x = (x^y) * mult
+            mult += <long>(82520L + self.n + self.n)
+        return x+97531L
 
     def __getitem__(self, key):
         cdef Py_ssize_t i,j

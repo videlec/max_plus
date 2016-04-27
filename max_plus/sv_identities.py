@@ -593,7 +593,7 @@ def sv_identities_iterator(n, d, u_start=None, u_stop=None, nb_mats=1000):
 
         sage: from max_plus import *
 
-        sage: for i in sv_identities(6, 2):
+        sage: for i in sv_identities_iterator(6, 2):
         ....:     print i
         ((0, 1, 1, 0, 1, 0), (0, 1, 0, 0, 1, 0))
         ((0, 1, 1, 0, 1, 0), (0, 1, 0, 1, 1, 0))
