@@ -4,4 +4,6 @@ max_plus/*.c
 max_plus/*.so
 home/
 sv_candidates/
+vv_candidates/
 build/
+logs/
