@@ -58,8 +58,15 @@ def run_task(arg):
     p = mp.current_process()
     s_start = word_nice_str(u_start)
     s_stop = word_nice_str(u_stop)
-    f = open(os.path.join(outdir, '{}-{}'.format(s_start, s_stop)), 'w')
+    filename = os.path.join(outdir, '{}-{}'.format(s_start, s_stop))
+    if os.path.isfile(filename):
+        f = open(filename)
+        done = 'END' in f.read()
+        f.close()
+        if done:
+            return
 
+    f = open(filename, 'w')
     write_line(f, None)
     write_line(f, '{} candidates n={} d={}'.format(typ,n,d))
     write_line(f, 'u_start: {} ({})'.format(s_start, i_start))
@@ -83,13 +90,17 @@ if __name__ == '__main__':
     import multiprocessing as mp
     from time import time
 
-    if len(sys.argv) != 4:
-        raise RuntimeError("usage: candidates sv|vv n d")
+    if len(sys.argv) != 4 and len(sys.argv) != 5:
+        raise RuntimeError("usage: candidates sv|vv n d [MAX_IDENTITIES_PER_TASK]")
     typ = sys.argv[1]
     n = int(sys.argv[2])
     d = int(sys.argv[3])
+    if len(sys.argv) == 5:
+        max_id = int(sys.argv[4])
+    else:
+        max_id = float('inf')
 
-    assert n > 0 and d > 0
+    assert n > 0 and d > 0 and max_id >= 1
 
     nb_tasks = os.getenv('SLURM_NTASKS')
     if nb_tasks is None:
@@ -117,7 +128,7 @@ if __name__ == '__main__':
     i_start, i_stop = get_task(i, 2**(n-1), 2**n-1, nb_tasks)
 
     tasks = []
-    nb_subtasks = min(ncpus**2, i_stop-i_start-1)
+    nb_subtasks = max(min(ncpus**2, i_stop-i_start+1), int((i_stop - i_start + 1)/max_id))
     print "TASK {} cut into {} subtasks (from {} to {})".format(i, nb_subtasks, i_start, i_stop)
     tasks = ((typ, n, d, get_task(j, i_start, i_stop, nb_subtasks), outdir, jobid) \
              for j in xrange(nb_subtasks))
