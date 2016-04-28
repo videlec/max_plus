@@ -1,6 +1,12 @@
 def parallel_unfold(args):
     r"""
     Helper for parallel functions.
+
+    ``args`` should be a tuple ``(verbose, function, arguments)`` where
+
+    - ``verbose`` -- a boolean indicating whether some additional
+
+    - ``function`` -- the function to be parallelized
     """
     import sys
     import multiprocessing as mp

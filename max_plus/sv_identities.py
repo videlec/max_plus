@@ -478,6 +478,13 @@ def is_sv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
 def vincent_sv_prefix_suffix(d):
     r"""
     Return the ``p``,``s`` from the conjecture
+
+    EXAMPLES::
+
+        sage: from max_plus import *
+
+        sage: vincent_sv_prefix_suffix(5)
+        ('xyyxxxyyyyxxxx', 'yyyyxxxxyyyxxy')
     """
     p = ''
     s = ''

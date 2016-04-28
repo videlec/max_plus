@@ -11,7 +11,7 @@ from .max_plus_int import (random_integer_max_plus_matrix,
                            integer_max_plus_matrix_identity,
                            is_relation)
 
-def full_identities_iterator(d, n, num_mats1=10, num_mats2=500,
+def full_identities_iterator(d, n, num_mats1=50, num_mats2=500,
         symbolic_check=True):
     r"""
     Return an iterator over identities of length ``n`` over full matrices of
@@ -37,14 +37,14 @@ def full_identities_iterator(d, n, num_mats1=10, num_mats2=500,
         ((0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0), 
          (0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0))
     """
-    a = [random_integer_max_plus_matrix(2, -1000000, 1000000, 0.01) \
+    a = [random_integer_max_plus_matrix(d, -1000000, 1000000, 0.01) \
             for _ in range(num_mats1)]
-    b = [random_integer_max_plus_matrix(2, -1000000, 1000000, 0.01) \
+    b = [random_integer_max_plus_matrix(d, -1000000, 1000000, 0.01) \
             for _ in range(num_mats1)]
-    elts = [(random_integer_max_plus_matrix(2, -1000000, 1000000, 0.01),
-             random_integer_max_plus_matrix(2, -1000000, 1000000, 0.01))
+    elts = [(random_integer_max_plus_matrix(d, -1000000, 1000000, 0.01),
+             random_integer_max_plus_matrix(d, -1000000, 1000000, 0.01))
             for _ in range(num_mats2)]
-    ms = symbolic_max_plus_matrices(2,2)
+    ms = symbolic_max_plus_matrices(d,2)
 
     i = [0]
     m = [a[:]]
@@ -59,7 +59,7 @@ def full_identities_iterator(d, n, num_mats1=10, num_mats2=500,
         if h in d:
             for ii in d[h]:
                 m1 = None
-                if is_relation(ti, ii, elts, True):
+                if is_relation(ti, ii, elts, False):
                     if symbolic_check:
                         if m1 is None:
                             m1 = prod(ms[k] for k in ti)

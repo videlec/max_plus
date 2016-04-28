@@ -64,10 +64,3 @@ def product_start_stop(tuple start, tuple stop):
         while j < n:
             PyTuple_SET_ITEM(w, j, 0)
             j += 1
-
-def check():
-    a = 'x'
-    a = 0
-    print "0 refcnt: {}".format((<PyObject *>a).ob_refcnt)
-    a = 1
-    print "1 refcnt: {}".format((<PyObject *>a).ob_refcnt)

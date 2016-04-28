@@ -248,6 +248,17 @@ def is_vv_identity_parallel(left, right, d, W=None, prefix_length=None, ncpus=No
 
     - ``logfile`` -- can be a string that specifies a filename for writing
       information about each occurrence polytope or sys.stdout
+
+    EXAMPLES::
+
+        sage: from max_plus import *
+
+        sage: p,s = vincent_sv_prefix_suffix(4)
+        sage: u = (p+'x'+s).replace('x', 'ab').replace('y', 'ba')
+        sage: v = (p+'y'+s).replace('x', 'ab').replace('y', 'ba')
+        sage: is_vv_identity_parallel(u, v, 4)  # not tested
+        True
+
     """
     import multiprocessing as mp
     from .misc import parallel_unfold
@@ -342,6 +353,14 @@ def fill_vv(u, d, alphabet=None, verbose=False):
     in `B^{vv}_d`
 
     Return a pair ``(v, is_full)``.
+
+    EXAMPLES::
+
+        sage: from max_plus.vv_identities import fill_vv
+        sage: u = (1,0,1,0,0,0,0,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1)
+        sage: v,ans = fill_vv(u,3)
+        sage: v[12] is None
+        True
     """
     n = len(u)
     if alphabet is None:
@@ -374,6 +393,16 @@ def vv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
 
     There is some randomness involved in the generation. Two runs of this
     function might be different!
+
+    EXAMPLES::
+
+        sage: from max_plus.vv_identities import vv_candidates, is_vv_identity
+        sage: for i in vv_candidates(10,2):
+        ....:     if is_vv_identity(i[0],i[1],2):
+        ....:         print i
+        ((0, 1, 1, 0, 1, 0, 0, 1, 1, 0), (0, 1, 1, 0, 0, 1, 0, 1, 1, 0))
+        ((1, 0, 0, 1, 1, 0, 0, 1, 1, 0), (1, 0, 0, 1, 0, 1, 0, 1, 1, 0))
+        ((1, 0, 0, 1, 1, 0, 1, 0, 0, 1), (1, 0, 0, 1, 0, 1, 1, 0, 0, 1))
     """
     from .max_plus_int import (random_integer_max_plus_matrices_band,
             filter_upper_relation)
