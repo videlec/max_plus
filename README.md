@@ -161,6 +161,7 @@ To create integer matrices you can do as follows
 
 It is possible to set some entries to -infinity
 
+	sage: moo = max_plus.max_plus_int.minus_infinity()
 	sage: m3 = max_plus.max_plus_int.IntegerMaxPlusMatrix(2, [0,moo,1,moo])
 	sage: m3
 	[ 0 -oo ]
