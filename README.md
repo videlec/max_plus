@@ -25,7 +25,7 @@ repository `max_plus`.
 
 If you update the repository (using `git pull`) you need to repeat this step.
 
-## Symbolic and integer max plus matrices
+## Symbolic max plus matrices
 
 The max plus symbolic module define a certain number of functions
 
@@ -142,6 +142,31 @@ method `eval`::
 Computations with integer matrices are infinitely faster. Hence, if you intend
 to test some relations it is adviced to first test them on a sample of integer
 matrices.
+
+## Integer max plus matrices
+
+To create integer matrices you can do as follows
+
+	sage: m1 = max_plus.max_plus_int.IntegerMaxPlusMatrix(2, [0,3,1,2])
+	sage: m2 = max_plus.max_plus_int.IntegerMaxPlusMatrix(2, [-5,-1,0,2])
+	sage: m1
+	[ 0 3 ]
+	[ 1 2 ]
+	sage: m2
+	[ -5 -1 ]
+	[  0  2 ]
+	sage: m1*m2
+	[ 3 5 ]
+	[ 2 4 ]
+
+It is possible to set some entries to -infinity
+
+	sage: m3 = max_plus.max_plus_int.IntegerMaxPlusMatrix(2, [0,moo,1,moo])
+	sage: m3
+	[ 0 -oo ]
+	[ 1 -oo ]
+
+The integer matrices are currently immutable (it is not possible to modify them).
 
 ## Combinatorics
 
