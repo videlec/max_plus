@@ -1,8 +1,5 @@
 r"""
-Integer max plus matrices.
-
-These are integer matrices with *positive* coefficients (-1 is reserved for
--infinity).
+Integer max plus matrices
 """
 from libc.stdlib cimport malloc, free, rand, RAND_MAX
 # note: on my computer RAND_MAX is 2**31 - 1
