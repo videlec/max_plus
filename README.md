@@ -159,7 +159,14 @@ To create integer matrices you can do as follows
 	[ 3 5 ]
 	[ 2 4 ]
 
-It is possible to set some entries to -infinity
+Using a program of Dustin Cartwright (available at http://www.math.utk.edu/~cartwright/rank/)
+it is possible to compute the Barvinok rank:
+
+    sage: m = IntegerMaxPlusMatrix(3, [2,3,-2,1,3,5,4,5,1])
+    sage: m.barvinok_rank()
+    2
+
+Note that it is also possible to set some entries to -infinity
 
 	sage: moo = max_plus.max_plus_int.minus_infinity()
 	sage: m3 = max_plus.max_plus_int.IntegerMaxPlusMatrix(2, [0,moo,1,moo])
