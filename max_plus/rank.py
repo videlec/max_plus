@@ -13,28 +13,28 @@
 # For the chromatic number of the deficiency graph: (--chromatic option)
 #   smallk: http://www.cs.ualberta.ca/~joe/Coloring/Colorsrc/smallk.html
 
-POLYMAKE_CMD="/opt/polymake-3.0/perl/polymake"
-
-from sys import *
-from os import system
+import os
 from subprocess import Popen, PIPE
-from optparse import OptionParser
 from random import randint
+
+# dirty hack to make polymake available on several configurations
+POLYMAKE_CMD = os.getenv('POLYMAKE_CMD')
+if POLYMAKE_CMD is None:
+    paths_to_test = ["/opt/polymake-3.0/perl/polymake",
+                     "/home/merlet.g/polymake-3.0/perl/polymake"]
+    for path in paths_to_test:
+        if os.path.isfile(path):
+            POLYMAKE_CMD = path
+            break
+
+if POLYMAKE_CMD is None:
+    raise ImportError("polymake not available. Please set the environment variable POLYMAKE_CMD")
 
 # Note: Internally, everything is in the max-plus algebra
 
 # Utility functions
 #
 # Reading a matrix and making sure it has the right form.
-
-# Read a symmetric matrix from the stream fh
-def read_matrix(fh):
-    l = fh.readline()
-    matrix = [[int(x) for x in l.split()]]
-    for j in range(1, len(matrix[0])):
-        l = fh.readline()
-        matrix.append([int(x) for x in l.split()])
-    return matrix
 
 # Returns true if the given array of arrays is a valid matrix
 def is_matrix(matrix):
@@ -132,6 +132,22 @@ def lower_convex_hull(coords):
     fh.close()
     return facets
 
+def lower_convex_hull_bis(coords):
+    from sage.geometry.polyhedron.constructor import Polyhedron
+
+    n = len(coords[0])
+    coords = [(1,) + tuple(x) for x in coords]
+    infty = (0,1) + (0,)*(n-1)
+    coords.append(infty)
+    coord_to_index = {v:i for i,v in enumerate(coords)}
+
+    facets = []
+    for facet in Polyhedron(coords).faces(n-1):
+        if infty not in facet.as_polyhedron():
+            facets.append([coord_to_index[tuple(j)] for j in facet.as_polyhedron().vertices_list()])
+
+    return facets
+
 # Computes the minimum number of elements of the array sets such that each
 # non-negative integer less than npts is in one of these. Thus, sets is an array
 # of arrays of integers in [0, npts). Returns False if there is no such
@@ -171,7 +187,7 @@ def min_cover(npts, sets):
     # Run the solver
     if False:
         # GLPK solver
-        system("glpsol -w tmp-rank-glpsol tmp-rank-fmps > /dev/null")
+        os.system("glpsol -w tmp-rank-glpsol tmp-rank-fmps > /dev/null")
         fh = open("tmp-rank-glpsol")
         fh.readline()
         line = fh.readline()
