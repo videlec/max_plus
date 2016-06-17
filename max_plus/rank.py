@@ -21,7 +21,7 @@ from random import randint
 POLYMAKE_CMD = os.getenv('POLYMAKE_CMD')
 if POLYMAKE_CMD is None:
     paths_to_test = ["/opt/polymake-3.0/perl/polymake",
-                     "/home/merlet.g/polymake-3.0/perl/polymake"]
+                     "/home/merlet.g/polymake-3.0/bin/polymake"]
     for path in paths_to_test:
         if os.path.isfile(path):
             POLYMAKE_CMD = path
