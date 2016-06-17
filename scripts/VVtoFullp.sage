@@ -43,5 +43,6 @@ for u,v in Id:
 		else:
 			Idt=Idt+[(u,v)]
 
+print(Idf,Idpf)
 
 

@@ -12,14 +12,14 @@ elts1 = [((random_integer_max_plus_matrix(d,-K,K,p))^N, (random_integer_max_plus
 elts =[(a*b,b*a) for a,b in elts1]
 
 
-#Id=[]
-for l in range(12,14):
+Id=[]
+for l in range(11,12):
 	f=open('max_plus/sv_identities/'+str(d)+'_'+str(l))
 	text=f.read()
 	f.close()
 	lines=text.split('\n')
 	lines=[l for l in lines if l]
-#	Id=[tuple(l.split(' ')) for l in lines]+Id
+	Id=[tuple(l.split(' ')) for l in lines]+Id
 
 Idf=[]
 Idpf=[]
