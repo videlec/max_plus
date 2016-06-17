@@ -405,6 +405,35 @@ cdef class IntegerMaxPlusMatrix:
 
         self.upper = upper
 
+    def barvinok_rank(self):
+        r"""
+        Compute the Barvinok rank of a matrix.
+
+        .. NOTE::
+
+            this is currently very slow because of the startup time of polymake!
+
+        EXAMPLES::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+
+            sage: m = IntegerMaxPlusMatrix(3, [1,2,3,4,5,6,7,8,9])
+            sage: m.barvinok_rank()
+            1
+
+            sage: m = IntegerMaxPlusMatrix(3, [2,3,-2,1,3,5,4,5,1])
+            sage: m.barvinok_rank()
+            2
+
+            sage: m = IntegerMaxPlusMatrix(3, [-2,-5,-3,3,-1,-3,-1,-2,5])
+            sage: m.barvinok_rank()
+            3
+        """
+        from max_plus.rank import encode_barvinok, toric_rank
+        matrix = [[self.data[i][j] for j in range(self.n)] for i in range(self.n)]
+        coords = encode_barvinok(matrix)
+        return toric_rank(coords)
+
     def __hash__(self):
         r"""
         TESTS::
