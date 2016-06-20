@@ -110,8 +110,7 @@ def lower_convex_hull(coords):
             stderr=PIPE)
     fh = p.stdout
     if fh.readline() != "POINTS_IN_FACETS\n":
-        stderr.write("Wrong first line")
-        return []
+        raise RuntimeError("Error in computation of lower convex hull\n coords = {}".format(coords))
 
     facets = []
     line = fh.readline()
