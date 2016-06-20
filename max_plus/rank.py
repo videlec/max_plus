@@ -13,28 +13,28 @@
 # For the chromatic number of the deficiency graph: (--chromatic option)
 #   smallk: http://www.cs.ualberta.ca/~joe/Coloring/Colorsrc/smallk.html
 
-POLYMAKE_CMD="/opt/polymake-3.0/perl/polymake"
-
-from sys import *
-from os import system
+import os
 from subprocess import Popen, PIPE
-from optparse import OptionParser
 from random import randint
+
+# dirty hack to make polymake available on several configurations
+POLYMAKE_CMD = os.getenv('POLYMAKE_CMD')
+if POLYMAKE_CMD is None:
+    paths_to_test = ["/opt/polymake-3.0/perl/polymake",
+                     "/home/merlet.g/polymake-3.0/bin/polymake"]
+    for path in paths_to_test:
+        if os.path.isfile(path):
+            POLYMAKE_CMD = path
+            break
+
+if POLYMAKE_CMD is None:
+    raise ImportError("polymake not available. Please set the environment variable POLYMAKE_CMD")
 
 # Note: Internally, everything is in the max-plus algebra
 
 # Utility functions
 #
 # Reading a matrix and making sure it has the right form.
-
-# Read a symmetric matrix from the stream fh
-def read_matrix(fh):
-    l = fh.readline()
-    matrix = [[int(x) for x in l.split()]]
-    for j in range(1, len(matrix[0])):
-        l = fh.readline()
-        matrix.append([int(x) for x in l.split()])
-    return matrix
 
 # Returns true if the given array of arrays is a valid matrix
 def is_matrix(matrix):
@@ -132,12 +132,37 @@ def lower_convex_hull(coords):
     fh.close()
     return facets
 
+def lower_convex_hull_bis(coords):
+    from sage.geometry.polyhedron.constructor import Polyhedron
+
+    n = len(coords[0])
+    coords = [(1,) + tuple(x) for x in coords]
+    infty = (0,1) + (0,)*(n-1)
+    coords.append(infty)
+    coord_to_index = {v:i for i,v in enumerate(coords)}
+
+    facets = []
+    for facet in Polyhedron(coords).faces(n-1):
+        if infty not in facet.as_polyhedron():
+            facets.append([coord_to_index[tuple(j)] for j in facet.as_polyhedron().vertices_list()])
+
+    return facets
+
 # Computes the minimum number of elements of the array sets such that each
 # non-negative integer less than npts is in one of these. Thus, sets is an array
 # of arrays of integers in [0, npts). Returns False if there is no such
 # collection because the union of the sets does not contain every integer in [0,
 # npts).
-def min_cover(npts, sets):
+def min_cover(npts, sets, solver='sage'):
+    r"""
+    EXAMPLES::
+
+        sage: from max_plus.rank import min_cover
+        sage: min_cover(5, [[0,1,2],[1,2,3],[2,4]], solver='sage')
+        3
+        sage: min_cover(5, [[0,1,2],[1,2,3],[2,4]], solver='lp_solve')   # optional -- lp_solve
+        3
+    """
     # check if the problem is solvable
     covered = [False for i in range(npts)]
     for set in sets:
@@ -169,15 +194,15 @@ def min_cover(npts, sets):
     fh.close()
 
     # Run the solver
-    if False:
+    if solver == 'GLPK' or solver == 'glpk':
         # GLPK solver
-        system("glpsol -w tmp-rank-glpsol tmp-rank-fmps > /dev/null")
+        os.system("glpsol -w tmp-rank-glpsol tmp-rank-fmps > /dev/null")
         fh = open("tmp-rank-glpsol")
         fh.readline()
         line = fh.readline()
         min = int(line.split()[1])
         fh.close()
-    else:
+    elif solver == 'lp_solve':
         # lpsolve solver
         p = Popen(["lp_solve", "-fmps", "tmp-rank-fmps"], stdout=PIPE)
         fh = p.stdout
@@ -195,6 +220,26 @@ def min_cover(npts, sets):
             line = fh.readline()
         p.communicate()
         fh.close()
+
+    elif solver == 'sage':
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        M = MixedIntegerLinearProgram(maximization=False)
+        x = M.new_variable(binary=True)
+
+        nsets = len(sets)
+        dual_sets = [[] for _ in range(npts)]
+
+        for i,s in enumerate(sets):
+            for k in s:
+                dual_sets[k].append(i)
+
+        for k in range(npts):
+            M.add_constraint(M.sum(x[i] for i in dual_sets[k]) >= 1)
+
+        M.set_objective(M.sum(x[i] for i in range(nsets)))
+
+        min = int(M.solve())
+
     return min
 
 # This returns the rank of the point/classical linear space pair encoded in the
