@@ -30,12 +30,37 @@ cdef int_max_plus_mat_set(size_t n, long ** res, long ** m):
         res[0][i] = m[0][i]
 
 def integer_max_plus_matrix_identity(size_t dim):
+    r"""
+    EXAMPLES::
+
+        sage: from max_plus.max_plus_int import integer_max_plus_matrix_identity
+        sage: integer_max_plus_matrix_identity(2)
+        [   0 -oo ]
+        [ -oo   0 ]
+        sage: integer_max_plus_matrix_identity(3)
+        [   0 -oo -oo ]
+        [ -oo   0 -oo ]
+        [ -oo -oo   0 ]
+    """
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim, dim)
     int_max_plus_mat_set_identity(dim, ans.data)
     return ans
 
 def random_integer_max_plus_matrix(size_t dim, long min_coeff, long max_coeff,
         double minus_infinity_proba):
+    r"""
+    EXAMPLES::
+
+        sage: from max_plus.max_plus_int import random_integer_max_plus_matrix
+        sage: m = random_integer_max_plus_matrix(4, -2, 5, 0)
+        sage: m  # random
+        [  4  3 -2 2 ]
+        [ -1 -1  2 4 ]
+        [ -2  0 -1 1 ]
+        [  1  4  4 3 ]
+        sage: all(-2 < x < 5 for x in m.list())
+        True
+    """
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim, dim)
     cdef size_t i
     cdef long mip = <long> round(minus_infinity_proba * RAND_MAX)
@@ -381,6 +406,9 @@ cdef int_max_plus_mat_prod_upper(size_t n, long ** ans, long **a, long **b):
             ans[i][j] = c
 
 cdef class IntegerMaxPlusMatrix:
+    r"""
+    Max-plus matrix with integer coefficients.
+    """
     cdef size_t nrows, ncols    # number of rows, columns
     cdef long ** data           # entries
     cdef int upper              # flag (if true, nrows=ncols and the matrix is upper triangular)
@@ -479,7 +507,45 @@ cdef class IntegerMaxPlusMatrix:
             raise ValueError("index out of range")
         return self.data[i][j]
 
+    def transpose(self):
+        r"""
+        Return the transpose matrix
+
+        EXAMPLES::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+            sage: IntegerMaxPlusMatrix(3, 3, range(9)).transpose()
+            [ 0 3 6 ]
+            [ 1 4 7 ]
+            [ 2 5 8 ]
+            sage: IntegerMaxPlusMatrix(2, 3, range(6)).transpose()
+            [ 0 3 ]
+            [ 1 4 ]
+            [ 2 5 ]
+            sage: IntegerMaxPlusMatrix(3, 2, range(6)).transpose()
+            [ 0 2 4 ]
+            [ 1 3 5 ]
+        """
+        cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(self.ncols, self.nrows)
+        cdef size_t i, j
+
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                ans.data[j][i] = self.data[i][j]
+        return ans
+
     def list(self):
+        r"""
+        Return the list of coefficients.
+
+        The output is a list of ``nrows * ncols`` integers.
+
+        EXAMPLES::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+            sage: IntegerMaxPlusMatrix(2, 3, [[0,1,3],[1,1,1]]).list()
+            [0, 1, 3, 1, 1, 1]
+        """
         cdef int i
         return [self.data[0][i] for i in range(self.nrows*self.ncols)]
 
@@ -545,13 +611,29 @@ cdef class IntegerMaxPlusMatrix:
         return [(i,j) for i in range(self.nrows) for j in range(self.ncols) if self.data[i][j] == LONG_MIN]
 
     def __richcmp__(_self, _other, op):
+        r"""
+        TESTS::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+
+            sage: IntegerMaxPlusMatrix(2,3,[0]*6) == IntegerMaxPlusMatrix(2,3,[0]*6)
+            True
+            sage: IntegerMaxPlusMatrix(2,3,[0]*6) != IntegerMaxPlusMatrix(2,3,[0]*6)
+            False
+            sage: IntegerMaxPlusMatrix(2,3,[0]*6) == IntegerMaxPlusMatrix(3,2,[0]*6)
+            False
+            sage: IntegerMaxPlusMatrix(2,3,[0]*6) != IntegerMaxPlusMatrix(3,2,[0]*6)
+            True
+            sage: IntegerMaxPlusMatrix(2,3,[0]*6) != IntegerMaxPlusMatrix(2,3,[1]*6)
+            True
+        """
         cdef IntegerMaxPlusMatrix self = <IntegerMaxPlusMatrix> _self
         cdef IntegerMaxPlusMatrix other = <IntegerMaxPlusMatrix?> _other
         if op != Py_EQ and op != Py_NE:
             raise TypeError
 
         if self.nrows != other.nrows or self.ncols != other.ncols:
-            return False
+            return op == Py_NE
 
         cdef size_t i,j
         if self.upper and other.upper:
@@ -564,6 +646,7 @@ cdef class IntegerMaxPlusMatrix:
                 for j in range(self.ncols):
                     if self.data[i][j] != other.data[i][j]:
                         return op == Py_NE
+
         return op == Py_EQ
 
     def __mul__(_self, _other):
