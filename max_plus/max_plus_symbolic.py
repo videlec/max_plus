@@ -856,7 +856,7 @@ class SymbolicMaxPlusMatrix(SageObject):
                 pts = self[i,j]
                 row.append(minus_infinity() if not pts else max(p.dot_product(v) for v in pts))
             mat.append(row)
-        return IntegerMaxPlusMatrix(self._d, mat)
+        return IntegerMaxPlusMatrix(self._d, self._d, mat)
 
     def get_vector_span(self, i, j):
         r"""
