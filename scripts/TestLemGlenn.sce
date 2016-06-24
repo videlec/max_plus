@@ -3,10 +3,10 @@ st='';
 for i=1:d
   st=strcat([st,'%i,']);
 end
-N=lcm([1:d]);//Puissance
+N=factorial(d);//Puissance
 
-n=10^8;//Nb tests
-K=10^4;//Size of entries
+//n=10^7;//Nb tests
+//K=10^4;//Size of entries
 
 //Mot
 u=[0,1,0,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1,0,1];
