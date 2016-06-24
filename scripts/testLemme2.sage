@@ -4,7 +4,7 @@ d=5;
 matrices=[]
 
 for i in range(1,5):
-	f=open('RepTests/Rep'+str(d)+'wrank.txt','r')
+	f=open('RepTests/Rep'+str(i)+'/wrank.txt','r')
 	text=f.read()
 	f.close()
 	lines=text.split('\n')
