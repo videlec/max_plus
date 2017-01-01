@@ -845,7 +845,7 @@ class SymbolicMaxPlusMatrix(SageObject):
             sage: (x*y*y*x*x).eval(v) == (xv*yv*yv*xv*xv)  # not tested
             True
         """
-        from max_plus_int import minus_infinity, IntegerMaxPlusMatrix
+        from max_plus.max_plus_int import minus_infinity, IntegerMaxPlusMatrix
         F = FreeModule(ZZ, self._nvars)
         p = F(p)
         mat = []
