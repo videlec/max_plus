@@ -80,7 +80,6 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
     cdef IntegerMaxPlusMatrix ans2 = new_integer_max_plus_matrix(dim, dim)
     cdef long ** m1 = ans1.data
     cdef long ** m2 = ans2.data
-    ans1.upper = ans2.upper = 1
     cdef size_t i,j
 
     for i in range(dim):
@@ -411,38 +410,50 @@ cdef class IntegerMaxPlusMatrix:
     """
     cdef size_t nrows, ncols    # number of rows, columns
     cdef long ** data           # entries
-    cdef int upper              # flag (if true, nrows=ncols and the matrix is upper triangular)
 
     def __init__(self, nrows, ncols, data, upper=False):
+        r"""
+        EXAMPLES::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
+            sage: IntegerMaxPlusMatrix(0,2,[])
+            []
+            sage: IntegerMaxPlusMatrix(0,2,[0,1,-3,-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input data
+            sage: IntegerMaxPlusMatrix(0,2,[[0,1,-3],[-1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input data
+        """
         cdef int one_list
         self.nrows = <size_t?> nrows
         self.ncols = <size_t?> ncols
-        self.data = <long **> malloc(self.nrows*self.ncols*sizeof(long *))
         cdef size_t i,j
         if self.nrows and self.ncols:
+            if not isinstance(data, (tuple,list)) or not data:
+                raise ValueError("data must be a non-empty list")
+            if isinstance(data[0], (tuple,list)):
+                if any(not isinstance(x, (tuple,list)) or len(x) != self.ncols for x in data):
+                    raise ValueError("invalid input data")
+                data = [int(data[i][j]) for i in range(self.nrows) for j in range(self.ncols)]
+            else:
+                if len(data) != self.nrows*self.ncols:
+                    raise ValueError("invalid input data")
+                data = map(int,data)
+
+            self.data = <long **> malloc(self.nrows*sizeof(long *))
             self.data[0] = <long *> malloc(self.nrows*self.ncols*sizeof(long))
             for i in range(self.nrows-1):
                 self.data[i+1] = self.data[i] + self.ncols
+            for i in range(self.nrows*self.ncols):
+                self.data[0][i] = data[i]
 
-            if self.nrows == 1 or self.ncols == 1:
-                one_list = not isinstance(data[0], (tuple, list))
-            else:
-                one_list = len(data) == self.nrows * self.ncols
-
-            if one_list:
-                for i in range(self.nrows*self.ncols):
-                    self.data[0][i] = data[i]
-            else:
-                if any(len(x) != self.ncols for x in data):
-                    raise ValueError("invalid input data")
-                for i in range(self.nrows):
-                    for j in range(self.ncols):
-                        self.data[i][j] = data[i][j]
-
-        self.upper = upper
-        if self.upper and (self.nrows != self.ncols):
-            raise ValueError("can not be upper")
-
+        elif data:
+            raise ValueError("invalid input data")
+        else:
+            self.data = NULL
 
     def barvinok_rank(self):
         r"""
@@ -549,9 +560,6 @@ cdef class IntegerMaxPlusMatrix:
         cdef int i
         return [self.data[0][i] for i in range(self.nrows*self.ncols)]
 
-    def is_upper(self):
-        return self.upper == 1
-
     def __dealloc__(self):
         if self.data != NULL:
             free(self.data[0])
@@ -572,6 +580,9 @@ cdef class IntegerMaxPlusMatrix:
             [   2 ]
             [ -oo ]
         """
+        if self.ncols == 0 or self.nrows == 0:
+            return "[]"
+
         col_sizes = []
         for j in range(self.ncols):
             c = 0
@@ -636,17 +647,10 @@ cdef class IntegerMaxPlusMatrix:
             return op == Py_NE
 
         cdef size_t i,j
-        if self.upper and other.upper:
-            for i in range(self.nrows):
-                for j in range(i, self.nrows):
-                    if self.data[i][j] != other.data[i][j]:
-                        return op == Py_NE
-        else:
-            for i in range(self.nrows):
-                for j in range(self.ncols):
-                    if self.data[i][j] != other.data[i][j]:
-                        return op == Py_NE
-
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self.data[i][j] != other.data[i][j]:
+                    return op == Py_NE
         return op == Py_EQ
 
     def __mul__(_self, _other):
@@ -690,13 +694,8 @@ cdef class IntegerMaxPlusMatrix:
                 self.nrows, self.ncols, other.nrows, other.ncols))
 
         cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(self.nrows, other.ncols)
-        if self.upper and other.upper:
-            int_max_plus_mat_prod_upper(self.nrows, ans.data, self.data, other.data)
-            ans.upper = 1
-        else:
-            int_max_plus_mat_prod(ans.data, self.data, self.nrows, self.ncols,
-                                     other.data, other.nrows, other.ncols)
-            ans.upper = 0
+        int_max_plus_mat_prod(ans.data, self.data, self.nrows, self.ncols,
+                                 other.data, other.nrows, other.ncols)
         return ans
 
     def __pow__(self, n, mod):
