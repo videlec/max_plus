@@ -1,7 +1,7 @@
 r"""
 Integer max plus matrices
 """
-from libc.stdlib cimport malloc, free, rand, RAND_MAX
+from libc.stdlib cimport malloc, calloc, free, rand, RAND_MAX
 # note: on my computer RAND_MAX is 2**31 - 1
 from libc.limits cimport LONG_MIN, LONG_MAX
 from libc.math cimport round
@@ -114,6 +114,9 @@ def random_integer_max_plus_matrices_band(size_t dim, long min_coeff, long
         raise ValueError
 
     return ans1,ans2
+
+
+
 
 def is_relation(tuple t1, tuple t2, list elements, bint upper=False):
     r"""
@@ -717,3 +720,63 @@ cdef class IntegerMaxPlusMatrix:
             raise ValueError("can not take powers of non square matrix")
         return generic_power_c(self, n, integer_max_plus_matrix_identity(n))
 
+cdef class IntegerMatrixProduct(object):
+    r"""
+    Fast integer max-plus matrix products
+
+    EXAMPLES::
+
+        sage: from max_plus.max_plus_int import IntegerMatrixProduct, IntegerMaxPlusMatrix
+        sage: t = (0,1,0,0,1,0)
+        sage: p = IntegerMatrixProduct(t)
+        sage: p
+        sage: a1 = IntegerMaxPlusMatrix(2, 2, [1,2,3,4])
+        sage: a2 = IntegerMaxPlusMatrix(2, 2, [1,0,1,1])
+        sage: a3 = IntegerMaxPlusMatrix(2, 2, [1,3,0,2])
+        sage: p(a1, a2) == prod(a1 if i == 0 else a2 for i in t)
+        True
+        sage: p(a1, a3) == prod(a1 if i == 0 else a3 for i in t)
+        True
+        sage: p(a2, a3) == prod(a2 if i == 0 else a3 for i in t)
+        True
+    """
+    cdef int * t
+    cdef int n
+
+    def __cinit__(self, tuple t):
+        self.n = len(t)
+        if not t:
+            self.t = NULL
+        else:
+            self.t = <int *> calloc(len(t), sizeof(int))
+
+    def __dealloc__(self):
+        if self.n:
+            free(self.t)
+
+    def __init__(self, tuple t):
+        for i,j in enumerate(t):
+            self.t[i] = j
+
+    def __repr__(self):
+        cdef int i
+        return "product along " + "".join("1" if self.t[i] else "0" for i in range(self.n))
+
+    def __call__(self, IntegerMaxPlusMatrix a, IntegerMaxPlusMatrix b):
+        if not (a.nrows == a.ncols == b.nrows == b.ncols):
+            raise ValueError("should be square matrices of the same size")
+
+        cdef int dim = a.nrows
+        cdef IntegerMaxPlusMatrix ans1 = new_integer_max_plus_matrix(dim, dim)
+        cdef IntegerMaxPlusMatrix ans2 = new_integer_max_plus_matrix(dim, dim)
+
+        int_max_plus_mat_set_identity(dim, ans1.data)
+
+        for i in range(self.n):
+            if self.t[i] == 0:
+                int_max_plus_mat_prod(ans2.data, ans1.data, dim, dim, a.data, dim, dim)
+            else:
+                int_max_plus_mat_prod(ans2.data, ans1.data, dim, dim, b.data, dim, dim)
+            ans1,ans2 = ans2,ans1
+
+        return ans1
