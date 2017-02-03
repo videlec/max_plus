@@ -177,8 +177,7 @@ The integer matrices are currently immutable (it is not possible to modify them)
 Faster products
 
     sage: from max_plus.max_plus_int import IntegerMatrixProduct, IntegerMaxPlusMatrix
-    sage: t = (0,1,0,0,1,0)
-    sage: p = IntegerMatrixProduct(t)
+    sage: p = IntegerMatrixProduct('010010')
     sage: p
     product along 010010
     sage: a1 = IntegerMaxPlusMatrix(2, 2, [1,2,3,4])
@@ -193,6 +192,11 @@ Faster products
     sage: p(a2, a3)
     [ 10 10 ]
     [ 10 10 ]
+
+    sage: q = IntegerMatrixProduct((0,1,0,0,1,1,0))
+    sage: q(a1, a2)
+    [ 16 17 ]
+    [ 18 19 ]
 
 ## Combinatorics
 

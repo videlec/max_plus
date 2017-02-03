@@ -739,11 +739,27 @@ cdef class IntegerMatrixProduct(object):
         True
         sage: p(a2, a3) == prod(a2 if i == 0 else a3 for i in t)
         True
+
+    The class can also be initialized with strings::
+
+        sage: p = IntegerMatrixProduct('01101010')
+        sage: p(a1, a2)
+        [ 15 16 ]
+        [ 17 18 ]
+
+    TESTS::
+
+        sage: p = IntegerMatrixProduct(3)
+        Traceback (most recent call last):
+        ...
+        ValueError: can only be initialized from tuple, list or string
     """
     cdef int * t
     cdef int n
 
-    def __cinit__(self, tuple t):
+    def __cinit__(self, t):
+        if not isinstance(t, (tuple, list, str)):
+            raise ValueError("can only be initialized from tuple, list or string")
         self.n = len(t)
         if not t:
             self.t = NULL
@@ -754,9 +770,13 @@ cdef class IntegerMatrixProduct(object):
         if self.n:
             free(self.t)
 
-    def __init__(self, tuple t):
-        for i,j in enumerate(t):
-            self.t[i] = j
+    def __init__(self, t):
+        if isinstance(t, (tuple, list)):
+            for i,j in enumerate(t):
+                self.t[i] = j
+        elif isinstance(t, str):
+            for i,j in enumerate(t):
+                self.t[i] = int(j)
 
     def __repr__(self):
         cdef int i
