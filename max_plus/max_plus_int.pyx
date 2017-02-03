@@ -5,10 +5,10 @@ from libc.stdlib cimport malloc, calloc, free, rand, RAND_MAX
 # note: on my computer RAND_MAX is 2**31 - 1
 from libc.limits cimport LONG_MIN, LONG_MAX
 from libc.math cimport round
+from libc.string cimport memcpy
 
 from cpython.object cimport Py_EQ, Py_NE
 
-from sage.structure.element cimport generic_power_c
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 def minus_infinity():
@@ -58,7 +58,7 @@ def random_integer_max_plus_matrix(size_t dim, long min_coeff, long max_coeff,
         [ -1 -1  2 4 ]
         [ -2  0 -1 1 ]
         [  1  4  4 3 ]
-        sage: all(-2 < x < 5 for x in m.list())
+        sage: all(-2 <= x <= 5 for x in m.list())
         True
     """
     cdef IntegerMaxPlusMatrix ans = new_integer_max_plus_matrix(dim, dim)
@@ -285,8 +285,8 @@ def filter_upper_relation(iterator,
         ....:     for p in W:
         ....:         for s in W:
         ....:             yield (p+(0,)+s, p+(1,)+s)
-        ....:     p = (0,1,0,1,1) 
-        ....:     S = [(1,0,0,1,1), (1,1,0,0,1), (1,1,0,1,0)]        
+        ....:     p = (0,1,0,1,1)
+        ....:     S = [(1,0,0,1,1), (1,1,0,0,1), (1,1,0,1,0)]
         ....:     for s in S:
         ....:         yield (p+(0,)+s, p+(1,)+s)
 
@@ -471,15 +471,15 @@ cdef class IntegerMaxPlusMatrix:
             sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
 
             sage: m = IntegerMaxPlusMatrix(3, 3, [1,2,3,4,5,6,7,8,9])
-            sage: m.barvinok_rank()
+            sage: m.barvinok_rank() # not tested
             1
 
             sage: m = IntegerMaxPlusMatrix(3, 3, [2,3,-2,1,3,5,4,5,1])
-            sage: m.barvinok_rank()
+            sage: m.barvinok_rank() # not tested
             2
 
             sage: m = IntegerMaxPlusMatrix(3, 3, [-2,-5,-3,3,-1,-3,-1,-2,5])
-            sage: m.barvinok_rank()
+            sage: m.barvinok_rank() # not tested
             3
         """
         from max_plus.rank import encode_barvinok, toric_rank
@@ -616,7 +616,7 @@ cdef class IntegerMaxPlusMatrix:
 
             sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix, minus_infinity
             sage: mo = minus_infinity()
-            
+
             sage: IntegerMaxPlusMatrix(2, 3, [1,mo,2,4,5,mo]).infinite_coefficients()
             [(0, 1), (1, 2)]
             sage: IntegerMaxPlusMatrix(3, 1, [1,2,mo]).infinite_coefficients()
@@ -667,7 +667,7 @@ cdef class IntegerMaxPlusMatrix:
 
             sage: m1 = IntegerMaxPlusMatrix(2, 1, [0,1])
             sage: m2 = IntegerMaxPlusMatrix(2, 2, [1,3,mo,2])
-            sage: m3 = IntegerMaxPlusMatrix(1, 2, [1,1,1,1])
+            sage: m3 = IntegerMaxPlusMatrix(1, 2, [1,1])
 
             sage: m2 * m1
             [ 4 ]
@@ -701,24 +701,81 @@ cdef class IntegerMaxPlusMatrix:
                                  other.data, other.nrows, other.ncols)
         return ans
 
-    def __pow__(self, n, mod):
+    def __pow__(_self, n, mod):
         r"""
         EXAMPLES::
 
             sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix
             sage: m = IntegerMaxPlusMatrix(2, 2, [1,2,3,4])
+            sage: m**0
+            [   0 -oo ]
+            [ -oo   0 ]
+            sage: m**1
+            [ 1 2 ]
+            [ 3 4 ]
             sage: m**2
             [ 5 6 ]
             [ 7 8 ]
+            sage: m**3
+            [  9 10 ]
+            [ 11 12 ]
+            sage: m**4
+            [ 13 14 ]
+            [ 15 16 ]
+
+
+        TESTS::
+
             sage: m = IntegerMaxPlusMatrix(2, 1, [3,2])
             sage: m**2
             Traceback (most recent call last):
             ...
             ValueError: can not take powers of non square matrix
+
+            sage: from max_plus.max_plus_int import (random_integer_max_plus_matrix,
+            ....:          integer_max_plus_matrix_identity)
+            sage: for _ in range(100):
+            ....:     dim = randint(1,10)
+            ....:     k = randint(0,30)
+            ....:     m = random_integer_max_plus_matrix(dim, -100, 100, 0.1)
+            ....:     p = integer_max_plus_matrix_identity(dim)
+            ....:     for i in range(k): p = p*m
+            ....:     assert p == m**k
         """
-        if (<IntegerMaxPlusMatrix>self).nrows != (<IntegerMaxPlusMatrix>self).ncols:
+        cdef IntegerMaxPlusMatrix self = _self
+        if self.nrows != self.ncols:
             raise ValueError("can not take powers of non square matrix")
-        return generic_power_c(self, n, integer_max_plus_matrix_identity(n))
+
+        cdef unsigned long m = <unsigned long?> n
+        cdef int dim = self.nrows
+        cdef IntegerMaxPlusMatrix power, apow, tmp
+
+        power = new_integer_max_plus_matrix(dim, dim)
+        int_max_plus_mat_set_identity(dim, power.data)
+        if not m:
+            return power
+
+        apow = new_integer_max_plus_matrix(dim, dim)
+        tmp = new_integer_max_plus_matrix(dim, dim)
+
+        memcpy(apow.data[0], self.data[0], dim*dim*sizeof(long))
+        while m&1 == 0:
+            int_max_plus_mat_prod(tmp.data, apow.data, dim, dim, apow.data, dim, dim)
+            apow,tmp = tmp,apow
+            m = m >> 1
+        memcpy(power.data[0], apow.data[0], dim*dim*sizeof(long))
+        m = m >> 1
+
+        while m:
+            int_max_plus_mat_prod(tmp.data, apow.data, dim, dim, apow.data, dim, dim)
+            apow,tmp = tmp,apow
+            if m&1:
+                int_max_plus_mat_prod(tmp.data, power.data, dim, dim, apow.data, dim, dim)
+                power,tmp = tmp,power
+            m = m >> 1
+
+        return power
+
 
 cdef class IntegerMatrixProduct(object):
     r"""
@@ -730,6 +787,7 @@ cdef class IntegerMatrixProduct(object):
         sage: t = (0,1,0,0,1,0)
         sage: p = IntegerMatrixProduct(t)
         sage: p
+        product along 010010
         sage: a1 = IntegerMaxPlusMatrix(2, 2, [1,2,3,4])
         sage: a2 = IntegerMaxPlusMatrix(2, 2, [1,0,1,1])
         sage: a3 = IntegerMaxPlusMatrix(2, 2, [1,3,0,2])
@@ -744,8 +802,8 @@ cdef class IntegerMatrixProduct(object):
 
         sage: p = IntegerMatrixProduct('01101010')
         sage: p(a1, a2)
-        [ 15 16 ]
         [ 17 18 ]
+        [ 19 20 ]
 
     TESTS::
 
