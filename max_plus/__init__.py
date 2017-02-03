@@ -9,6 +9,7 @@ from max_plus_int import (
     random_integer_max_plus_matrix,
     random_integer_max_plus_matrices_band,
     is_relation,
+    IntegerMaxPlusMatrix,
     IntegerMatrixProduct)
 
 from sv_identities import (
