@@ -8,7 +8,8 @@ from max_plus_int import (
     integer_max_plus_matrix_identity,
     random_integer_max_plus_matrix,
     random_integer_max_plus_matrices_band,
-    is_relation)
+    is_relation,
+    IntegerMatrixProduct)
 
 from sv_identities import (
     is_sv_identity,
