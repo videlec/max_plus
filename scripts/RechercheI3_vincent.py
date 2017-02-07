@@ -1,5 +1,5 @@
 r"""
-Explore relations for full 3x3 matrices by substituting 2x2 full identities
+Explore identities for full 3x3 matrices by substituting 2x2 full identities
 into 3x3 vv identities
 
 For each pair (u,v) of 2x2 full identities a file
@@ -15,6 +15,9 @@ To run a parallel check, just use the function ``check_all`` as in::
 from max_plus import *
 from max_plus.max_plus_int import IntegerMatrixProduct, IntegerMaxPlusMatrix
 
+def t2s(t): return ''.join(map(str,t))
+def s2t(s): return tuple(map(int,s))
+
 def read_identities(filename):
     r"""
     Return the list of identities read from the file with name ``filename``
@@ -27,7 +30,7 @@ def read_identities(filename):
     identities = []
     for line in f.readlines():
         left, right = line.split()
-        identities.append((tuple(map(int, left)), tuple(map(int, right))))
+        identities.append((s2t(left), s2t(right)))
     f.close()
     return identities
 
@@ -41,10 +44,12 @@ for l in range(22,24):
 
 def print_candidates(filename=None):
     r"""
-    Print the candidates
+    Print the candidate identities.
 
     If an argument is provided, the result is written into that file. Otherwise,
     the output is printed on the screen.
+
+    Each line corresponds to a quadruple ``s t u v`` in this order.
     """
     if filename is None:
         import sys
@@ -53,14 +58,10 @@ def print_candidates(filename=None):
         output = open(filename, 'w')
     n = 0
     for u,v in Id2:
-        su = ''.join(map(str,u))
-        sv = ''.join(map(str,v))
-        killedf = '../candidates_full/killed_{}_{}'.format(''.join(map(str,u)), ''.join(map(str,v)))
+        killedf = '../candidates_full/killed_{}_{}'.format(t2s(u), t2s(v))
         killed = set(read_identities(killedf))
         for s,t in set(Id3).difference(killed):
-            ss = ''.join(map(str,s))
-            st = ''.join(map(str,t))
-            output.write(su + ' ' + sv + ' ' + ss + ' ' + st + '\n')
+            output.write(t2s(s) + ' ' + t2s(t) + ' ' + t2s(u) + ' ' + t2s(v) + '\n')
             n += 1
     if filename is not None:
         output.close()
@@ -68,11 +69,23 @@ def print_candidates(filename=None):
 def check(u, v, K=2**20, num=100, p=0.01):
     r"""
     Check pairs obtained from a given ``(u,v)`` of 2x2 full identities.
+
+    The file ``killed_{u}_{v}`` is updated accordingly.
+
+    INPUT:
+
+    - ``u``, ``v`` -- the 2x2 identity
+
+    - ``K`` -- bound for matrix entries
+
+    - ``num`` -- number of matrices to test
+
+    - ``p`` -- probability for minus infinity to appear as coefficient
     """
     Pu = IntegerMatrixProduct(u)
     Pv = IntegerMatrixProduct(v)
     
-    filename = '../candidates_full/killed_{}_{}'.format(''.join(map(str,u)), ''.join(map(str,v)))
+    filename = '../candidates_full/killed_{}_{}'.format(t2s(u), t2s(v))
     killed = set(read_identities(filename))
 
     Id3_to_test = set(Id3).difference(killed)
@@ -98,13 +111,13 @@ def check(u, v, K=2**20, num=100, p=0.01):
     killed = sorted(killed)
     f = open(filename, 'w')
     for s,t in killed:
-        f.write(''.join(map(str,s)) + ' ' + ''.join(map(str,t)) + '\n')
+        f.write(t2s(s) + ' ' + t2s(t) + '\n')
     f.close()
     return u,v,nkilled
 
 def check_all(K, num, ncpus=None, verbose=False, logfile=None):
     r"""
-    Run through all 2x2 full identities
+    Run through all 2x2 full identities in parallel
 
     EXAMPLES::
 
@@ -124,13 +137,15 @@ def check_all(K, num, ncpus=None, verbose=False, logfile=None):
     pool = mp.Pool(ncpus)
 
     tasks = ((verbose, check, u, v, K, num) for u,v in Id2)
+    total_killed = 0
     for u,v,nkilled in pool.imap_unordered(parallel_unfold, tasks):
         if logfile is not None:
-            su = ''.join(map(str,u))
-            sv = ''.join(map(str,v))
-            logfile.write("{} relations killed with u={} v={}\n".format(nkilled,su,sv))
+            logfile.write("{} identities killed with u={} v={}\n".format(nkilled,t2s(u),t2s(v)))
             logfile.flush()
+        total_killed += nkilled
     pool.close()
     pool.join()
+    print "{} identities killed".format(total_killed)
     if close:
         logfile.close()
+    return total_killed
