@@ -4,7 +4,7 @@ d=3#dim
 N=(lcm(range(1,d+1)))
 
 
-T=2#Nb de tours
+T=8#Nb de tours
 k=7#10^k #Nb paires A,B
 K=10^5#Taille coeffs
 p=0.01#Proba -\infty
@@ -57,16 +57,15 @@ for _ in range(T):
 			if U<>V:
 				eltsUV.append((U,V))
 		Sst[i]=[st for st in Sst[i] if is_relation(st[0],st[1], eltsUV, False)]
+	L=[len(Sst[i]) for i in range(n)]
+	if sum(L)<len(S):
+		f=open('max_plus/candidates_full/10^8vv3_22-23(full2_18-20)(a6b6)','w')
+		for i in range(n):
+			u,v=Suv[i]
+			for s,t in Sst[i]:
+				f.write(''.join(map(str, s))+' '+''.join(map(str, t))+' '+u+' '+v)
+				f.write('\n')
 
 #Res
-L=[len(Sst[i]) for i in range(n)]
 print(sum(L),'vs',len(S))
-
-if len(S)<sum(L):
-	f=open('max_plus/candidates_full/10^8vv3_22-23(full2_18-20)(a6b6)','w')
-	for i in range(n):
-		u,v=Suv[i]
-		for s,t in Sst[i]:
-			f.write(''.join(map(str, s))+' '+''.join(map(str, t))+' '+u+' '+v)
-
 
