@@ -7,10 +7,10 @@ For each pair (u,v) of 2x2 full identities a file
 pairs (s,t) of 3x3 vv identities for which the program has found a
 counterexample.
 
-To run a parallel check, just use the function ``check_all`` as in::
+To run a parallel test, just use the function ``test_all`` as in::
 
     sage: %runfile RechercheI3_vincent.py  # not tested
-    sage: check_all(2**20, 1000)           # not tested
+    sage: test_all(2**20, 1000)            # not tested
 """
 from max_plus import *
 from max_plus.max_plus_int import IntegerMatrixProduct, IntegerMaxPlusMatrix
@@ -29,20 +29,11 @@ def read_identities(filename):
 
     identities = []
     for line in f.readlines():
-        left, right = line.split()
-        identities.append((s2t(left), s2t(right)))
+        identities.append(tuple(map(s2t, line.split())))
     f.close()
     return identities
 
-Id2 = []
-for l in range(18,20):
-    Id2.extend(read_identities('../full_identities/2_' + str(l)))
-
-Id3 = []
-for l in range(22,24):
-    Id3.extend(read_identities('../vv_identities/3_' + str(l)))
-
-def print_candidates(filename=None):
+def print_candidates(k1=17, k2=20, filename=None):
     r"""
     Print the candidate identities.
 
@@ -51,22 +42,41 @@ def print_candidates(filename=None):
 
     Each line corresponds to a quadruple ``s t u v`` in this order.
     """
+    Id2 = []
+    for l in range(k1,k2):
+        Id2.extend(read_identities('../full_identities/2_' + str(l)))
+    Id3 = []
+    for l in range(22,24):
+        Id3.extend(read_identities('../vv_identities/3_' + str(l)))
+
     if filename is None:
         import sys
         output = sys.stdout
     else:
         output = open(filename, 'w')
-    n = 0
+
     for u,v in Id2:
         killedf = '../candidates_full/killed_{}_{}'.format(t2s(u), t2s(v))
         killed = set(read_identities(killedf))
         for s,t in set(Id3).difference(killed):
             output.write(t2s(s) + ' ' + t2s(t) + ' ' + t2s(u) + ' ' + t2s(v) + '\n')
-            n += 1
     if filename is not None:
         output.close()
 
-def check(u, v, K=2**20, num=100, p=0.01):
+def is_relation_stuv(s, t, u, v, K=2**20, num=100, p=0.01):
+    Pu = IntegerMatrixProduct(u)
+    Pv = IntegerMatrixProduct(v)
+
+    while True:
+        a = random_integer_max_plus_matrix(3,-K,K,p)**6
+        b = random_integer_max_plus_matrix(3,-K,K,p)**6
+        U = Pu(a,b)
+        V = Pv(a,b)
+
+        if U != V and not is_relation(s, t, [(U,V)], False):
+            return False
+
+def test_uv(u, v, Id3, K=2**20, num=100, p=0.01):
     r"""
     Check pairs obtained from a given ``(u,v)`` of 2x2 full identities.
 
@@ -75,6 +85,8 @@ def check(u, v, K=2**20, num=100, p=0.01):
     INPUT:
 
     - ``u``, ``v`` -- the 2x2 identity
+
+    - ``Id3`` -- list of vv identities
 
     - ``K`` -- bound for matrix entries
 
@@ -90,7 +102,7 @@ def check(u, v, K=2**20, num=100, p=0.01):
 
     Id3_to_test = set(Id3).difference(killed)
     if not Id3_to_test:
-        return
+        return u,v,-1
 
     eltsUV = []
     while len(eltsUV) < num:
@@ -106,7 +118,6 @@ def check(u, v, K=2**20, num=100, p=0.01):
         if not is_relation(s, t, eltsUV, False):
             nkilled += 1
             killed.add((s,t))
-            break
 
     killed = sorted(killed)
     f = open(filename, 'w')
@@ -115,7 +126,7 @@ def check(u, v, K=2**20, num=100, p=0.01):
     f.close()
     return u,v,nkilled
 
-def check_all(K, num, ncpus=None, verbose=False, logfile=None):
+def test_all(k1, k2, K, num, ncpus=None, verbose=False, logfile=None):
     r"""
     Run through all 2x2 full identities in parallel
 
@@ -123,7 +134,7 @@ def check_all(K, num, ncpus=None, verbose=False, logfile=None):
 
         sage: import sys                                 # not tested
         sage: %runfile RechercheI3_vincent.py            # not tested
-        sage: check_all(2**10, 1000, logfile=sys.stdout) # not tested
+        sage: test_all(2**10, 1000, logfile=sys.stdout) # not tested
     """
     import multiprocessing as mp
     from max_plus.misc import parallel_unfold
@@ -136,7 +147,15 @@ def check_all(K, num, ncpus=None, verbose=False, logfile=None):
         ncpus = mp.cpu_count()
     pool = mp.Pool(ncpus)
 
-    tasks = ((verbose, check, u, v, K, num) for u,v in Id2)
+    Id2 = []
+    for l in range(k1,k2):
+        Id2.extend(read_identities('../full_identities/2_' + str(l)))
+
+    Id3 = []
+    for l in range(22,24):
+        Id3.extend(read_identities('../vv_identities/3_' + str(l)))
+
+    tasks = ((verbose, test_uv, u, v, Id3, K, num) for u,v in Id2)
     total_killed = 0
     for u,v,nkilled in pool.imap_unordered(parallel_unfold, tasks):
         if logfile is not None:
