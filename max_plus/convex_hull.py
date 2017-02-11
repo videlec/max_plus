@@ -140,6 +140,8 @@ def get_convex_hull_engine(nvar, convex_hull=None):
         return ConvexHullPolyhedra(nvar, 'cdd')
     elif convex_hull == 'PALP':
         return ConvexHullPalp(nvar)
+    elif convex_hull == 'nothing':
+        return NoConvexHull()
     else:
         raise ValueError("convex_hull must either be 'ppl', 'cdd' or 'PALP'")
 
@@ -162,6 +164,10 @@ class ConvexHull(object):
 
     def __repr__(self):
         return "Convex hull engine {}".format(self._name)
+
+class NoConvexHull(ConvexHull):
+    _name = 'nothing'
+    def __call__(self, pts): return tuple(sorted(set(pts)))
 
 class ConvexHullPolyhedra(ConvexHull):
     r"""
