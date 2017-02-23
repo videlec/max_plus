@@ -1,0 +1,1976 @@
+u = 00000101
+num ext. occ.: 29002
+num int. occ.: 9340
+num faces    : 35
+num verts    : 178
+polytope computation in 1.64348196983secs
+containance test in 0.525368928909secs
+
+u = 00000010
+num ext. occ.: 58082
+num int. occ.: 21671
+num faces    : 38
+num verts    : 196
+polytope computation in 3.70282888412secs
+containance test in 1.23216819763secs
+
+u = 00000110
+num ext. occ.: 68197
+num int. occ.: 24625
+num faces    : 32
+num verts    : 184
+polytope computation in 4.78741192818secs
+containance test in 1.42469191551secs
+
+u = 00001010
+num ext. occ.: 31222
+num int. occ.: 9708
+num faces    : 35
+num verts    : 162
+polytope computation in 1.80023813248secs
+containance test in 0.547086954117secs
+
+u = 00001001
+num ext. occ.: 37662
+num int. occ.: 12755
+num faces    : 35
+num verts    : 194
+polytope computation in 1.92506098747secs
+containance test in 0.70694899559secs
+
+u = 00000001
+num ext. occ.: 59687
+num int. occ.: 23852
+num faces    : 44
+num verts    : 225
+polytope computation in 3.25502300262secs
+containance test in 1.3936650753secs
+
+u = 00000100
+num ext. occ.: 67322
+num int. occ.: 25603
+num faces    : 38
+num verts    : 194
+polytope computation in 4.08393907547secs
+containance test in 1.51035118103secs
+
+u = 00001101
+num ext. occ.: 31010
+num int. occ.: 9902
+num faces    : 20
+num verts    : 43
+polytope computation in 1.52273201942secs
+containance test in 0.503864049911secs
+
+u = 00001011
+num ext. occ.: 57953
+num int. occ.: 19161
+num faces    : 28
+num verts    : 184
+polytope computation in 3.44905996323secs
+containance test in 1.00672197342secs
+
+u = 00001000
+num ext. occ.: 63984
+num int. occ.: 23757
+num faces    : 38
+num verts    : 206
+polytope computation in 4.9675989151secs
+containance test in 1.41477012634secs
+
+u = 00010001
+num ext. occ.: 30214
+num int. occ.: 9459
+num faces    : 35
+num verts    : 190
+polytope computation in 1.88275885582secs
+containance test in 0.555433034897secs
+
+u = 00010010
+num ext. occ.: 27384
+num int. occ.: 7969
+num faces    : 35
+num verts    : 214
+polytope computation in 1.55502796173secs
+containance test in 0.455520868301secs
+
+u = 00001110
+num ext. occ.: 66508
+num int. occ.: 21972
+num faces    : 47
+num verts    : 145
+polytope computation in 4.89865112305secs
+containance test in 1.35446405411secs
+
+u = 00010011
+num ext. occ.: 63470
+num int. occ.: 21106
+num faces    : 28
+num verts    : 220
+polytope computation in 3.95146012306secs
+containance test in 1.21063494682secs
+
+u = 00010101
+num ext. occ.: 11334
+num int. occ.: 2812
+num faces    : 27
+num verts    : 168
+polytope computation in 0.622162103653secs
+containance test in 0.158808946609secs
+
+u = 00010100
+num ext. occ.: 33462
+num int. occ.: 10000
+num faces    : 35
+num verts    : 188
+polytope computation in 2.06369304657secs
+containance test in 0.558238983154secs
+
+u = 00010110
+num ext. occ.: 34907
+num int. occ.: 9678
+num faces    : 23
+num verts    : 138
+polytope computation in 2.19633483887secs
+containance test in 0.534641981125secs
+
+u = 00010000
+num ext. occ.: 63984
+num int. occ.: 23757
+num faces    : 38
+num verts    : 206
+polytope computation in 3.58539009094secs
+containance test in 1.33761501312secs
+
+u = 00011001
+num ext. occ.: 54348
+num int. occ.: 16162
+num faces    : 22
+num verts    : 143
+polytope computation in 2.94030880928secs
+containance test in 0.84530711174secs
+
+u = 00011010
+num ext. occ.: 42389
+num int. occ.: 11802
+num faces    : 18
+num verts    : 64
+polytope computation in 2.62312698364secs
+containance test in 0.603055000305secs
+
+u = 00001100
+num ext. occ.: 134550
+num int. occ.: 48581
+num faces    : 23
+num verts    : 55
+polytope computation in 8.63614583015secs
+containance test in 2.52281904221secs
+
+u = 00010111
+num ext. occ.: 53294
+num int. occ.: 14990
+num faces    : 35
+num verts    : 138
+polytope computation in 3.38887405396secs
+containance test in 0.82922911644secs
+
+u = 00011101
+num ext. occ.: 17498
+num int. occ.: 4760
+num faces    : 34
+num verts    : 137
+polytope computation in 0.889340877533secs
+containance test in 0.258896112442secs
+
+u = 00011000
+num ext. occ.: 74421
+num int. occ.: 25390
+num faces    : 26
+num verts    : 151
+polytope computation in 4.64964079857secs
+containance test in 1.50021505356secs
+
+u = 00011011
+num ext. occ.: 61928
+num int. occ.: 19068
+num faces    : 23
+num verts    : 172
+polytope computation in 3.62048816681secs
+containance test in 0.995939970016secs
+
+u = 00011100
+num ext. occ.: 90275
+num int. occ.: 29366
+num faces    : 46
+num verts    : 162
+polytope computation in 4.71613383293secs
+containance test in 1.67422294617secs
+
+u = 00100001
+num ext. occ.: 37266
+num int. occ.: 12631
+num faces    : 35
+num verts    : 186
+polytope computation in 1.84374403954secs
+containance test in 0.688435792923secs
+
+u = 00100010
+num ext. occ.: 31831
+num int. occ.: 9882
+num faces    : 35
+num verts    : 174
+polytope computation in 1.61676597595secs
+containance test in 0.536776065826secs
+
+u = 00100011
+num ext. occ.: 62932
+num int. occ.: 21341
+num faces    : 28
+num verts    : 180
+polytope computation in 3.27449417114secs
+containance test in 1.12514877319secs
+
+u = 00100100
+num ext. occ.: 41904
+num int. occ.: 13604
+num faces    : 35
+num verts    : 168
+polytope computation in 2.16594791412secs
+containance test in 0.745704889297secs
+
+u = 00100101
+num ext. occ.: 11420
+num int. occ.: 2880
+num faces    : 27
+num verts    : 136
+polytope computation in 0.562378883362secs
+containance test in 0.15074300766secs
+
+u = 00100110
+num ext. occ.: 45120
+num int. occ.: 13568
+num faces    : 23
+num verts    : 126
+polytope computation in 2.38300204277secs
+containance test in 0.707775115967secs
+
+u = 00100000
+num ext. occ.: 67322
+num int. occ.: 25603
+num faces    : 38
+num verts    : 194
+polytope computation in 4.17751097679secs
+containance test in 1.47018003464secs
+
+u = 00101000
+num ext. occ.: 33462
+num int. occ.: 10000
+num faces    : 35
+num verts    : 188
+polytope computation in 2.03093218803secs
+containance test in 0.569822072983secs
+
+u = 00101001
+num ext. occ.: 12880
+num int. occ.: 3320
+num faces    : 27
+num verts    : 168
+polytope computation in 0.694255113602secs
+containance test in 0.181123971939secs
+
+u = 00101010
+num ext. occ.: 11892
+num int. occ.: 2800
+num faces    : 22
+num verts    : 124
+polytope computation in 0.652718067169secs
+containance test in 0.146863222122secs
+
+u = 00101011
+num ext. occ.: 34218
+num int. occ.: 8744
+num faces    : 21
+num verts    : 136
+polytope computation in 2.04420304298secs
+containance test in 0.468606948853secs
+
+u = 00101100
+num ext. occ.: 51495
+num int. occ.: 14885
+num faces    : 18
+num verts    : 80
+polytope computation in 3.20171093941secs
+containance test in 0.779008865356secs
+
+u = 00101101
+num ext. occ.: 9836
+num int. occ.: 2393
+num faces    : 16
+num verts    : 58
+polytope computation in 0.53383398056secs
+containance test in 0.130187034607secs
+
+u = 00000111
+num ext. occ.: 101768
+num int. occ.: 37752
+num faces    : 73
+num verts    : 217
+polytope computation in 8.34249401093secs
+containance test in 2.98613119125secs
+
+u = 00101110
+num ext. occ.: 20828
+num int. occ.: 5236
+num faces    : 28
+num verts    : 138
+polytope computation in 1.2847161293secs
+containance test in 0.282753944397secs
+
+u = 00100111
+num ext. occ.: 69317
+num int. occ.: 21356
+num faces    : 35
+num verts    : 124
+polytope computation in 3.70221996307secs
+containance test in 1.2392039299secs
+
+u = 00011110
+num ext. occ.: 72672
+num int. occ.: 20053
+num faces    : 49
+num verts    : 208
+polytope computation in 4.11725902557secs
+containance test in 1.13471984863secs
+
+u = 00110010
+num ext. occ.: 51323
+num int. occ.: 14398
+num faces    : 18
+num verts    : 71
+polytope computation in 2.74443888664secs
+containance test in 0.73604798317secs
+
+u = 00110001
+num ext. occ.: 46745
+num int. occ.: 14334
+num faces    : 14
+num verts    : 41
+polytope computation in 2.98759794235secs
+containance test in 0.7217669487secs
+
+u = 00000011
+num ext. occ.: 132861
+num int. occ.: 55499
+num faces    : 71
+num verts    : 271
+polytope computation in 9.29435300827secs
+containance test in 3.55659103394secs
+
+u = 00110100
+num ext. occ.: 51495
+num int. occ.: 14885
+num faces    : 18
+num verts    : 80
+polytope computation in 2.70562696457secs
+containance test in 0.80002117157secs
+
+u = 00110101
+num ext. occ.: 31522
+num int. occ.: 7336
+num faces    : 14
+num verts    : 64
+polytope computation in 1.72268295288secs
+containance test in 0.373059988022secs
+
+u = 00110110
+num ext. occ.: 48440
+num int. occ.: 13356
+num faces    : 22
+num verts    : 115
+polytope computation in 2.48409605026secs
+containance test in 0.720216989517secs
+
+u = 00110011
+num ext. occ.: 150017
+num int. occ.: 48378
+num faces    : 14
+num verts    : 42
+polytope computation in 9.39108300209secs
+containance test in 2.44860506058secs
+
+u = 00111001
+num ext. occ.: 67017
+num int. occ.: 18893
+num faces    : 35
+num verts    : 146
+polytope computation in 4.26386713982secs
+containance test in 1.04293584824secs
+
+u = 00110111
+num ext. occ.: 70180
+num int. occ.: 20010
+num faces    : 19
+num verts    : 65
+polytope computation in 3.72631192207secs
+containance test in 1.05800104141secs
+
+u = 00111010
+num ext. occ.: 51648
+num int. occ.: 13430
+num faces    : 29
+num verts    : 106
+polytope computation in 2.81842494011secs
+containance test in 0.7200050354secs
+
+u = 00101111
+num ext. occ.: 64029
+num int. occ.: 16427
+num faces    : 37
+num verts    : 180
+polytope computation in 3.86696696281secs
+containance test in 0.942076206207secs
+
+u = 00111101
+num ext. occ.: 40141
+num int. occ.: 9692
+num faces    : 49
+num verts    : 140
+polytope computation in 2.34801101685secs
+containance test in 0.621700048447secs
+
+u = 00110000
+num ext. occ.: 134550
+num int. occ.: 48581
+num faces    : 23
+num verts    : 55
+polytope computation in 9.96187114716secs
+containance test in 2.59064888954secs
+
+u = 00111000
+num ext. occ.: 90275
+num int. occ.: 29366
+num faces    : 46
+num verts    : 162
+polytope computation in 4.88936305046secs
+containance test in 1.75051689148secs
+
+u = 00111011
+num ext. occ.: 72850
+num int. occ.: 21375
+num faces    : 27
+num verts    : 152
+polytope computation in 3.97984004021secs
+containance test in 1.21357417107secs
+
+u = 01000001
+num ext. occ.: 28546
+num int. occ.: 9311
+num faces    : 35
+num verts    : 180
+polytope computation in 1.87209391594secs
+containance test in 0.516101121902secs
+
+u = 01000010
+num ext. occ.: 25342
+num int. occ.: 7564
+num faces    : 35
+num verts    : 189
+polytope computation in 1.33227086067secs
+containance test in 0.41344499588secs
+
+u = 01000011
+num ext. occ.: 56749
+num int. occ.: 18815
+num faces    : 28
+num verts    : 206
+polytope computation in 3.24921989441secs
+containance test in 0.99783205986secs
+
+u = 01000100
+num ext. occ.: 31831
+num int. occ.: 9882
+num faces    : 35
+num verts    : 174
+polytope computation in 1.76791095734secs
+containance test in 0.541825056076secs
+
+u = 01000101
+num ext. occ.: 10230
+num int. occ.: 2472
+num faces    : 27
+num verts    : 154
+polytope computation in 0.538150072098secs
+containance test in 0.129692792892secs
+
+u = 01000110
+num ext. occ.: 33356
+num int. occ.: 9580
+num faces    : 23
+num verts    : 131
+polytope computation in 1.88160300255secs
+containance test in 0.4966340065secs
+
+u = 01000000
+num ext. occ.: 58082
+num int. occ.: 21671
+num faces    : 38
+num verts    : 196
+polytope computation in 3.2437441349secs
+containance test in 1.21818995476secs
+
+u = 01001000
+num ext. occ.: 27384
+num int. occ.: 7969
+num faces    : 35
+num verts    : 214
+polytope computation in 1.55486321449secs
+containance test in 0.448442935944secs
+
+u = 01001001
+num ext. occ.: 12530
+num int. occ.: 3200
+num faces    : 27
+num verts    : 202
+polytope computation in 0.671838998795secs
+containance test in 0.165557861328secs
+
+u = 01001010
+num ext. occ.: 10740
+num int. occ.: 2452
+num faces    : 22
+num verts    : 120
+polytope computation in 0.575845003128secs
+containance test in 0.130052089691secs
+
+u = 01001011
+num ext. occ.: 26490
+num int. occ.: 6495
+num faces    : 21
+num verts    : 158
+polytope computation in 1.51840901375secs
+containance test in 0.342591047287secs
+
+u = 01000111
+num ext. occ.: 51261
+num int. occ.: 15102
+num faces    : 35
+num verts    : 133
+polytope computation in 2.90844416618secs
+containance test in 0.836576938629secs
+
+u = 01001101
+num ext. occ.: 9790
+num int. occ.: 2321
+num faces    : 16
+num verts    : 47
+polytope computation in 0.508995056152secs
+containance test in 0.115583896637secs
+
+u = 01001110
+num ext. occ.: 21031
+num int. occ.: 5228
+num faces    : 28
+num verts    : 149
+polytope computation in 1.16516017914secs
+containance test in 0.274491786957secs
+
+u = 01001100
+num ext. occ.: 51323
+num int. occ.: 14398
+num faces    : 18
+num verts    : 71
+polytope computation in 2.96078491211secs
+containance test in 0.736166000366secs
+
+u = 01010000
+num ext. occ.: 31222
+num int. occ.: 9708
+num faces    : 35
+num verts    : 162
+polytope computation in 1.78362894058secs
+containance test in 0.553283929825secs
+
+u = 01010001
+num ext. occ.: 11092
+num int. occ.: 2784
+num faces    : 27
+num verts    : 142
+polytope computation in 0.617026090622secs
+containance test in 0.150972127914secs
+
+u = 01010010
+num ext. occ.: 10740
+num int. occ.: 2452
+num faces    : 22
+num verts    : 120
+polytope computation in 0.577511072159secs
+containance test in 0.130257129669secs
+
+u = 01010011
+num ext. occ.: 32798
+num int. occ.: 8712
+num faces    : 21
+num verts    : 128
+polytope computation in 1.87150287628secs
+containance test in 0.464237928391secs
+
+u = 01010100
+num ext. occ.: 11892
+num int. occ.: 2800
+num faces    : 22
+num verts    : 124
+polytope computation in 0.629967927933secs
+containance test in 0.146795988083secs
+
+u = 01010101
+num ext. occ.: 5400
+num int. occ.: 960
+num faces    : 17
+num verts    : 88
+polytope computation in 0.273360013962secs
+containance test in 0.0502970218658secs
+
+u = 01010110
+num ext. occ.: 11354
+num int. occ.: 2436
+num faces    : 18
+num verts    : 94
+polytope computation in 0.574397087097secs
+containance test in 0.124616146088secs
+
+u = 01010111
+num ext. occ.: 17722
+num int. occ.: 3844
+num faces    : 23
+num verts    : 106
+polytope computation in 0.932540893555secs
+containance test in 0.206645011902secs
+
+u = 01011000
+num ext. occ.: 42389
+num int. occ.: 11802
+num faces    : 18
+num verts    : 64
+polytope computation in 2.46472096443secs
+containance test in 0.617899179459secs
+
+u = 01011001
+num ext. occ.: 30666
+num int. occ.: 7292
+num faces    : 14
+num verts    : 54
+polytope computation in 1.69589710236secs
+containance test in 0.375674009323secs
+
+u = 01011100
+num ext. occ.: 51648
+num int. occ.: 13430
+num faces    : 29
+num verts    : 106
+polytope computation in 3.06201505661secs
+containance test in 0.743817090988secs
+
+u = 01011101
+num ext. occ.: 9320
+num int. occ.: 1920
+num faces    : 20
+num verts    : 74
+polytope computation in 0.510684013367secs
+containance test in 0.101602077484secs
+
+u = 00000000
+num ext. occ.: 127810
+num int. occ.: 57844
+num faces    : 75
+num verts    : 257
+polytope computation in 8.09742093086secs
+containance test in 4.13428401947secs
+
+u = 00111110
+num ext. occ.: 106156
+num int. occ.: 27526
+num faces    : 59
+num verts    : 185
+polytope computation in 6.35289502144secs
+containance test in 1.80746102333secs
+
+u = 01011110
+num ext. occ.: 40585
+num int. occ.: 8694
+num faces    : 41
+num verts    : 153
+polytope computation in 2.29740214348secs
+containance test in 0.505290985107secs
+
+u = 01100001
+num ext. occ.: 40153
+num int. occ.: 12652
+num faces    : 31
+num verts    : 184
+polytope computation in 2.11698293686secs
+containance test in 0.682556152344secs
+
+u = 01100010
+num ext. occ.: 33356
+num int. occ.: 9580
+num faces    : 23
+num verts    : 131
+polytope computation in 1.81009411812secs
+containance test in 0.489292860031secs
+
+u = 01001111
+num ext. occ.: 64024
+num int. occ.: 15956
+num faces    : 37
+num verts    : 197
+polytope computation in 3.72741603851secs
+containance test in 0.934991121292secs
+
+u = 01100100
+num ext. occ.: 45120
+num int. occ.: 13568
+num faces    : 23
+num verts    : 126
+polytope computation in 2.42622613907secs
+containance test in 0.71718287468secs
+
+u = 01100101
+num ext. occ.: 10914
+num int. occ.: 2532
+num faces    : 14
+num verts    : 84
+polytope computation in 0.538470983505secs
+containance test in 0.128470897675secs
+
+u = 01100110
+num ext. occ.: 49052
+num int. occ.: 13486
+num faces    : 13
+num verts    : 64
+polytope computation in 2.62200593948secs
+containance test in 0.692284822464secs
+
+u = 01100011
+num ext. occ.: 61763
+num int. occ.: 19822
+num faces    : 16
+num verts    : 140
+polytope computation in 3.23944401741secs
+containance test in 0.99440407753secs
+
+u = 01101000
+num ext. occ.: 34907
+num int. occ.: 9678
+num faces    : 23
+num verts    : 138
+polytope computation in 1.84469485283secs
+containance test in 0.501519918442secs
+
+u = 01101001
+num ext. occ.: 11744
+num int. occ.: 2824
+num faces    : 14
+num verts    : 106
+polytope computation in 0.606069087982secs
+containance test in 0.14058303833secs
+
+u = 01101010
+num ext. occ.: 11354
+num int. occ.: 2436
+num faces    : 18
+num verts    : 94
+polytope computation in 0.583226919174secs
+containance test in 0.122039079666secs
+
+u = 01101100
+num ext. occ.: 48440
+num int. occ.: 13356
+num faces    : 22
+num verts    : 115
+polytope computation in 2.69594287872secs
+containance test in 0.695646047592secs
+
+u = 01100111
+num ext. occ.: 75815
+num int. occ.: 21376
+num faces    : 16
+num verts    : 86
+polytope computation in 4.58697891235secs
+containance test in 1.12604403496secs
+
+u = 01101110
+num ext. occ.: 18624
+num int. occ.: 4398
+num faces    : 21
+num verts    : 127
+polytope computation in 0.978241920471secs
+containance test in 0.225368022919secs
+
+u = 00111100
+num ext. occ.: 182453
+num int. occ.: 52770
+num faces    : 62
+num verts    : 159
+polytope computation in 14.2578661442secs
+containance test in 3.32350897789secs
+
+u = 01100000
+num ext. occ.: 68197
+num int. occ.: 24625
+num faces    : 32
+num verts    : 184
+polytope computation in 3.69537806511secs
+containance test in 1.35934996605secs
+
+u = 01110001
+num ext. occ.: 19567
+num int. occ.: 5301
+num faces    : 33
+num verts    : 132
+polytope computation in 0.959334135056secs
+containance test in 0.280884981155secs
+
+u = 01110010
+num ext. occ.: 21031
+num int. occ.: 5228
+num faces    : 28
+num verts    : 149
+polytope computation in 1.08433580399secs
+containance test in 0.292963027954secs
+
+u = 01110100
+num ext. occ.: 20828
+num int. occ.: 5236
+num faces    : 28
+num verts    : 138
+polytope computation in 1.13104605675secs
+containance test in 0.283597946167secs
+
+u = 01110101
+num ext. occ.: 12624
+num int. occ.: 2440
+num faces    : 20
+num verts    : 106
+polytope computation in 0.676426887512secs
+containance test in 0.128569126129secs
+
+u = 01110110
+num ext. occ.: 18624
+num int. occ.: 4398
+num faces    : 21
+num verts    : 127
+polytope computation in 1.0307199955secs
+containance test in 0.228096008301secs
+
+u = 01110111
+num ext. occ.: 28353
+num int. occ.: 6830
+num faces    : 28
+num verts    : 104
+polytope computation in 1.50553512573secs
+containance test in 0.374170064926secs
+
+u = 01110011
+num ext. occ.: 73356
+num int. occ.: 20903
+num faces    : 26
+num verts    : 123
+polytope computation in 4.20364379883secs
+containance test in 1.04063105583secs
+
+u = 01111001
+num ext. occ.: 53169
+num int. occ.: 12548
+num faces    : 27
+num verts    : 187
+polytope computation in 2.67967200279secs
+containance test in 0.643331050873secs
+
+u = 01110000
+num ext. occ.: 66508
+num int. occ.: 21972
+num faces    : 47
+num verts    : 145
+polytope computation in 3.65607905388secs
+containance test in 1.29248595238secs
+
+u = 01111010
+num ext. occ.: 40585
+num int. occ.: 8694
+num faces    : 41
+num verts    : 153
+polytope computation in 2.03947687149secs
+containance test in 0.474117040634secs
+
+u = 01111011
+num ext. occ.: 58894
+num int. occ.: 14056
+num faces    : 30
+num verts    : 207
+polytope computation in 3.2475168705secs
+containance test in 0.746118068695secs
+
+u = 01011111
+num ext. occ.: 77476
+num int. occ.: 17528
+num faces    : 50
+num verts    : 157
+polytope computation in 4.4593629837secs
+containance test in 1.08761978149secs
+
+u = 01111101
+num ext. occ.: 19824
+num int. occ.: 4177
+num faces    : 43
+num verts    : 146
+polytope computation in 1.0082988739secs
+containance test in 0.234331846237secs
+
+u = 01111000
+num ext. occ.: 72672
+num int. occ.: 20053
+num faces    : 49
+num verts    : 208
+polytope computation in 4.13380789757secs
+containance test in 1.18881416321secs
+
+u = 10000000
+num ext. occ.: 59687
+num int. occ.: 23852
+num faces    : 44
+num verts    : 225
+polytope computation in 2.87872385979secs
+containance test in 1.44857001305secs
+
+u = 10000001
+num ext. occ.: 33004
+num int. occ.: 11700
+num faces    : 35
+num verts    : 201
+polytope computation in 1.63422989845secs
+containance test in 0.6839427948secs
+
+u = 10000010
+num ext. occ.: 28546
+num int. occ.: 9311
+num faces    : 35
+num verts    : 180
+polytope computation in 1.39039802551secs
+containance test in 0.558023929596secs
+
+u = 10000011
+num ext. occ.: 56298
+num int. occ.: 20294
+num faces    : 38
+num verts    : 230
+polytope computation in 2.74606394768secs
+containance test in 1.2389421463secs
+
+u = 10000100
+num ext. occ.: 37266
+num int. occ.: 12631
+num faces    : 35
+num verts    : 186
+polytope computation in 1.83546304703secs
+containance test in 0.744924068451secs
+
+u = 10000101
+num ext. occ.: 10590
+num int. occ.: 2844
+num faces    : 32
+num verts    : 170
+polytope computation in 0.522958993912secs
+containance test in 0.166293859482secs
+
+u = 10000110
+num ext. occ.: 40153
+num int. occ.: 12652
+num faces    : 31
+num verts    : 184
+polytope computation in 2.00422692299secs
+containance test in 0.736996889114secs
+
+u = 10000111
+num ext. occ.: 61286
+num int. occ.: 19842
+num faces    : 44
+num verts    : 193
+polytope computation in 3.04161906242secs
+containance test in 1.22968888283secs
+
+u = 10001000
+num ext. occ.: 30214
+num int. occ.: 9459
+num faces    : 35
+num verts    : 190
+polytope computation in 1.46118402481secs
+containance test in 0.547920942307secs
+
+u = 10001001
+num ext. occ.: 12043
+num int. occ.: 3330
+num faces    : 32
+num verts    : 178
+polytope computation in 0.57405090332secs
+containance test in 0.191485881805secs
+
+u = 10001010
+num ext. occ.: 11092
+num int. occ.: 2784
+num faces    : 27
+num verts    : 142
+polytope computation in 0.535788059235secs
+containance test in 0.15682387352secs
+
+u = 10001011
+num ext. occ.: 30817
+num int. occ.: 8303
+num faces    : 27
+num verts    : 184
+polytope computation in 1.49236297607secs
+containance test in 0.467262983322secs
+
+u = 10001100
+num ext. occ.: 46745
+num int. occ.: 14334
+num faces    : 14
+num verts    : 41
+polytope computation in 2.29723906517secs
+containance test in 0.735631942749secs
+
+u = 10001101
+num ext. occ.: 9197
+num int. occ.: 2408
+num faces    : 12
+num verts    : 33
+polytope computation in 0.452372074127secs
+containance test in 0.125518083572secs
+
+u = 10001110
+num ext. occ.: 19567
+num int. occ.: 5301
+num faces    : 33
+num verts    : 132
+polytope computation in 0.976868867874secs
+containance test in 0.306217908859secs
+
+u = 00011111
+num ext. occ.: 135521
+num int. occ.: 39556
+num faces    : 59
+num verts    : 252
+polytope computation in 12.5102119446secs
+containance test in 2.45677304268secs
+
+u = 10010000
+num ext. occ.: 37662
+num int. occ.: 12755
+num faces    : 35
+num verts    : 194
+polytope computation in 1.80842208862secs
+containance test in 0.734164953232secs
+
+u = 10010001
+num ext. occ.: 12043
+num int. occ.: 3330
+num faces    : 32
+num verts    : 178
+polytope computation in 0.578985929489secs
+containance test in 0.184322118759secs
+
+u = 10010010
+num ext. occ.: 12530
+num int. occ.: 3200
+num faces    : 27
+num verts    : 202
+polytope computation in 0.599620103836secs
+containance test in 0.172992944717secs
+
+u = 10010011
+num ext. occ.: 41006
+num int. occ.: 12091
+num faces    : 27
+num verts    : 220
+polytope computation in 1.96855092049secs
+containance test in 0.678283929825secs
+
+u = 10010100
+num ext. occ.: 12880
+num int. occ.: 3320
+num faces    : 27
+num verts    : 168
+polytope computation in 0.630375146866secs
+containance test in 0.176581859589secs
+
+u = 10010101
+num ext. occ.: 7156
+num int. occ.: 1456
+num faces    : 21
+num verts    : 152
+polytope computation in 0.350565910339secs
+containance test in 0.0781738758087secs
+
+u = 10010110
+num ext. occ.: 11744
+num int. occ.: 2824
+num faces    : 14
+num verts    : 106
+polytope computation in 0.569190979004secs
+containance test in 0.148813009262secs
+
+u = 10010111
+num ext. occ.: 18052
+num int. occ.: 4400
+num faces    : 26
+num verts    : 125
+polytope computation in 0.885420084secs
+containance test in 0.250045061111secs
+
+u = 10011000
+num ext. occ.: 54348
+num int. occ.: 16162
+num faces    : 22
+num verts    : 143
+polytope computation in 2.66250300407secs
+containance test in 0.895052194595secs
+
+u = 01111100
+num ext. occ.: 106156
+num int. occ.: 27526
+num faces    : 59
+num verts    : 185
+polytope computation in 6.91561198235secs
+containance test in 1.62983202934secs
+
+u = 10011001
+num ext. occ.: 39631
+num int. occ.: 10160
+num faces    : 19
+num verts    : 139
+polytope computation in 1.95174503326secs
+containance test in 0.547643184662secs
+
+u = 10011010
+num ext. occ.: 30666
+num int. occ.: 7292
+num faces    : 14
+num verts    : 54
+polytope computation in 1.43896198273secs
+containance test in 0.365386009216secs
+
+u = 10011011
+num ext. occ.: 44852
+num int. occ.: 11860
+num faces    : 19
+num verts    : 161
+polytope computation in 2.1728219986secs
+containance test in 0.646204948425secs
+
+u = 10011101
+num ext. occ.: 12762
+num int. occ.: 3004
+num faces    : 25
+num verts    : 129
+polytope computation in 0.630645990372secs
+containance test in 0.164333820343secs
+
+u = 10011100
+num ext. occ.: 67017
+num int. occ.: 18893
+num faces    : 35
+num verts    : 146
+polytope computation in 3.53186798096secs
+containance test in 1.05138206482secs
+
+u = 10011110
+num ext. occ.: 53169
+num int. occ.: 12548
+num faces    : 27
+num verts    : 187
+polytope computation in 2.6132979393secs
+containance test in 0.712332010269secs
+
+u = 10100000
+num ext. occ.: 29002
+num int. occ.: 9340
+num faces    : 35
+num verts    : 178
+polytope computation in 1.40929794312secs
+containance test in 0.520509958267secs
+
+u = 10100001
+num ext. occ.: 10590
+num int. occ.: 2844
+num faces    : 32
+num verts    : 170
+polytope computation in 0.530735015869secs
+containance test in 0.163944005966secs
+
+u = 10100010
+num ext. occ.: 10230
+num int. occ.: 2472
+num faces    : 27
+num verts    : 154
+polytope computation in 0.4967648983secs
+containance test in 0.13550901413secs
+
+u = 10100011
+num ext. occ.: 30432
+num int. occ.: 8394
+num faces    : 27
+num verts    : 180
+polytope computation in 1.47416186333secs
+containance test in 0.465489864349secs
+
+u = 10100100
+num ext. occ.: 11420
+num int. occ.: 2880
+num faces    : 27
+num verts    : 136
+polytope computation in 0.558115005493secs
+containance test in 0.158780097961secs
+
+u = 10100101
+num ext. occ.: 5168
+num int. occ.: 944
+num faces    : 21
+num verts    : 112
+polytope computation in 0.252457141876secs
+containance test in 0.0502750873566secs
+
+u = 10100110
+num ext. occ.: 10914
+num int. occ.: 2532
+num faces    : 14
+num verts    : 84
+polytope computation in 0.527802944183secs
+containance test in 0.133169174194secs
+
+u = 10001111
+num ext. occ.: 58416
+num int. occ.: 16132
+num faces    : 47
+num verts    : 188
+polytope computation in 2.86290788651secs
+containance test in 0.983794927597secs
+
+u = 10101000
+num ext. occ.: 11334
+num int. occ.: 2812
+num faces    : 27
+num verts    : 168
+polytope computation in 0.546139955521secs
+containance test in 0.153398990631secs
+
+u = 10100111
+num ext. occ.: 17048
+num int. occ.: 4026
+num faces    : 26
+num verts    : 106
+polytope computation in 0.835186958313secs
+containance test in 0.222857952118secs
+
+u = 10101001
+num ext. occ.: 7156
+num int. occ.: 1456
+num faces    : 21
+num verts    : 152
+polytope computation in 0.346565961838secs
+containance test in 0.0774099826813secs
+
+u = 10101010
+num ext. occ.: 5400
+num int. occ.: 960
+num faces    : 17
+num verts    : 88
+polytope computation in 0.258993864059secs
+containance test in 0.0506088733673secs
+
+u = 10101011
+num ext. occ.: 9370
+num int. occ.: 1888
+num faces    : 14
+num verts    : 94
+polytope computation in 0.456842184067secs
+containance test in 0.0959010124207secs
+
+u = 10101110
+num ext. occ.: 12624
+num int. occ.: 2440
+num faces    : 20
+num verts    : 106
+polytope computation in 0.602179050446secs
+containance test in 0.133380174637secs
+
+u = 10101100
+num ext. occ.: 31522
+num int. occ.: 7336
+num faces    : 14
+num verts    : 64
+polytope computation in 1.49247002602secs
+containance test in 0.382784843445secs
+
+u = 10110000
+num ext. occ.: 31010
+num int. occ.: 9902
+num faces    : 20
+num verts    : 43
+polytope computation in 1.49941802025secs
+containance test in 0.521472930908secs
+
+u = 10110001
+num ext. occ.: 9197
+num int. occ.: 2408
+num faces    : 12
+num verts    : 33
+polytope computation in 0.451616048813secs
+containance test in 0.123425006866secs
+
+u = 10110010
+num ext. occ.: 9790
+num int. occ.: 2321
+num faces    : 16
+num verts    : 47
+polytope computation in 0.477319955826secs
+containance test in 0.13557100296secs
+
+u = 10110011
+num ext. occ.: 34048
+num int. occ.: 9296
+num faces    : 11
+num verts    : 22
+polytope computation in 1.66505789757secs
+containance test in 0.464569091797secs
+
+u = 10110100
+num ext. occ.: 9836
+num int. occ.: 2393
+num faces    : 16
+num verts    : 58
+polytope computation in 0.470291852951secs
+containance test in 0.127228021622secs
+
+u = 10110111
+num ext. occ.: 13603
+num int. occ.: 3151
+num faces    : 17
+num verts    : 50
+polytope computation in 0.66929602623secs
+containance test in 0.166210889816secs
+
+u = 10111000
+num ext. occ.: 17498
+num int. occ.: 4760
+num faces    : 34
+num verts    : 137
+polytope computation in 0.861601114273secs
+containance test in 0.27247095108secs
+
+u = 10111001
+num ext. occ.: 12762
+num int. occ.: 3004
+num faces    : 25
+num verts    : 129
+polytope computation in 0.621779918671secs
+containance test in 0.164484977722secs
+
+u = 10111010
+num ext. occ.: 9320
+num int. occ.: 1920
+num faces    : 20
+num verts    : 74
+polytope computation in 0.453752994537secs
+containance test in 0.103569984436secs
+
+u = 10111011
+num ext. occ.: 13488
+num int. occ.: 3021
+num faces    : 16
+num verts    : 108
+polytope computation in 0.666322946548secs
+containance test in 0.159398078918secs
+
+u = 10101111
+num ext. occ.: 39256
+num int. occ.: 7792
+num faces    : 23
+num verts    : 156
+polytope computation in 1.89507985115secs
+containance test in 0.43256521225secs
+
+u = 10111101
+num ext. occ.: 7234
+num int. occ.: 1356
+num faces    : 41
+num verts    : 129
+polytope computation in 0.362039089203secs
+containance test in 0.0853171348572secs
+
+u = 10111100
+num ext. occ.: 40141
+num int. occ.: 9692
+num faces    : 49
+num verts    : 140
+polytope computation in 1.98210501671secs
+containance test in 0.597692966461secs
+
+u = 10111110
+num ext. occ.: 19824
+num int. occ.: 4177
+num faces    : 43
+num verts    : 146
+polytope computation in 0.972555160522secs
+containance test in 0.252998113632secs
+
+u = 01101111
+num ext. occ.: 59630
+num int. occ.: 14404
+num faces    : 24
+num verts    : 167
+polytope computation in 3.45038795471secs
+containance test in 0.816728830338secs
+
+u = 10111111
+num ext. occ.: 52648
+num int. occ.: 11046
+num faces    : 60
+num verts    : 159
+polytope computation in 2.54197216034secs
+containance test in 0.72558093071secs
+
+u = 10011111
+num ext. occ.: 100278
+num int. occ.: 24993
+num faces    : 53
+num verts    : 225
+polytope computation in 6.11722588539secs
+containance test in 1.48074698448secs
+
+u = 01111110
+num ext. occ.: 73649
+num int. occ.: 15856
+num faces    : 72
+num verts    : 243
+polytope computation in 4.09268093109secs
+containance test in 1.10512208939secs
+
+u = 11000001
+num ext. occ.: 56298
+num int. occ.: 20294
+num faces    : 38
+num verts    : 230
+polytope computation in 2.78487801552secs
+containance test in 1.23170900345secs
+
+u = 11000101
+num ext. occ.: 30432
+num int. occ.: 8394
+num faces    : 27
+num verts    : 180
+polytope computation in 1.47379398346secs
+containance test in 0.458714962006secs
+
+u = 11000010
+num ext. occ.: 56749
+num int. occ.: 18815
+num faces    : 28
+num verts    : 206
+polytope computation in 2.76807403564secs
+containance test in 1.0260848999secs
+
+u = 00001111
+num ext. occ.: 171786
+num int. occ.: 58250
+num faces    : 50
+num verts    : 200
+polytope computation in 11.798609972secs
+containance test in 3.41418385506secs
+
+u = 11000110
+num ext. occ.: 61763
+num int. occ.: 19822
+num faces    : 16
+num verts    : 140
+polytope computation in 2.92734003067secs
+containance test in 1.06819295883secs
+
+u = 11001001
+num ext. occ.: 41006
+num int. occ.: 12091
+num faces    : 27
+num verts    : 220
+polytope computation in 2.01522493362secs
+containance test in 0.665204048157secs
+
+u = 11000100
+num ext. occ.: 62932
+num int. occ.: 21341
+num faces    : 28
+num verts    : 180
+polytope computation in 3.10023498535secs
+containance test in 1.18464684486secs
+
+u = 11001010
+num ext. occ.: 32798
+num int. occ.: 8712
+num faces    : 21
+num verts    : 128
+polytope computation in 1.58172893524secs
+containance test in 0.460366010666secs
+
+u = 11001011
+num ext. occ.: 54668
+num int. occ.: 15933
+num faces    : 16
+num verts    : 147
+polytope computation in 2.61656403542secs
+containance test in 0.842557907104secs
+
+u = 11001101
+num ext. occ.: 34048
+num int. occ.: 9296
+num faces    : 11
+num verts    : 22
+polytope computation in 1.63918590546secs
+containance test in 0.468521118164secs
+
+u = 11001000
+num ext. occ.: 63470
+num int. occ.: 21106
+num faces    : 28
+num verts    : 220
+polytope computation in 2.91628193855secs
+containance test in 1.12801790237secs
+
+u = 11001110
+num ext. occ.: 73356
+num int. occ.: 20903
+num faces    : 26
+num verts    : 123
+polytope computation in 3.55644917488secs
+containance test in 1.16893696785secs
+
+u = 11001100
+num ext. occ.: 150017
+num int. occ.: 48378
+num faces    : 14
+num verts    : 42
+polytope computation in 9.85551309586secs
+containance test in 2.53475093842secs
+
+u = 11010001
+num ext. occ.: 30817
+num int. occ.: 8303
+num faces    : 27
+num verts    : 184
+polytope computation in 1.52837300301secs
+containance test in 0.47750377655secs
+
+u = 11010010
+num ext. occ.: 26490
+num int. occ.: 6495
+num faces    : 21
+num verts    : 158
+polytope computation in 1.29847002029secs
+containance test in 0.350374937057secs
+
+u = 11010011
+num ext. occ.: 54668
+num int. occ.: 15933
+num faces    : 16
+num verts    : 147
+polytope computation in 2.77615594864secs
+containance test in 0.896344900131secs
+
+u = 11010100
+num ext. occ.: 34218
+num int. occ.: 8744
+num faces    : 21
+num verts    : 136
+polytope computation in 1.7379629612secs
+containance test in 0.474655866623secs
+
+u = 11010101
+num ext. occ.: 9370
+num int. occ.: 1888
+num faces    : 14
+num verts    : 94
+polytope computation in 0.460344076157secs
+containance test in 0.101098060608secs
+
+u = 11010000
+num ext. occ.: 57953
+num int. occ.: 19161
+num faces    : 28
+num verts    : 184
+polytope computation in 2.83380889893secs
+containance test in 1.08851909637secs
+
+u = 11010111
+num ext. occ.: 56414
+num int. occ.: 13328
+num faces    : 16
+num verts    : 78
+polytope computation in 2.84084701538secs
+containance test in 0.715303182602secs
+
+u = 11011000
+num ext. occ.: 61928
+num int. occ.: 19068
+num faces    : 23
+num verts    : 172
+polytope computation in 3.02981591225secs
+containance test in 1.05327510834secs
+
+u = 11011001
+num ext. occ.: 44852
+num int. occ.: 11860
+num faces    : 19
+num verts    : 161
+polytope computation in 2.2427341938secs
+containance test in 0.624444007874secs
+
+u = 11000111
+num ext. occ.: 92138
+num int. occ.: 30619
+num faces    : 42
+num verts    : 214
+polytope computation in 4.43339705467secs
+containance test in 1.79608297348secs
+
+u = 11011101
+num ext. occ.: 13488
+num int. occ.: 3021
+num faces    : 16
+num verts    : 108
+polytope computation in 0.624240159988secs
+containance test in 0.155591011047secs
+
+u = 11011011
+num ext. occ.: 51306
+num int. occ.: 13824
+num faces    : 22
+num verts    : 191
+polytope computation in 2.55574297905secs
+containance test in 0.738194942474secs
+
+u = 11011100
+num ext. occ.: 72850
+num int. occ.: 21375
+num faces    : 27
+num verts    : 152
+polytope computation in 3.46675515175secs
+containance test in 1.17147898674secs
+
+u = 11011110
+num ext. occ.: 58894
+num int. occ.: 14056
+num faces    : 30
+num verts    : 207
+polytope computation in 2.76674795151secs
+containance test in 0.774389028549secs
+
+u = 11100001
+num ext. occ.: 61286
+num int. occ.: 19842
+num faces    : 44
+num verts    : 193
+polytope computation in 2.86787414551secs
+containance test in 1.14861297607secs
+
+u = 11100010
+num ext. occ.: 51261
+num int. occ.: 15102
+num faces    : 35
+num verts    : 133
+polytope computation in 2.40704798698secs
+containance test in 0.852040052414secs
+
+u = 11000011
+num ext. occ.: 141677
+num int. occ.: 53792
+num faces    : 53
+num verts    : 321
+polytope computation in 10.0019249916secs
+containance test in 3.21346402168secs
+
+u = 11100100
+num ext. occ.: 69317
+num int. occ.: 21356
+num faces    : 35
+num verts    : 124
+polytope computation in 3.80004715919secs
+containance test in 1.24389100075secs
+
+u = 11100101
+num ext. occ.: 17048
+num int. occ.: 4026
+num faces    : 26
+num verts    : 106
+polytope computation in 0.839258909225secs
+containance test in 0.221637010574secs
+
+u = 11100110
+num ext. occ.: 75815
+num int. occ.: 21376
+num faces    : 16
+num verts    : 86
+polytope computation in 4.44899988174secs
+containance test in 1.1289460659secs
+
+u = 11100011
+num ext. occ.: 92138
+num int. occ.: 30619
+num faces    : 42
+num verts    : 214
+polytope computation in 4.41594195366secs
+containance test in 1.79472398758secs
+
+u = 11101000
+num ext. occ.: 53294
+num int. occ.: 14990
+num faces    : 35
+num verts    : 138
+polytope computation in 2.53449511528secs
+containance test in 0.839268922806secs
+
+u = 11101001
+num ext. occ.: 18052
+num int. occ.: 4400
+num faces    : 26
+num verts    : 125
+polytope computation in 0.863358020782secs
+containance test in 0.237965106964secs
+
+u = 11101010
+num ext. occ.: 17722
+num int. occ.: 3844
+num faces    : 23
+num verts    : 106
+polytope computation in 0.8436191082secs
+containance test in 0.205734968185secs
+
+u = 11101011
+num ext. occ.: 56414
+num int. occ.: 13328
+num faces    : 16
+num verts    : 78
+polytope computation in 2.69842410088secs
+containance test in 0.691138029099secs
+
+u = 11101100
+num ext. occ.: 70180
+num int. occ.: 20010
+num faces    : 19
+num verts    : 65
+polytope computation in 3.37141489983secs
+containance test in 1.0531411171secs
+
+u = 11101101
+num ext. occ.: 13603
+num int. occ.: 3151
+num faces    : 17
+num verts    : 50
+polytope computation in 0.644021987915secs
+containance test in 0.16304898262secs
+
+u = 11101110
+num ext. occ.: 28353
+num int. occ.: 6830
+num faces    : 28
+num verts    : 104
+polytope computation in 1.35386991501secs
+containance test in 0.373555183411secs
+
+u = 11100111
+num ext. occ.: 116305
+num int. occ.: 33864
+num faces    : 41
+num verts    : 142
+polytope computation in 8.37583804131secs
+containance test in 2.06162691116secs
+
+u = 11100000
+num ext. occ.: 101768
+num int. occ.: 37752
+num faces    : 73
+num verts    : 217
+polytope computation in 5.84358286858secs
+containance test in 2.57383513451secs
+
+u = 11110001
+num ext. occ.: 58416
+num int. occ.: 16132
+num faces    : 47
+num verts    : 188
+polytope computation in 2.7492120266secs
+containance test in 0.952571153641secs
+
+u = 11110010
+num ext. occ.: 64024
+num int. occ.: 15956
+num faces    : 37
+num verts    : 197
+polytope computation in 3.01233696938secs
+containance test in 0.894342899323secs
+
+u = 11000000
+num ext. occ.: 132861
+num int. occ.: 55499
+num faces    : 71
+num verts    : 271
+polytope computation in 6.56210589409secs
+containance test in 3.64694595337secs
+
+u = 11110100
+num ext. occ.: 64029
+num int. occ.: 16427
+num faces    : 37
+num verts    : 180
+polytope computation in 3.0150718689secs
+containance test in 0.924721956253secs
+
+u = 11110101
+num ext. occ.: 39256
+num int. occ.: 7792
+num faces    : 23
+num verts    : 156
+polytope computation in 1.85687804222secs
+containance test in 0.41125702858secs
+
+u = 11110110
+num ext. occ.: 59630
+num int. occ.: 14404
+num faces    : 24
+num verts    : 167
+polytope computation in 2.83977103233secs
+containance test in 0.763799190521secs
+
+u = 11110011
+num ext. occ.: 191372
+num int. occ.: 57191
+num faces    : 25
+num verts    : 193
+polytope computation in 12.5038979053secs
+containance test in 3.14384913445secs
+
+u = 11101111
+num ext. occ.: 87059
+num int. occ.: 21990
+num faces    : 29
+num verts    : 147
+polytope computation in 4.16576886177secs
+containance test in 1.21983909607secs
+
+u = 11111001
+num ext. occ.: 100278
+num int. occ.: 24993
+num faces    : 53
+num verts    : 225
+polytope computation in 4.78533196449secs
+containance test in 1.52020001411secs
+
+u = 11111010
+num ext. occ.: 77476
+num int. occ.: 17528
+num faces    : 50
+num verts    : 157
+polytope computation in 3.73583602905secs
+containance test in 1.1051440239secs
+
+u = 11110111
+num ext. occ.: 87059
+num int. occ.: 21990
+num faces    : 29
+num verts    : 147
+polytope computation in 4.18075203896secs
+containance test in 1.18122792244secs
+
+u = 11110000
+num ext. occ.: 171786
+num int. occ.: 58250
+num faces    : 50
+num verts    : 200
+polytope computation in 12.9378061295secs
+containance test in 3.50555992126secs
+
+u = 11111101
+num ext. occ.: 52648
+num int. occ.: 11046
+num faces    : 60
+num verts    : 159
+polytope computation in 2.5283741951secs
+containance test in 0.671226978302secs
+
+u = 11011111
+num ext. occ.: 110153
+num int. occ.: 28411
+num faces    : 40
+num verts    : 257
+polytope computation in 5.2325899601secs
+containance test in 1.60081291199secs
+
+u = 11111011
+num ext. occ.: 110153
+num int. occ.: 28411
+num faces    : 40
+num verts    : 257
+polytope computation in 5.4475479126secs
+containance test in 1.71148991585secs
+
+u = 11111000
+num ext. occ.: 135521
+num int. occ.: 39556
+num faces    : 59
+num verts    : 252
+polytope computation in 8.86523795128secs
+containance test in 2.48910808563secs
+
+u = 11001111
+num ext. occ.: 191372
+num int. occ.: 57191
+num faces    : 25
+num verts    : 193
+polytope computation in 8.9410071373secs
+containance test in 3.01796007156secs
+
+u = 01111111
+num ext. occ.: 152424
+num int. occ.: 34554
+num faces    : 75
+num verts    : 270
+polytope computation in 8.32245397568secs
+containance test in 2.19571900368secs
+
+u = 00111111
+num ext. occ.: 244395
+num int. occ.: 65003
+num faces    : 91
+num verts    : 183
+polytope computation in 19.5233149529secs
+containance test in 4.78555679321secs
+
+u = 11111110
+num ext. occ.: 152424
+num int. occ.: 34554
+num faces    : 75
+num verts    : 270
+polytope computation in 8.18871712685secs
+containance test in 2.20674014091secs
+
+u = 11111100
+num ext. occ.: 244395
+num int. occ.: 65003
+num faces    : 91
+num verts    : 183
+polytope computation in 13.7166290283secs
+containance test in 4.55427503586secs
+
+u = 11111111
+num ext. occ.: 334733
+num int. occ.: 80520
+num faces    : 175
+num verts    : 383
+polytope computation in 20.8126299381secs
+containance test in 9.36919593811secs
+

@@ -1,0 +1,104 @@
+u = 000001010
+num ext. occ.: 169818
+num int. occ.: 37224
+num faces    : 45
+num verts    : 274
+polytope computation in 13.1379590034secs
+containance test in 2.41315484047secs
+
+u = 000001110
+num ext. occ.: 299398
+num int. occ.: 85056
+num faces    : 83
+num verts    : 492
+polytope computation in 20.2106170654secs
+containance test in 7.69575786591secs
+
+u = 000001001
+num ext. occ.: 233681
+num int. occ.: 63056
+num faces    : 79
+num verts    : 206
+polytope computation in 17.2933561802secs
+containance test in 4.96400094032secs
+
+u = 000010010
+num ext. occ.: 128512
+num int. occ.: 30288
+num faces    : 46
+num verts    : 386
+polytope computation in 8.28397703171secs
+containance test in 1.92388486862secs
+
+u = 000001101
+num ext. occ.: 269560
+num int. occ.: 72097
+num faces    : 83
+num verts    : 388
+polytope computation in 26.8169131279secs
+containance test in 5.32894301414secs
+
+u = 000010001
+num ext. occ.: 184009
+num int. occ.: 47744
+num faces    : 83
+num verts    : 297
+polytope computation in 12.343984127secs
+containance test in 4.01951694489secs
+
+u = 000010101
+num ext. occ.: 116096
+num int. occ.: 27342
+num faces    : 64
+num verts    : 304
+polytope computation in 7.13185787201secs
+containance test in 1.94933581352secs
+
+u = 000010110
+num ext. occ.: 138430
+num int. occ.: 34692
+num faces    : 57
+num verts    : 376
+polytope computation in 8.64828395844secs
+containance test in 2.55138301849secs
+
+u = 000001011
+num ext. occ.: 260768
+num int. occ.: 72598
+num faces    : 83
+num verts    : 372
+polytope computation in 33.5588929653secs
+containance test in 5.28669905663secs
+
+u = 000000010
+num ext. occ.: 333832
+num int. occ.: 73394
+num faces    : 145
+num verts    : 598
+polytope computation in 20.8306601048secs
+containance test in 8.2117831707secs
+
+u = 000010100
+num ext. occ.: 328432
+num int. occ.: 86368
+num faces    : 37
+num verts    : 128
+polytope computation in 21.082474947secs
+containance test in 5.6963429451secs
+
+u = 000011010
+num ext. occ.: 138502
+num int. occ.: 33726
+num faces    : 57
+num verts    : 382
+polytope computation in 8.78233408928secs
+containance test in 2.48359012604secs
+
+u = 000011001
+num ext. occ.: 419385
+num int. occ.: 126647
+num faces    : 39
+num verts    : 126
+polytope computation in 52.4968628883secs
+containance test in 7.84769296646secs
+
