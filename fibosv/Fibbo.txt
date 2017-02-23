@@ -1,0 +1,217 @@
+--------------Calculs des trucs longueurs minimales des identitées construites sur Fibbo--------------------
+sage: n=0;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,1)
+True
+
+sage: n=1;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,2)
+False
+sage: n=2;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,2)
+True
+
+
+sage: n=6;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,3)
+False
+u = 11 bad occurrence (4, 6)
+sage: n=7;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,3)
+True
+
+sage: n=9;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s
+sage: is_sv_identity(u,v,4)
+False
+u = 111 bad occurrence (7, 9, 12) 
+sage: n=10;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s
+sage: is_sv_identity(u,v,4)
+True
+
+sage: n=19;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,5)
+False
+u = 1111 bad occurrence (20, 22, 25, 27)
+sage: n=20;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity(u,v,5)
+True
+
+sage: n=22;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity_parallel(u,v,6)
+False
+u = 11111 bad occurrence (20, 23, 25, 28, 30)
+sage: n=23;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity_parallel(u,v,6)
+True
+
+sage: n=27;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity_parallel(u,v,7)
+False
+u = 111111 bad occurrence (28, 30, 33, 35, 41, 43)
+sage: n=28;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;is_sv_identity_parallel(u,v,7)
+True
+
+sage: %time n=30;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;R=is_sv_identity_parallel(u,v,8,ncpus=16);print(R)
+False
+CPU times: user 19.5 ms, sys: 100 ms, total: 120 ms
+Wall time: 11.2 s
+%time R=is_sv_identity_parallel(u,v,d,ncpus=2,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+(8, 30, False)
+CPU times: user 192 ms, sys: 80 ms, total: 272 ms
+Wall time: 4min 47s
+u = 1111111 bad occurrence (23, 25, 28, 30, 36, 38, 41)
+
+sage: %time n=31;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;R=is_sv_identity_parallel(u,v,8,ncpus=16);print(R)
+True
+CPU times: user 105 ms, sys: 96.5 ms, total: 201 ms
+Wall time: 1min 37s
+
+
+
+w=words.FibonacciWord()
+sage: while R:
+    n+=1
+    s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s
+    R=not is_sv_identity_parallel(u,v,9,ncpus=16,check_common_factors=False)
+    print(n,not R)
+
+d=9,n=40 :False
+CPU times: user 2.96 s, sys: 1.14 s, total: 4.1 s
+Wall time: 44min 54s
+
+%time d=9;n=45;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;
+R=is_sv_identity_parallel(u,v,d,ncpus=16,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+u = 11111111
+bad occurrence (25, 27, 30, 32, 35, 38, 43, 45)
+
+%time d=9;n=60;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;
+R=is_sv_identity_parallel(u,v,d,ncpus=16,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+
+
+%time d=9;n=51;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;
+R=is_sv_identity_parallel(u,v,d,ncpus=16,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+
+%time d=9;n=48;R=is_sv_identity(u,v,d,prefix='1'*(d-1),status=True);print(d,n,R)
+(9, 48, (False, 'u = 11111111\nnum ext. occ.: 65634\nnum int. occ.: 36008\nnum faces    : 215\nnum verts    : 434\npolytope computation in 3.27659893036secs\nbad occurrence (28, 30, 33, 38, 41, 43, 46, 48) in 11111110secs\n'))
+CPU times: user 46min 10s, sys: 908 ms, total: 46min 11s
+Wall time: 46min 14s
+
+%time d=9;n=49;R=is_sv_identity_parallel(u,v,d,ncpus=16,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+u = 11111111 bad occurrence (50, 52, 55, 57, 63, 65, 68, 70)
+
+d=9, n=53 Fibo(1,0) 
+%time R=is_sv_identity(u,v,d,prefix='1'^(d-1),status=True)
+CPU times: user 3d 4h 37min 15s, sys: 21 s, total: 3d 4h 37min 36s
+Wall time: 3d 4h 42min 16s
+sage: R
+(True,
+ 'u = 11111111\nnum ext. occ.: 334733\nnum int. occ.: 80520\nnum faces    : 175\nnum verts    : 383\npolytope computation in 31.0928249359secs\ncontainance test in 7.53434491158secs\n\n')
+ 
+sage: %time R=is_sv_identity(u,v,d,prefix='0'^(d-1),status=True)
+CPU times: user 1h 59min 16s, sys: 615 ms, total: 1h 59min 17s
+Wall time: 1h 59min 24s
+sage: R
+(False,
+ 'u = 00000000\nnum ext. occ.: 103705\nnum int. occ.: 49840\nnum faces    : 175\nnum verts    : 373\npolytope computation in 4.64676189423secs\nbad occurrence (33, 35, 38, 40, 46, 48, 51, 53) in 00000000secs\n')
+
+sage: %time d=9;n=54;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;
+CPU times: user 1.49 ms, sys: 231 µs, total: 1.72 ms
+Wall time: 1.66 ms
+sage: %time R=is_sv_identity_parallel(u,v,d,ncpus=8,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+(9, 54, True)
+CPU times: user 4min 9s, sys: 1min 19s, total: 5min 29s
+Wall time: 3d 15h 52min 35s
+
+
+
+%time d=9;n=60;s=str(w[0:n]);p=s[::-1];u=p+'01'+s;v=p+'10'+s;R=is_sv_identity_parallel(u,v,d,ncpus=16,prefix_length=d-1,logfile='logsfibo'+str(d)+'_'+str(n));print(d,n,R)
+(9, 60, True)
+CPU times: user 4min 56s, sys: 1min 50s, total: 6min 46s
+Wall time: 3d 11h 38min 47s
+
+
+------------------Synthese------------------------------
+
+sage: for i in range(1,11):
+....:      p,s=vincent_sv_prefix_suffix(i); print(i,len(p))
+....:
+(1, 0)	0
+(2, 2)	2	3*
+(3, 5)	7	5	1.6666
+(4, 9)	10	3
+(5, 14)	20	10	2
+(6, 20)	23	3
+(7, 27)	28	5
+(8, 35)	31	3
+(9, 44)	54	23	2.3
+(10,54)	57?
+		Fib	Dif	Ratio
+		opt	
+*: 3 et non 2, car on peut considérer len(u/2) au lieu de len(p)
+
+
+-----------Calculs des polytopes----------------------------
+
+sage: %time sym_diff = left_occ.symmetric_difference(right_occ)
+CPU times: user 27 µs, sys: 2 µs, total: 29 µs
+Wall time: 31 µs
+sage: d=5;n=20;s=str(w[0:n]);p=s[::-1];left=p+'01'+s;right=p+'10'+s;u='1'*(d-1)
+sage: %time left_occ = set(extremal_occurrences(left, u));right_occ = set(extremal_occurrences(right, u))
+CPU times: user 3.49 ms, sys: 1.03 ms, total: 4.51 ms
+Wall time: 3.62 ms
+sage: %time sym_diff = left_occ.symmetric_difference(right_occ);inter = left_occ.intersection(right_occ)
+CPU times: user 53 µs, sys: 3 µs, total: 56 µs
+Wall time: 59.1 µs
+sage: %time P = ppl_polytope(inter)
+CPU times: user 2.69 ms, sys: 0 ns, total: 2.69 ms
+Wall time: 2.54 ms
+sage: %time o=sorted(sym_diff)[0]
+CPU times: user 55 µs, sys: 3 µs, total: 58 µs
+Wall time: 60.1 µs
+sage: %time pt = C_Polyhedron(point(Linear_Expression(o,0)))
+CPU times: user 154 µs, sys: 0 ns, total: 154 µs
+Wall time: 117 µs
+sage: %time i=0; o=sorted(sym_diff)[i];pt = C_Polyhedron(point(Linear_Expression(o,0)))
+CPU times: user 158 µs, sys: 7 µs, total: 165 µs
+Wall time: 170 µs
+sage: %time P.contains(pt)
+CPU times: user 1.74 ms, sys: 0 ns, total: 1.74 ms
+Wall time: 1.73 ms
+True
+sage: %time i=1; o=sorted(sym_diff)[i];pt = C_Polyhedron(point(Linear_Expression(o,0)))
+CPU times: user 138 µs, sys: 7 µs, total: 145 µs
+Wall time: 150 µs
+sage: %time P.contains(pt)
+CPU times: user 25 µs, sys: 1e+03 ns, total: 26 µs
+Wall time: 28.8 µs
+True
+sage: %time i=0; o=sorted(sym_diff)[i];pt = C_Polyhedron(point(Linear_Expression(o,0)))
+CPU times: user 182 µs, sys: 0 ns, total: 182 µs
+Wall time: 145 µs
+sage: %time P.contains(pt)
+CPU times: user 34 µs, sys: 2 µs, total: 36 µs
+Wall time: 42.9 µs
+
+
+sage: d=7;n=28;s=str(w[0:n]);p=s[::-1];left=p+'01'+s;right=p+'10'+s;u='1'^(d-1)
+sage: left_occ = set(extremal_occurrences(left, u));right_occ = set(extremal_occurrences(right, u))
+sage: sym_diff = left_occ.symmetric_difference(right_occ);inter = left_occ.intersection(right_occ)
+sage: %time P = ppl_polytope(inter)
+CPU times: user 53.1 ms, sys: 516 µs, total: 53.7 ms
+Wall time: 51.4 ms
+sage: %time o=sorted(sym_diff)[0]; pt = C_Polyhedron(point(Linear_Expression(o,0)));
+CPU times: user 960 µs, sys: 0 ns, total: 960 µs
+Wall time: 886 µs
+sage: %time P.contains(pt)
+CPU times: user 186 ms, sys: 0 ns, total: 186 ms
+Wall time: 179 ms
+True
+sage: %time o=sorted(sym_diff)[4]; pt = C_Polyhedron(point(Linear_Expression(o,0)));
+CPU times: user 0 ns, sys: 0 ns, total: 0 ns
+Wall time: 825 µs
+sage: %time P.contains(pt)
+CPU times: user 0 ns, sys: 0 ns, total: 0 ns
+Wall time: 35 µs
+True
+sage: %time o=sorted(sym_diff)[0]; pt = C_Polyhedron(point(Linear_Expression(o,0)));
+CPU times: user 887 µs, sys: 0 ns, total: 887 µs
+Wall time: 783 µs
+sage: %time P.contains(pt)
+CPU times: user 0 ns, sys: 0 ns, total: 0 ns
+Wall time: 73.9 µs
+True
+
+
+
+
+
+
