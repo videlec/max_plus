@@ -116,6 +116,24 @@ def tree_write(tree, words):
                 words[parent].extend(glue_factors(l, r))
 
 @cached_function
+def trees_bis(m):
+    r"""
+    List of complete binary trees with ``m`` leaves (and hence 2m-1 vertices)
+    """
+    if m == 1:
+        return ((),)
+    else:
+        return tuple((l,r) for i in range(1,m) for l in trees_bis(i) for r in trees_bis(m-i))
+
+@cached_function
+def num_leaves(t):
+    if not t:
+        return 1
+    else:
+        return num_leaves(t[0]) + num_leaves(t[1])
+
+
+@cached_function
 def trees(m):
     r"""
     List of trees with ``m`` leaves (and hence 2m-1 vertices)
@@ -167,6 +185,32 @@ def _trees(m, root):
 #]
 #T = [None, None, T2, T3, T4]
 
+@cached_function
+def minimal_lexico_factors(btree, leaves):
+    r"""
+    Return the list of minimal lexicographic occurrences of ``leaves`` along ``btree``.
+    """
+    assert num_leaves(btree) == len(leaves), (btree, len(leaves))
+
+    if len(leaves) == 1:
+        return leaves[0]
+
+    left, right = btree
+    nl = num_leaves(left)
+    nr = num_leaves(right)
+    assert nl + nr == len(leaves)
+    ul = minimal_lexico_factors(left, leaves[:nl])
+    ur = minimal_lexico_factors(right, leaves[nl:])
+    ans = set()
+    for l in ul:
+        for r in ur:
+            ans.update(glue_factors(l,r))
+    return tuple(sorted(ans))
+
+# this is method is very slow but we might be able to make it faster
+# For example, if u is a factor of Fibonacci we know the answer
+# if u is a concatenation of two factors as well...
+@cached_function
 def minimal_factors(u):
     r"""
     Return the set of factors of the Fibonacci word that contain
@@ -181,16 +225,25 @@ def minimal_factors(u):
         sage: minimal_factors(Word([0,0,0,0]))
         [word: 00100, word: 010010]
     """
-    ans = set()
-    m = u.length()
-    labels = [[u[i:i+1]] for i in range(m)]
-    for tree,leaves in trees(m):
-        words = [None] * (2*m-1)
-        for i,j in zip(leaves,labels):
-            words[i] = j
-        tree_write(tree, words)
-        ans.update(words[0])
-    return sorted(ans)
+    if len(u) == 1:
+        return [u]
+    elif len(u) == 2:
+        return glue_factors(u[0:1], u[1:2])
+    else:
+        ans = set()
+        for i in range(1,len(u)):
+            l = minimal_factors(u[:i])
+            r = minimal_factors(u[i:])
+            for l in minimal_factors(u[:i]):
+                for r in minimal_factors(u[i:]):
+                    ans.update(glue_factors(l,r))
+        return sorted(ans)
+
+#    m = u.length()
+#    labels = tuple((u[i:i+1],) for i in range(m))
+#    for tree in trees_bis(m):
+#        ans.update(minimal_lexico_factors(tree, labels))
+#    return sorted(ans)
 
 def sv_prefix_length(m, prefix=None):
     r"""
@@ -200,6 +253,8 @@ def sv_prefix_length(m, prefix=None):
     EXAMPLES::
 
         sage: from max_plus.fibonacci import sv_prefix_length
+        sage: sv_prefix_length(1)
+        2
         sage: sv_prefix_length(2)
         7
         sage: sv_prefix_length(3)
@@ -220,19 +275,43 @@ def sv_prefix_length(m, prefix=None):
         62
         sage: sv_prefix_length(11)   # not tested # too long
         65
+        sage: sv_prefix_length(12)   # not tested # too long
+        75
+        sage: sv_prefix_length(13)   # not tested # too long
+        78
+        sage: sv_prefix_length(14)   # not tested # too long
+        91
+        sage: sv_prefix_length(15)   # not tested # too long
+        96
+        sage: sv_prefix_length(16)   # not tested # too long
+        143
+        sage: sv_prefix_length(17)   # not tested # too long
+        146
+        sage: sv_prefix_length(18)   # not tested # too long
+        151
 
-        sage: l = [7, 10, 20, 23, 28, 31, 54, 57, 62, 65]
+        sage: l = [2, 7, 10, 20, 23, 28, 31, 54, 57, 62, 65, 75, 78, 91, 96, 143, 146, 151]
         sage: [l[i+1]-l[i] for i in range(len(l)-1)]
-        [3, 10, 3, 5, 3, 23, 3, 5, 3]
+        [5, 3, 10, 3, 5, 3, 23, 3, 5, 3, 10, 3, 13, 5, 47, 3, 5]
     """
     if prefix is None:
         prefix = W()
     ans = set()
     for u in W.iterate_by_length(m - len(prefix)):
-        ans.update(minimal_factors(prefix + u))
+        u = prefix + u
+        print u
+        ans.update(minimal_factors(u))
     return max(wp.find(u) + u.length() for u in ans)
 
 def sv_prefix_length_parallel(m, ncpus=None, prefix_length=None, verbose=False):
+    r"""
+    The main problem with this naive parallel version is that the cache
+    are not shared and many computations are done several times.
+
+    (moreover once the pool is killed computations should be lost)
+
+    However, it seems that the fork make a copy of the current cache...
+    """
     import multiprocessing as mp
     from misc import parallel_unfold
 
