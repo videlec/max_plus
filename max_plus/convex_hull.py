@@ -1,5 +1,10 @@
 r"""
 """
+# TODO: to check equality of convex hull we should simply check
+# whether
+#
+#  CH(A u B) c CH(A \cap B)
+
 from sage_import import *
 from subprocess import Popen, PIPE
 
@@ -198,7 +203,7 @@ class ConvexHullPolyhedra(ConvexHull):
 
 class ConvexHullPPL(ConvexHull):
     r"""
-    Compute convex hull using a raw PPL interface (`sage.libs.ppl`).
+    Compute convex hull using a raw PPL interface pplpy
 
     This is not faster than polyhedra from Sage.
     """

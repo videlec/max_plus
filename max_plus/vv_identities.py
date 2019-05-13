@@ -63,7 +63,7 @@ def is_vv_identity(left, right, d, W=None, prefix=(), status=False):
         sage: is_vv_identity(u, v, 3, W=F)
         True
         sage: ans, info = is_vv_identity(u, v, 3, W=F, status=True)
-        sage: print info
+        sage: print(info)
         u = 00
         num ext. occ.: 45
         num int. occ.: 20
@@ -399,7 +399,7 @@ def vv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
         sage: from max_plus.vv_identities import vv_candidates, is_vv_identity
         sage: for i in vv_candidates(10,2):
         ....:     if is_vv_identity(i[0],i[1],2):
-        ....:         print i
+        ....:         print(i)
         ((0, 1, 1, 0, 1, 0, 0, 1, 1, 0), (0, 1, 1, 0, 0, 1, 0, 1, 1, 0))
         ((1, 0, 0, 1, 1, 0, 0, 1, 1, 0), (1, 0, 0, 1, 0, 1, 0, 1, 1, 0))
         ((1, 0, 0, 1, 1, 0, 1, 0, 0, 1), (1, 0, 0, 1, 0, 1, 1, 0, 0, 1))

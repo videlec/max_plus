@@ -56,13 +56,13 @@ cdef class PartiallyAbelianizedWord(object):
         r"""
         TESTS::
 
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: PartiallyAbelianizedWord("00")
             00
             sage: PartiallyAbelianizedWord("0(0,0)0")
             00
             sage: PartiallyAbelianizedWord("0(1,1)001(1,2)0")
             0(1,1)001(1,2)0
-            sage:
         """
         if ab0 is None or ab1 is None:
             if not isinstance(w, str):
@@ -114,7 +114,7 @@ cdef class PartiallyAbelianizedWord(object):
         r"""
         EXAMPLES::
 
-            sage: from paw import PartiallyAbelianizedWord
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: w = PartiallyAbelianizedWord([1,0,0,1,0], [0,1,2,3],[3,3,1,1])
             sage: w.reverse()
             0(3,1)1(2,1)0(1,3)0(0,3)1
@@ -129,7 +129,7 @@ cdef class PartiallyAbelianizedWord(object):
         r"""
         EXAMPLES::
 
-            sage: from paw import PartiallyAbelianizedWord
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: PartiallyAbelianizedWord([0,1,1,0], [1,2,3], [3,3,1]).word()
             word: 0110
         """
@@ -164,6 +164,7 @@ cdef class PartiallyAbelianizedWord(object):
 
         EXAMPLES::
 
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: PartiallyAbelianizedWord([0,1,1,0], [1,2,3], [3,3,1]).size()
             4
         """
@@ -175,6 +176,7 @@ cdef class PartiallyAbelianizedWord(object):
 
         EXAMPLES::
 
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: PartiallyAbelianizedWord([0,1,1,0], [1,2,3], [3,3,1]).length()
             17
         """
@@ -245,7 +247,7 @@ cdef class PartiallyAbelianizedWord(object):
 
         EXAMPLES::
 
-            sage: from paw import PartiallyAbelianizedWord
+            sage: from max_plus.paw import PartiallyAbelianizedWord
             sage: from itertools import product
             sage: p = PartiallyAbelianizedWord([1,1],[0],[0])
             sage: for l in range(10):
@@ -312,7 +314,7 @@ cdef class PartiallyAbelianizedWord(object):
             0
             1
 
-            sage: w = PartiallyAbelianizedWord([1], [])
+            sage: w = PartiallyAbelianizedWord([1], [], [])
             sage: for u in w.substitutions([0,1],[0]):
             ....:     print(u)
             0
@@ -322,29 +324,30 @@ cdef class PartiallyAbelianizedWord(object):
             ....:     print(u)
             0101
             010
-            01(1, 0)1
-            0(0, 1)01
+            01(1,0)1
+            0(0,1)01
             101
-            0(0, 1)0
-            0(1, 1)1
+            0(0,1)0
+            0(1,1)1
             10
-            1(1, 0)1
+            1(1,0)1
 
-            sage: w = PartiallyAbelianizedWord([0,0], [(1,1)])
+            sage: w = PartiallyAbelianizedWord([0,0], [1], [1])
             sage: list(w.substitutions([0,1],[0], max_size=2)) == [u for u in w.substitutions([0,1],[0]) if u.size() <= 2]
+            True
 
             sage: w = PartiallyAbelianizedWord([0,1,0], [0,0], [0,0])
             sage: for u in w.substitutions([0,1],[0]):
             ....:     print(u)
             01001
             0100
-            010(1, 0)1
-            0(0, 1)001
+            010(1,0)1
+            0(0,1)001
             1001
-            0(0, 1)00
-            0(0, 1)0(1, 0)1
+            0(0,1)00
+            0(0,1)0(1,0)1
             100
-            10(1, 0)1
+            10(1,0)1
 
             sage: w = PartiallyAbelianizedWord([0,0], [1],[1])
             sage: L1 = list(w.substitutions([0,1],[0], max_size=2))
@@ -440,13 +443,13 @@ cpdef clean_update(list L, PartiallyAbelianizedWord v):
 
     EXAMPLES::
 
-        sage: from paw import PartiallyAbelianizedWord, clean_update
+        sage: from max_plus.paw import PartiallyAbelianizedWord, clean_update
 
         sage: L = [PartiallyAbelianizedWord([0,0], [1], [1])]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [1]))
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [2], [1]))
         sage: L
-        [0(1, 1)0]
+        [0(1,1)0]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [0]))
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [0], [1]))
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [1]))
@@ -543,7 +546,7 @@ cpdef Py_ssize_t find_smaller_prod(list L, PartiallyAbelianizedWord v):
 
     EXAMPLES::
 
-        sage: from max_plus.paw PartiallyAbelianizedWord as PAW, find_smaller_prod
+        sage: from max_plus.paw import PartiallyAbelianizedWord as PAW, find_smaller_prod
         sage: u0 = PAW([0]*3, [1,1], [1,3])
         sage: u1 = PAW([0]*3, [3,1], [1,1])
         sage: u2 = PAW([0]*3, [1,2], [1,2])
@@ -580,7 +583,7 @@ def min_prod(s0, s1, max_size):
 
     The extrema for the Fibonacci language::
 
-        sage: from paw import min_prod
+        sage: from max_plus.paw import min_prod
         sage: M = min_prod([0,1], [0], 5)
         sage: M[1]
         [0, 1]
