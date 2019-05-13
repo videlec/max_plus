@@ -139,7 +139,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         sage: is_sv_identity(u, v, 4)
         False
         sage: ans, info = is_sv_identity(u, v, 3, status=True)
-        sage: print info    # only one factor tested!
+        sage: print(info)   # only one factor tested!
         u = yy
         num ext. occ.: 3
         num int. occ.: 3
@@ -149,7 +149,7 @@ def is_sv_identity(left, right, d, W=None, prefix=(), check_common_factors=True,
         containance test in ...secs
 
         sage: ans, info = is_sv_identity(u, v, 3, check_common_factors=False, status=True)
-        sage: print info    # all factors are tested
+        sage: print(info)   # all factors are tested
         u = xx
         num ext. occ.: 5
         num int. occ.: 1
@@ -512,7 +512,7 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
         ....:     is_sv_identity)
 
         sage: def print_identity(i):
-        ....:     print ''.join(map(str,i[0])) + ' ' + ''.join(map(str,i[1]))
+        ....:     print(''.join(map(str,i[0])) + ' ' + ''.join(map(str,i[1])))
 
         sage: for i in sv_candidates(5, 2):
         ....:     if is_sv_identity(i[0], i[1], 2):
@@ -561,7 +561,7 @@ def sv_candidates(n, d, u_start=None, u_stop=None, nb_mats=10000):
         sage: for i in range(len(l)):                                               # long time
         ....:     for j in range(i):
         ....:         if l[i] != l[j]:
-        ....:             print set(l[i]).symmetric_difference(l[j])
+        ....:             print(set(l[i]).symmetric_difference(l[j]))
     """
     from .max_plus_int import (random_integer_max_plus_matrices_band,
             filter_upper_relation)
@@ -601,7 +601,7 @@ def sv_identities_iterator(n, d, u_start=None, u_stop=None, nb_mats=1000):
         sage: from max_plus import *
 
         sage: for i in sv_identities_iterator(6, 2):
-        ....:     print i
+        ....:     print(i)
         ((0, 1, 1, 0, 1, 0), (0, 1, 0, 0, 1, 0))
         ((0, 1, 1, 0, 1, 0), (0, 1, 0, 1, 1, 0))
         ((0, 1, 1, 1, 0, 0), (0, 1, 0, 1, 0, 0))
