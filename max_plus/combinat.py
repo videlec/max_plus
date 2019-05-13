@@ -41,7 +41,7 @@ def has_all_subwords(w, r):
         sage: from max_plus.sv_identities import has_all_subwords
         sage: W = FiniteWords([0,1])
         sage: for w in W.iterate_by_length(4):
-        ....:     print w, has_all_subwords(w, 2)
+        ....:     print(w, has_all_subwords(w, 2))
         0000 False
         0001 False
         0010 False
@@ -140,7 +140,7 @@ def letter_extremal_occurrences(w, u):
     This is a subset of all occurrences of ``u`` in ``w`` but *much* that
     defines the same convex hull.
 
-    You should actually look at :func:`letter_extremal_occurrences` which is
+    You should actually look at :func:`extremal_occurrences` which is
     even smarter.
 
     EXAMPLES::
