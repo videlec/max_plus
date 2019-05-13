@@ -49,15 +49,15 @@ For 2x2 matrices, it seems that the Newton polytopes of the entries always
 belong to a same given subspace of rank 5 (where we have 8 variables)::
 
     sage: x,y = symbolic_max_plus_matrices(2,2)
-    sage: print x
+    sage: print(x)
     [ x0  x1 ]
     [ x2  x3 ]
-    sage: print y
+    sage: print(y)
     [ x4  x5 ]
     [ x6  x7 ]
     sage: z = x*x*x*y*x*x*y*y
     sage: V = z.get_vector_span(0,0)
-    sage: print V
+    sage: print(V)
     Free module of degree 8 and rank 5 over Integer Ring
     Echelon basis matrix:
     [ 1  0  0 -1  0  0  0  0]
@@ -97,7 +97,6 @@ belong to a same given subspace of rank 5 (where we have 8 variables)::
 from __future__ import print_function, division, absolute_import
 
 import itertools
-import multiprocessing as mp
 from itertools import product
 from datetime import datetime
 import os
@@ -119,7 +118,7 @@ def symbolic_max_plus_identity(d, nvar, ch=None):
 
         sage: from max_plus import *
         sage: m = symbolic_max_plus_identity(2, 4)
-        sage: print m
+        sage: print(m)
         [   0  -oo ]
         [ -oo    0 ]
         sage: m.num_vars()
@@ -396,31 +395,31 @@ def symbolic_max_plus_matrices_upper(d, n,
         sage: x,y = symbolic_max_plus_matrices_upper(3,2)
         sage: x
         A 3x3 symbolic max plus matrix on 12 variables
-        sage: print x
+        sage: print(x)
         [  x0   x3  x5 ]
         [ -oo   x1  x4 ]
         [ -oo  -oo  x2 ]
-        sage: print y
+        sage: print(y)
         [  x6   x9  x11 ]
         [ -oo   x7  x10 ]
         [ -oo  -oo   x8 ]
 
         sage: x,y = symbolic_max_plus_matrices_upper(3,2,'z','v')
-        sage: print x
+        sage: print(x)
         [   0   x0  x2 ]
         [ -oo    0  x1 ]
         [ -oo  -oo   0 ]
-        sage: print y
+        sage: print(y)
         [   0   x3  x5 ]
         [ -oo    0  x4 ]
         [ -oo  -oo   0 ]
 
         sage: x,y = symbolic_max_plus_matrices_upper(3,2,'v','s')
-        sage: print x
+        sage: print(x)
         [  x3   x0  x2 ]
         [ -oo   x4  x1 ]
         [ -oo  -oo  x5 ]
-        sage: print y
+        sage: print(y)
         [  x6   x0  x2 ]
         [ -oo   x7  x1 ]
         [ -oo  -oo  x8 ]
@@ -732,8 +731,9 @@ class SymbolicMaxPlusMatrix(SageObject):
             True
         """
         n = int(n)
-        one = symbolic_max_plus_identity(self._d, self._nvars, self.convex_hull)
-        return generic_power(self, n, one)
+        if n == 0:
+            return symbolic_max_plus_identity(self._d, self._nvars, self.convex_hull)
+        return generic_power(self, n)
 
     def equal_coefficients(self, other):
         r"""
@@ -1111,13 +1111,13 @@ class SymbolicSymmetricMaxPlusMatrix(SymbolicMaxPlusMatrix):
         sage: from max_plus import *
 
         sage: a,b = symbolic_max_plus_matrices(2,2)
-        sage: print a
+        sage: print(a)
         [ x0  x1 ]
         [ x2  x3 ]
-        sage: print b
+        sage: print(b)
         [ x4  x5 ]
         [ x6  x7 ]
-        sage: print a*b
+        sage: print(a*b)
         [ max(x1+x6, x0+x4)  max(x1+x7, x0+x5) ]
         [ max(x3+x6, x2+x4)  max(x3+x7, x2+x5) ]
 
