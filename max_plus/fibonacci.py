@@ -63,13 +63,13 @@ def glue_factors(u1, u2):
     prefixes = [i]
     ans = []
     while prefixes:
-        #print prefixes
+        #print(prefixes)
         i = prefixes.pop()
         assert wp[i:i+m2] == u2, i
         j = wp[:i].rfind(u1)
 
         if j != -1:
-            #print "from i ={} found j = {}... {}".format(i,j,wp[j:i+m2])
+            #print("from i ={} found j = {}... {}".format(i,j,wp[j:i+m2]))
             ans.append(wp[j:i+m2])
         else:
             if u1[0] == 0:
@@ -141,9 +141,9 @@ def trees(m):
     EXAMPLES::
 
         sage: from max_plus.fibonacci import trees
-        sage: for t in trees(2): print t
+        sage: for t in trees(2): print(t)
         (((1, 2, 0),), (1, 2))
-        sage: for t in trees(3): print t
+        sage: for t in trees(3): print(t)
         (((3, 4, 2), (1, 2, 0)), (1, 3, 4))
         (((2, 3, 1), (1, 4, 0)), (2, 3, 4))
     """
@@ -299,7 +299,6 @@ def sv_prefix_length(m, prefix=None):
     ans = set()
     for u in W.iterate_by_length(m - len(prefix)):
         u = prefix + u
-        print u
         ans.update(minimal_factors(u))
     return max(wp.find(u) + u.length() for u in ans)
 
