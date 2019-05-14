@@ -51,6 +51,18 @@ PAW::~PAW()
     delete this->n1;
 }
 
+uint64_t PAW::hash()
+{
+    uint64_t u = w;
+    uint64_t mult = 143943825847;
+    for (size_t i = 0; i < n0->size(); i++)
+    {
+        u = (u ^ (153874541 * (*n0)[i]) ^ 5837456112 * (*n1)[i]) * mult;
+        mult += 54375;
+    }
+    return u;
+}
+
 void PAW::write()
 {
     std::cout << this;

@@ -15,6 +15,7 @@ cdef extern from "paw_utils.h":
     void word_count(size_t& n0, size_t& n1, uint64_t w)
     size_t word_length(uint64_t)
 
+
     int cmp_lexico(int_vec&, int_vec&)
     int cmp_prod(int_vec&, int_vec&)
 
@@ -30,6 +31,8 @@ cdef extern from "paw.h":
 
         size_t size()
         size_t length()
+
+        uint64_t hash()
 
         void write()
         void set(uint64_t, int_vec&, int_vec&) except +

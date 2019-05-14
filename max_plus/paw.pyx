@@ -52,6 +52,9 @@ cdef class PartiallyAbelianizedWord(object):
     def __dealloc__(self):
         del self.paw
 
+    def __hash__(self):
+        return self.paw.hash()
+
     def __init__(self, w, ab0=None, ab1=None):
         r"""
         TESTS::
@@ -620,7 +623,10 @@ def min_prod(s0, s1, max_size):
     cdef Py_ssize_t n = 0
     cdef Py_ssize_t i = 0
 
-    todo[2].append(PartiallyAbelianizedWord([0],[],[]))
+    cdef dict depth = {}
+    root = PartiallyAbelianizedWord([0],[],[])
+    todo[2].append(root)
+    depth[root] = 0
 
     while True:
         while m < len(todo) and not todo[m]:
@@ -643,6 +649,10 @@ def min_prod(s0, s1, max_size):
 
         # substitute
         for v in u.substitutions(s0, s1, max_size=max_size):
+            if v not in depth:
+                depth[v] = depth[u] + 1
+            else:
+                depth[v] = min(depth[v], depth[u]+1)
             if v.paw.w < m:
                 m = v.paw.w
             if find_smaller_prod(mins[v.paw.w], v) == -1:
@@ -662,4 +672,4 @@ def min_prod(s0, s1, max_size):
             M[-1].extend(mins[j+k])
         j+= 2**i
 
-    return M
+    return depth, M

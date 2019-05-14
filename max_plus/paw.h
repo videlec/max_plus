@@ -27,6 +27,8 @@ class PAW
         size_t size();
         size_t length();
 
+        uint64_t hash();
+
         void set(uint64_t w, int_vec& n0, int_vec& n1);
 
         void write();
