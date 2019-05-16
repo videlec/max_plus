@@ -1,9 +1,13 @@
 *.pyc
 *.swp
 max_plus/*.c
+max_plus/*.cpp
 max_plus/*.so
 home/
 sv_candidates/
 vv_candidates/
 build/
 logs/
+MANIFEST
+dist/
+max_plus.egg_info/
