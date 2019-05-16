@@ -113,6 +113,20 @@ cdef class PartiallyAbelianizedWord(object):
         del n0
         del n1
 
+    def is_word(self):
+        r"""
+        EXAMPLES::
+
+            sage: from max_plus.paw import PartiallyAbelianizedWord
+            sage: w = PartiallyAbelianizedWord([1,0,0,1], [0,0,2],[0,3,1])
+            sage: w.is_word()
+            False
+            sage: w = PartiallyAbelianizedWord([1,0,0,1], [0,0,0],[0,0,0])
+            sage: w.is_word()
+            True
+        """
+        return self.paw.isWord()
+
     def reverse(self):
         r"""
         EXAMPLES::
@@ -437,12 +451,13 @@ cdef class PartiallyAbelianizedWord(object):
 
                 yield r
 
-cpdef clean_update(list L, PartiallyAbelianizedWord v):
+cpdef int clean_update(list L, PartiallyAbelianizedWord v):
     r"""
     Remove all elements in L that are larger than v (for the product order)
     and add v to L if it does not have anybody smaller.
 
-    OUTPUT: new list or not
+    OUTPUT: 0 if an element in the list was smaller, or 1 if v was added
+    to the list and the list was cleaned
 
     EXAMPLES::
 
@@ -450,20 +465,27 @@ cpdef clean_update(list L, PartiallyAbelianizedWord v):
 
         sage: L = [PartiallyAbelianizedWord([0,0], [1], [1])]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [1]))
+        0
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [2], [1]))
+        0
         sage: L
         [0(1,1)0]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [0]))
+        1
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [0], [1]))
+        1
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [1], [1]))
+        0
         sage: L
         [0(1,0)0, 0(0,1)0]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0], [0], [0]))
+        1
         sage: L
         [00]
 
         sage: L = [PartiallyAbelianizedWord([0,0,0],[0,0],[1,0])]
         sage: clean_update(L, PartiallyAbelianizedWord([0,0,0], [0,0], [0,1]))
+        1
         sage: L
         [0(0,1)00, 00(0,1)0]
     """
@@ -480,7 +502,7 @@ cpdef clean_update(list L, PartiallyAbelianizedWord v):
             i += 1
         elif test0 <= 0 and test1 <= 0:
             # found somebody smaller or equal
-            return
+            return 0
         elif test0 >= 0 and test1 >= 0:
             # found somebody larger
             del L[i]
@@ -489,6 +511,7 @@ cpdef clean_update(list L, PartiallyAbelianizedWord v):
             i += 1
 
     L.append(v)
+    return 1
 
 
 cpdef bint lt_size(PartiallyAbelianizedWord w1, PartiallyAbelianizedWord w2):
@@ -582,16 +605,25 @@ def min_prod(s0, s1, max_size):
     Return the set of minimal elements for the product order in the language
     of the substitution ``0 -> s0`` and ``1 -> s1``.
 
+    OUTPUT: a triple ``(depth, fdepth, mins)`` where ``depth`` and ``fdepth`` are
+    dictionaries of respectively depth and factor depth and mins is the list of
+    lists of minimums
+
     EXAMPLES:
 
     The extrema for the Fibonacci language::
 
         sage: from max_plus.paw import min_prod
-        sage: M = min_prod([0,1], [0], 5)
+        sage: depth, fdepth, M = min_prod([0,1], [0], 5)
         sage: M[1]
         [0, 1]
         sage: M[2]
         [00, 10, 01, 1(1,0)1]
+        sage: [depth[p] for p in M[2]]
+        [3, 2, 1, 4]
+        sage: [fdepth[p] for p in M[2]]
+        [0, 0, 0, 1]
+
         sage: M[3]
         [0(0,1)00,
          00(0,1)0,
@@ -603,6 +635,10 @@ def min_prod(s0, s1, max_size):
          01(1,0)1,
          1(2,0)1(1,0)1,
          1(1,0)1(2,0)1]
+        sage: [depth[p] for p in M[3]]
+        [3, 4, 3, 2, 4, 3, 4, 4, 4, 5]
+        sage: [fdepth[p] for p in M[3]]
+        [1, 1, 0, 0, 1, 0, 0, 1, 2, 2]
 
     Checking invariance with respect to the mirror::
 
@@ -623,10 +659,12 @@ def min_prod(s0, s1, max_size):
     cdef Py_ssize_t n = 0
     cdef Py_ssize_t i = 0
 
-    cdef dict depth = {}
+    cdef dict depth = {}   # depth in the tree
+    cdef dict fdepth = {}  # depth before splitting from a factor
     root = PartiallyAbelianizedWord([0],[],[])
     todo[2].append(root)
     depth[root] = 0
+    fdepth[root] = 0
 
     while True:
         while m < len(todo) and not todo[m]:
@@ -637,29 +675,24 @@ def min_prod(s0, s1, max_size):
         # pick the minimum in size
         argmin_size(todo, m, &n, &i)
         u = todo[n].pop(i)
-
-#        print('mins: {}'.format(mins))
-#        print('todo: {}'.format(todo))
-#        print('u   : {}'.format(u))
-
-        # safety check
-#        assert find_smaller_prod(mins[n], u) == -1
-
         mins[n].append(u)
 
         # substitute
         for v in u.substitutions(s0, s1, max_size=max_size):
-            if v not in depth:
-                depth[v] = depth[u] + 1
-            else:
+            if v in depth:
                 depth[v] = min(depth[v], depth[u]+1)
+                fdepth[v] = min(fdepth[v], fdepth[u]+1)
+
             if v.paw.w < m:
                 m = v.paw.w
             if find_smaller_prod(mins[v.paw.w], v) == -1:
-                clean_update(todo[v.paw.w], v)
-
-        # safety check
-#        assert u not in todo[u.paw.w]
+                if clean_update(todo[v.paw.w], v):
+                    assert v not in depth
+                    depth[v] = depth[u] + 1
+                    if fdepth[u] == 0 and v.is_word():
+                        fdepth[v] = 0
+                    else:
+                        fdepth[v] = fdepth[u] + 1
 
     # indices 2,3 -> size 1
     # indices 4,5,6,7 -> size 2
@@ -672,4 +705,4 @@ def min_prod(s0, s1, max_size):
             M[-1].extend(mins[j+k])
         j+= 2**i
 
-    return depth, M
+    return depth, fdepth, M
