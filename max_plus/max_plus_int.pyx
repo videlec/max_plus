@@ -487,6 +487,36 @@ cdef class IntegerMaxPlusMatrix:
         coords = encode_barvinok(matrix)
         return toric_rank(coords)
 
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from max_plus.max_plus_int import IntegerMaxPlusMatrix, minus_infinity
+            sage: mi = minus_infinity()
+            sage: m = IntegerMaxPlusMatrix(3, 2, [0,1,mi,3,1,mi])
+            sage: latex(m)
+            \left(\begin{array}{rr}
+            0 & 1 \\
+            -\infty & 3 \\
+            1 & -\infty
+            \end{array}\right)
+        """
+        s = []
+        cdef Py_ssize_t i
+        for i in range(self.nrows):
+            line = []
+            for j in range(self.ncols):
+                if self.data[i][j] == LONG_MIN:
+                    line.append('-\\infty')
+                else:
+                    line.append(str(self.data[i][j]))
+            s.append(' & '.join(line))
+
+        start = "\\left(\\begin{{array}}{{{}}}\n".format('r'*self.ncols)
+        end = '\n\\end{array}\\right)'
+
+        return start + ' \\\\\n'.join(s) + end
+
     def __hash__(self):
         r"""
         TESTS::
