@@ -37,6 +37,8 @@ cdef extern from "paw.h":
         void write()
         void set(uint64_t, int_vec&, int_vec&) except +
 
+        cppbool isWord()
+
         cppbool operator==(const PAW&)
         cppbool operator!=(const PAW&)
 

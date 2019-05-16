@@ -68,6 +68,13 @@ void PAW::write()
     std::cout << this;
 }
 
+bool PAW::isWord()
+{
+    for (size_t i = 0; i < n0->size(); i++)
+        if ((*n0)[i] || (*n1)[i]) return false;
+    return true;
+}
+
 size_t PAW::size()
 {
     return this->n0->size() + 1;

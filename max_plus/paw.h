@@ -28,6 +28,7 @@ class PAW
         size_t length();
 
         uint64_t hash();
+        bool isWord();
 
         void set(uint64_t w, int_vec& n0, int_vec& n1);
 
